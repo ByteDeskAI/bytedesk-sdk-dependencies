@@ -20,9 +20,16 @@ type Manifest struct {
 	Binary         string         `json:"binary,omitempty"`
 	Socket         string         `json:"socket,omitempty"`
 	MinCoreVersion string         `json:"minCoreVersion,omitempty"`
+	Targets        []string       `json:"targets,omitempty"` // gateway, vault
 	Pricing        *Pricing       `json:"pricing,omitempty"`
 	Publisher      *Publisher     `json:"publisher,omitempty"`
 }
+
+// Host identifiers used in Manifest.Targets.
+const (
+	TargetGateway = "gateway"
+	TargetVault   = "vault"
+)
 
 type NavItem struct {
 	ID    string `json:"id"`
@@ -136,5 +143,41 @@ func (m Manifest) validate(requireVersion bool) error {
 			return fmt.Errorf("socket must be a relative basename")
 		}
 	}
+	for _, t := range m.Targets {
+		t = strings.ToLower(strings.TrimSpace(t))
+		if t != TargetGateway && t != TargetVault {
+			return fmt.Errorf("targets: unknown %q (gateway|vault)", t)
+		}
+	}
 	return nil
+}
+
+// TargetsOrDefault returns declared targets, or ["gateway"] for historical
+// manifests that omit the field.
+func (m Manifest) TargetsOrDefault() []string {
+	if len(m.Targets) == 0 {
+		return []string{TargetGateway}
+	}
+	out := make([]string, 0, len(m.Targets))
+	for _, t := range m.Targets {
+		t = strings.ToLower(strings.TrimSpace(t))
+		if t != "" {
+			out = append(out, t)
+		}
+	}
+	if len(out) == 0 {
+		return []string{TargetGateway}
+	}
+	return out
+}
+
+// Supports reports whether this plugin may run on host (gateway|vault).
+func (m Manifest) Supports(host string) bool {
+	host = strings.ToLower(strings.TrimSpace(host))
+	for _, t := range m.TargetsOrDefault() {
+		if t == host {
+			return true
+		}
+	}
+	return false
 }

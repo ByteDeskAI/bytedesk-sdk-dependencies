@@ -33,6 +33,21 @@ func TestParseManifestStringPublisher(t *testing.T) {
 	}
 }
 
+func TestSupportsTargets(t *testing.T) {
+	legacy := Manifest{ID: "x", Version: "1"}
+	if !legacy.Supports(TargetGateway) || legacy.Supports(TargetVault) {
+		t.Fatal("empty targets default to gateway only")
+	}
+	both := Manifest{ID: "x", Version: "1", Targets: []string{"gateway", "vault"}}
+	if !both.Supports(TargetGateway) || !both.Supports(TargetVault) {
+		t.Fatal("both targets")
+	}
+	vaultOnly := Manifest{ID: "x", Version: "1", Targets: []string{"vault"}}
+	if vaultOnly.Supports(TargetGateway) || !vaultOnly.Supports(TargetVault) {
+		t.Fatal("vault only")
+	}
+}
+
 func TestValidateDiscoverAllowsMissingVersion(t *testing.T) {
 	m := Manifest{ID: "x", Spawn: false}
 	if err := m.ValidateDiscover(); err != nil {
