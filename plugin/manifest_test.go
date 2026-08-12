@@ -22,3 +22,23 @@ func TestParseManifest(t *testing.T) {
 		t.Fatalf("got %+v", m)
 	}
 }
+
+func TestParseManifestStringPublisher(t *testing.T) {
+	m, err := ParseManifest([]byte(`{"id":"example","version":"0.2.0","publisher":"bytedesk"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.Publisher == nil || m.Publisher.ID != "bytedesk" {
+		t.Fatalf("publisher=%+v", m.Publisher)
+	}
+}
+
+func TestValidateDiscoverAllowsMissingVersion(t *testing.T) {
+	m := Manifest{ID: "x", Spawn: false}
+	if err := m.ValidateDiscover(); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Validate(); err == nil {
+		t.Fatal("strict Validate should require version")
+	}
+}

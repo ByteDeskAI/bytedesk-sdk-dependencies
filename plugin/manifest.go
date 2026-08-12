@@ -55,6 +55,36 @@ type Publisher struct {
 	URL  string `json:"url,omitempty"`
 }
 
+// UnmarshalJSON accepts either a publisher object or a legacy string id
+// (StorePackageManifest / fixture catalogs use "publisher":"bytedesk").
+func (p *Publisher) UnmarshalJSON(raw []byte) error {
+	if p == nil {
+		return fmt.Errorf("nil publisher")
+	}
+	s := strings.TrimSpace(string(raw))
+	if s == "" || s == "null" {
+		return nil
+	}
+	if len(raw) > 0 && raw[0] == '"' {
+		var id string
+		if err := json.Unmarshal(raw, &id); err != nil {
+			return err
+		}
+		p.ID = id
+		if p.Name == "" {
+			p.Name = id
+		}
+		return nil
+	}
+	type plain Publisher
+	var v plain
+	if err := json.Unmarshal(raw, &v); err != nil {
+		return err
+	}
+	*p = Publisher(v)
+	return nil
+}
+
 // ParseManifest decodes plugin.json bytes.
 func ParseManifest(raw []byte) (Manifest, error) {
 	var m Manifest
@@ -64,8 +94,18 @@ func ParseManifest(raw []byte) (Manifest, error) {
 	return m, nil
 }
 
-// Validate checks id/version/spawn basename rules (host + pack share this).
+// Validate checks id/version/spawn basename rules (authoring + pack).
 func (m Manifest) Validate() error {
+	return m.validate(true)
+}
+
+// ValidateDiscover is the host enable/scan gate: version is optional so
+// historical plugin.json files (id + spawn only) still load.
+func (m Manifest) ValidateDiscover() error {
+	return m.validate(false)
+}
+
+func (m Manifest) validate(requireVersion bool) error {
 	id := strings.TrimSpace(m.ID)
 	if id == "" {
 		return fmt.Errorf("plugin id required")
@@ -73,7 +113,7 @@ func (m Manifest) Validate() error {
 	if strings.Contains(id, "/") || strings.Contains(id, "\\") || strings.Contains(id, "..") || strings.Contains(id, " ") {
 		return fmt.Errorf("plugin id must be a single path segment")
 	}
-	if strings.TrimSpace(m.Version) == "" {
+	if requireVersion && strings.TrimSpace(m.Version) == "" {
 		return fmt.Errorf("plugin version required")
 	}
 	if m.Pricing != nil {
