@@ -18,4 +18,11 @@ semver/   AtLeast (minCoreVersion)
 `plugin.json` `"targets"` is `["gateway"]`, `["vault"]`, or both. Empty
 targets default to gateway-only (legacy manifests).
 
+## Versioning
+
+This module’s SemVer (`VERSION`) is independent of the Gateway SDK and Vault
+SDK. Those modules `require` a specific tag of this module in their `go.mod`.
+The numbers do not have to match. Bump this repo when the common contract
+changes; each SDK adopts the new tag when it is ready.
+
 See gateway ADR 0014.

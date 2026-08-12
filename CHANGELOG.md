@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- docs: this module’s SemVer is independent of the Gateway / Vault SDK versions
+
 ## [0.1.2] - 2026-08-12
 
 ### Added
