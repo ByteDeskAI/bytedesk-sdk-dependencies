@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- `role` (`system`|`extension`), `provides`, `requires`, `requiresProvides` (ADR 0015)
+- `Pricing.Model` accepts `trial`; `TrialDays`; `plugin.MissingRequired` / `GraphFrom` / `Cycle`
+
 ### Changed
 
 - docs: this module’s SemVer is independent of the Gateway / Vault SDK versions

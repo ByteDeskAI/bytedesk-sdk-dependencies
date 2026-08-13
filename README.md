@@ -8,7 +8,7 @@ module. They do not redefine Manifest, pack layout, or unix Serve. Platform
 SDKs only orchestrate host env, `targets` checks, and product clients.
 
 ```text
-plugin/   Manifest, targets (gateway|vault), Validate, LoadDir / LoadDirForHost
+plugin/   Manifest, targets, role (system|extension), requires, Validate, LoadDir
 serve/    unix-socket HTTP (host SDKs supply socket/id)
 pack/     <id>-<version>.tar.gz
 bus/      Envelope
