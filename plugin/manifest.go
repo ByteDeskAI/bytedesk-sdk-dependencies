@@ -27,6 +27,58 @@ type Manifest struct {
 	RequiresProvides []string       `json:"requiresProvides,omitempty"`
 	Pricing          *Pricing       `json:"pricing,omitempty"`
 	Publisher        *Publisher     `json:"publisher,omitempty"`
+
+	// Family declares platform members the host selects between (ADR 0020).
+	// Until now this lived only in the gateway's private parser, so an SDK
+	// author could not express a family at all.
+	Family *Family `json:"family,omitempty"`
+	// When constrains this plugin to a set of operating systems.
+	When When `json:"when,omitzero"`
+
+	// Extends names extension points this plugin owns; Implements registers it
+	// into points other plugins own (ADR 0023). The host mediates: a plugin
+	// never loads, execs or proxies another.
+	Extends    []ExtensionPoint `json:"extends,omitempty"`
+	Implements []Provider       `json:"implements,omitempty"`
+
+	// Critical marks a role:system plugin the host must not serve without. A
+	// critical plugin that fails to start halts the host rather than running
+	// with the capability missing. Meaningless for extensions.
+	Critical bool `json:"critical,omitempty"`
+}
+
+// When constrains a plugin or family member to a set of operating systems,
+// matched against runtime.GOOS.
+type When struct {
+	OS []string `json:"os,omitempty"`
+}
+
+// FamilyMember is one platform member of a family.
+type FamilyMember struct {
+	ID   string `json:"id"`
+	When When   `json:"when,omitzero"`
+}
+
+// Family declares the platform members a host selects between (ADR 0020).
+// Selector is "runtime.os" in v1.
+type Family struct {
+	Selector string         `json:"selector,omitempty"`
+	Members  []FamilyMember `json:"members,omitempty"`
+}
+
+// ExtensionPoint is a named seam a plugin owns and others register into.
+type ExtensionPoint struct {
+	Name        string `json:"name"`
+	Interface   string `json:"interface,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+// Provider registers a plugin into someone else's extension point. Higher
+// Priority wins when a point takes a single provider.
+type Provider struct {
+	Point    string `json:"point"`
+	ID       string `json:"id"`
+	Priority int    `json:"priority,omitempty"`
 }
 
 // Host identifiers used in Manifest.Targets.
@@ -65,6 +117,8 @@ type LauncherSpec struct {
 	Kind        string `json:"kind"`
 	Title       string `json:"title"`
 	Description string `json:"description,omitempty"`
+	// Group buckets launchers in the shell's launch menu.
+	Group string `json:"group,omitempty"`
 }
 
 type Pricing struct {
