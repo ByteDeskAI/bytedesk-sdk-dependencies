@@ -111,6 +111,13 @@ type PanelSpec struct {
 	ID   string `json:"id"`
 	Kind string `json:"kind"`
 	URL  string `json:"url"`
+	// Module is an optional ES module the shell mounts in-page instead of
+	// iframing URL (ADR 0024). URL stays required and remains the fallback:
+	// the host renders the iframe when Module is absent, when the bundle fails
+	// to load, or when the plugin is not trusted to mount in-page. Like URL, it
+	// is rewritten to /p/<id>/... for an out-of-process plugin, so declare it
+	// relative to the plugin root.
+	Module string `json:"module,omitempty"`
 }
 
 type LauncherSpec struct {
