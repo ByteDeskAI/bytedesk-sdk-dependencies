@@ -1,0 +1,21 @@
+{
+  "acceptRequests": [
+    {"lease":{"hostEpoch":"epoch","pluginId":"generic","providerId":"presenter","generation":"gen","subjectLease":"subject","requestId":"request","viewRevision":"view"},"terminals":[{"terminalId":"plain","context":{"kind":"none"}},{"terminalId":"tmux","context":{"kind":"tmux","tmux":{"repositoryKey":"0123456789abcdef","serverKey":"opaque-server","serverPid":"9223372036854775807","sessionId":"1","sessionCreated":"2","paneId":"3","panePid":"4"}}}]}
+  ],
+  "rejectRequests": [
+    {"name":"null terminals","json":"{\"lease\":{\"hostEpoch\":\"e\",\"pluginId\":\"p\",\"providerId\":\"p\",\"generation\":\"g\",\"subjectLease\":\"s\",\"requestId\":\"r\",\"viewRevision\":\"v\"},\"terminals\":null}"},
+    {"name":"duplicate","json":"{\"lease\":{\"hostEpoch\":\"e\",\"pluginId\":\"p\",\"providerId\":\"p\",\"generation\":\"g\",\"subjectLease\":\"s\",\"requestId\":\"r\",\"viewRevision\":\"v\"},\"terminals\":[{\"terminalId\":\"a\",\"context\":{\"kind\":\"none\"}},{\"terminalId\":\"a\",\"context\":{\"kind\":\"none\"}}]}"},
+    {"name":"unknown context","json":"{\"lease\":{\"hostEpoch\":\"e\",\"pluginId\":\"p\",\"providerId\":\"p\",\"generation\":\"g\",\"subjectLease\":\"s\",\"requestId\":\"r\",\"viewRevision\":\"v\"},\"terminals\":[{\"terminalId\":\"a\",\"context\":{\"kind\":\"ssh\"}}]}"},
+    {"name":"fraction pid","json":"{\"lease\":{\"hostEpoch\":\"e\",\"pluginId\":\"p\",\"providerId\":\"p\",\"generation\":\"g\",\"subjectLease\":\"s\",\"requestId\":\"r\",\"viewRevision\":\"v\"},\"terminals\":[{\"terminalId\":\"a\",\"context\":{\"kind\":\"tmux\",\"tmux\":{\"repositoryKey\":\"0123456789abcdef\",\"serverKey\":\"s\",\"serverPid\":1.5,\"sessionId\":\"1\",\"sessionCreated\":\"1\",\"paneId\":\"1\",\"panePid\":\"1\"}}}]}"},
+    {"name":"unknown field","json":"{\"lease\":{\"hostEpoch\":\"e\",\"pluginId\":\"p\",\"providerId\":\"p\",\"generation\":\"g\",\"subjectLease\":\"s\",\"requestId\":\"r\",\"viewRevision\":\"v\"},\"terminals\":[],\"extra\":true}"}
+  ],
+  "acceptResults": [
+    {"lease":{"hostEpoch":"epoch","pluginId":"generic","providerId":"presenter","generation":"gen","subjectLease":"subject","requestId":"request","viewRevision":"view"},"maxAgeMs":30000,"items":[{"terminalId":"plain","groupPath":[],"badges":[{"label":"Local","icon":"terminal"}],"priority":-1000,"freshness":"unknown"},{"terminalId":"tmux","groupPath":[{"id":"g","label":"Group"}],"badges":[],"priority":1000,"freshness":"fresh"}]}
+  ],
+  "rejectResults": [
+    {"name":"null items","json":"{\"lease\":{\"hostEpoch\":\"epoch\",\"pluginId\":\"generic\",\"providerId\":\"presenter\",\"generation\":\"gen\",\"subjectLease\":\"subject\",\"requestId\":\"request\",\"viewRevision\":\"view\"},\"maxAgeMs\":1,\"items\":null}"},
+    {"name":"fraction max age","json":"{\"lease\":{\"hostEpoch\":\"epoch\",\"pluginId\":\"generic\",\"providerId\":\"presenter\",\"generation\":\"gen\",\"subjectLease\":\"subject\",\"requestId\":\"request\",\"viewRevision\":\"view\"},\"maxAgeMs\":1.5,\"items\":[]}"},
+    {"name":"bad freshness","json":"{\"lease\":{\"hostEpoch\":\"epoch\",\"pluginId\":\"generic\",\"providerId\":\"presenter\",\"generation\":\"gen\",\"subjectLease\":\"subject\",\"requestId\":\"request\",\"viewRevision\":\"view\"},\"maxAgeMs\":1,\"items\":[{\"terminalId\":\"plain\",\"groupPath\":[],\"badges\":[],\"priority\":0,\"freshness\":\"old\"}]}"},
+    {"name":"fraction priority","json":"{\"lease\":{\"hostEpoch\":\"epoch\",\"pluginId\":\"generic\",\"providerId\":\"presenter\",\"generation\":\"gen\",\"subjectLease\":\"subject\",\"requestId\":\"request\",\"viewRevision\":\"view\"},\"maxAgeMs\":1,\"items\":[{\"terminalId\":\"plain\",\"groupPath\":[],\"badges\":[],\"priority\":0.5,\"freshness\":\"fresh\"}]}"}
+  ]
+}

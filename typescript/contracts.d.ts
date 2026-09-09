@@ -91,6 +91,50 @@ export interface Permissions {
   request?: string[]
 }
 
+export interface PresentationBadge {
+  readonly label: string
+  readonly icon?: string
+}
+
+export interface PresentationGroup {
+  readonly id: string
+  readonly label: string
+}
+
+export interface PresentationItem {
+  readonly terminalId: string
+  readonly groupPath: readonly PresentationGroup[]
+  readonly badges: readonly PresentationBadge[]
+  readonly priority: number
+  readonly freshness: 'fresh' | 'stale' | 'unknown'
+}
+
+export interface PresentationLease {
+  readonly hostEpoch: string
+  readonly pluginId: string
+  readonly providerId: string
+  readonly generation: string
+  readonly subjectLease: string
+  readonly requestId: string
+  readonly viewRevision: string
+}
+
+export interface PresentationRequest {
+  readonly lease: PresentationLease
+  readonly terminals: readonly PresentationTerminal[]
+}
+
+export interface PresentationResult {
+  readonly lease: PresentationLease
+  readonly maxAgeMs: number
+  readonly items: readonly PresentationItem[]
+}
+
+export interface PresentationTerminal {
+  readonly terminalId: string
+  readonly context: TerminalBindingContext
+}
+
 export interface Pricing {
   model: string
   sku?: string
@@ -133,6 +177,20 @@ export interface RuntimeStatus {
   available: boolean
   generation: string
   reason?: string
+}
+
+export type TerminalBindingContext =
+  | { readonly kind: 'none'; readonly tmux?: never }
+  | { readonly kind: 'tmux'; readonly tmux: TmuxPresentationContext }
+
+export interface TmuxPresentationContext {
+  readonly repositoryKey: string
+  readonly serverKey: string
+  readonly serverPid: string
+  readonly sessionId: string
+  readonly sessionCreated: string
+  readonly paneId: string
+  readonly panePid: string
 }
 
 export interface UIContribution {

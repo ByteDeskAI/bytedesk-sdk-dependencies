@@ -15,6 +15,13 @@ bus/      Envelope
 semver/   AtLeast (minCoreVersion)
 ```
 
+`terminal.presentation.v1` is an additive, host-selected extension contract.
+Providers register through the existing `Extends` / `Implements` declarations
+and serve `terminal.presentation.project.v1` through existing command transport.
+The SDK validates bounded principal-scoped requests and complete replacement
+results; hosts remain responsible for selection, authorization, monotonic
+freshness timers, revocation, rendering, and icon allowlisting.
+
 `plugin.json` `"targets"` is `["gateway"]`, `["vault"]`, or both. Empty
 targets default to gateway-only (legacy manifests).
 

@@ -36,6 +36,16 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.6] - 2026-09-09
+
+### Added
+
+- Additive `terminal.presentation.v1` types, identifiers, bounded strict wire
+  validation, principal/incarnation lease checks, shared fixtures, and generated
+  readonly TypeScript discriminated-union parity. The contract uses existing
+  extension declarations and command transport; it adds no manifest field or
+  mandatory host/plugin method.
+
 ## [0.3.0] - 2026-09-06
 
 ### Added

@@ -33,7 +33,7 @@ func declarations() []byte {
 			visit(t.Field(i).Type)
 		}
 	}
-	for _, model := range []any{plugin.Manifest{}, plugin.RuntimeSnapshot{}, plugin.HostCapabilities{}, plugin.ProtocolRequirements{}, plugin.LifecycleOperation{}} {
+	for _, model := range []any{plugin.Manifest{}, plugin.RuntimeSnapshot{}, plugin.HostCapabilities{}, plugin.ProtocolRequirements{}, plugin.LifecycleOperation{}, plugin.PresentationRequest{}, plugin.PresentationResult{}} {
 		visit(reflect.TypeOf(model))
 	}
 	var fieldType func(reflect.Type) string
@@ -49,7 +49,7 @@ func declarations() []byte {
 			return "string"
 		case reflect.Bool:
 			return "boolean"
-		case reflect.Int, reflect.Int64, reflect.Uint32, reflect.Uint64:
+		case reflect.Int, reflect.Int32, reflect.Int64, reflect.Uint32, reflect.Uint64:
 			return "number"
 		default:
 			panic("unsupported contract type: " + t.String())
@@ -63,8 +63,13 @@ func declarations() []byte {
 	}
 	sort.Strings(names)
 	for _, name := range names {
+		if name == "TerminalBindingContext" {
+			b.WriteString("export type TerminalBindingContext =\n  | { readonly kind: 'none'; readonly tmux?: never }\n  | { readonly kind: 'tmux'; readonly tmux: TmuxPresentationContext }\n\n")
+			continue
+		}
 		fmt.Fprintf(&b, "export interface %s {\n", name)
 		t := models[name]
+		presentation := strings.HasPrefix(name, "Presentation") || name == "TmuxPresentationContext"
 		for i := 0; i < t.NumField(); i++ {
 			f := t.Field(i)
 			parts := strings.Split(f.Tag.Get("json"), ",")
@@ -83,10 +88,20 @@ func declarations() []byte {
 					kind = "string"
 				}
 			}
-			if optional == "" && (f.Type.Kind() == reflect.Slice || f.Type.Kind() == reflect.Pointer) {
+			if presentation && f.Type.Kind() == reflect.Slice {
+				kind = "readonly " + kind
+			}
+			if optional == "" && (f.Type.Kind() == reflect.Slice || f.Type.Kind() == reflect.Pointer) && !presentation {
 				kind += " | null"
 			}
-			fmt.Fprintf(&b, "  %s%s: %s\n", key, optional, kind)
+			if name == "PresentationItem" && f.Name == "Freshness" {
+				kind = "'fresh' | 'stale' | 'unknown'"
+			}
+			prefix := ""
+			if presentation {
+				prefix = "readonly "
+			}
+			fmt.Fprintf(&b, "  %s%s%s: %s\n", prefix, key, optional, kind)
 		}
 		b.WriteString("}\n\n")
 	}
