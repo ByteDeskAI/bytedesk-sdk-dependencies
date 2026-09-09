@@ -29,6 +29,8 @@ type RuntimeSnapshot struct {
 }
 
 const (
+	// DesiredUnknown reports unreadable or unverified intent. It never grants availability.
+	DesiredUnknown     = "unknown"
 	DesiredAbsent      = "absent"
 	DesiredDisabled    = "disabled"
 	DesiredEnabled     = "enabled"

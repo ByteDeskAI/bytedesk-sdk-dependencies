@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0-rc.3] - 2026-09-08
+
+### Added
+
+- Explicit unknown desired state for unreadable operator intent. Recovery reports remain valid snapshots and never grant availability.
+
 ## [0.4.0-rc.2] - 2026-09-08
 
 ### Fixed
