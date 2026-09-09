@@ -90,7 +90,7 @@ func declarations() []byte {
 		}
 		b.WriteString("}\n\n")
 	}
-	return b.Bytes()
+	return append(bytes.TrimRight(b.Bytes(), "\n"), '\n')
 }
 
 func main() {

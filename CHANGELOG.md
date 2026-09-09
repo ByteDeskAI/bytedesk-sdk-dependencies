@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0-rc.2] - 2026-09-08
+
+### Fixed
+
+- Generate browser declarations with a single terminating newline so whitespace checks pass.
+
 ## [0.4.0-rc.1] - 2026-09-08
 
 ### Added

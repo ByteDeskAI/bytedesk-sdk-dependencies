@@ -147,4 +147,3 @@ export interface UIContribution {
 export interface When {
   os?: string[]
 }
-
