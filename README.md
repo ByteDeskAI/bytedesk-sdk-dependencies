@@ -27,6 +27,38 @@ changes; each SDK adopts the new tag when it is ready.
 
 See gateway ADR 0014.
 
+## Document route contributions (0.4 prerelease)
+
+`PanelSpec.DocumentPaths` declares friendly shell document paths targeting one
+plugin-owned panel. It does not install an HTTP/API handler or ask the plugin to
+serve the host shell. Authors must explicitly require `ui.document-paths.v1` in
+`Protocol.Required` with a nonzero protocol major. A host must not advertise that
+feature until it implements admission, authorization and generation withdrawal.
+
+Patterns use ASCII literal segments, `:name` for one segment, and terminal
+`*name` for **one or more** segments. `/files` plus `/files/*path` covers a document
+root and descendants. Root `/` is not claimable; hosts compose it using the
+default-view slot. Empty segments, trailing slashes, escaping, dot traversal,
+queries, fragments, duplicate parameter names and nonterminal catch-alls are
+invalid. `ValidateDocumentPath` owns this grammar. `DocumentPathsOverlap` detects
+any shared matching path, including different parameter names; overlapping
+claims within a manifest are rejected even if they target the same panel.
+
+`MatchDocumentPath` takes `URL.EscapedPath()` or browser `location.pathname`, not
+a decoded path or full URL. It decodes each segment once, rejecting malformed
+UTF-8, encoded separators, controls, empty segments and dot traversal. Parameters
+are decoded data and must not be decoded or cleaned again. Catch-all values join
+validated segments with `/`. `%252F` yields literal `%2F` data; `%2F` is rejected.
+The shared test vectors are in `plugin/testdata/document_paths.json`.
+
+Hosts must evaluate document admission before any router sanitization, publish
+claims atomically, reject conflicts with other owners and reserved infrastructure,
+and authorize GET/HEAD before shell delivery. Product routes are migratable owner
+claims, not permanent infrastructure reservations. Method restrictions, legacy
+redirects and any trailing-slash policy belong to the host. This contract does
+not itself implement those host behaviors. `ui.mount.v1` names the separate
+framework-independent UI module mount capability supplied by the Gateway UI SDK.
+
 ## Live plugin contracts (0.4 prerelease)
 
 `RuntimeSnapshot` carries a host epoch and a lossless decimal-string revision; `RuntimeStatus.Available` is the authority for dispatch. Generation is an opaque string. A process restart changes the epoch, so consumers must not compare revisions across epochs. These are runtime facts, never manifest fields.

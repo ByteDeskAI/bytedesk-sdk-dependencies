@@ -1,0 +1,37 @@
+{
+  "matches": [
+    {"pattern":"/sessions","path":"/sessions","params":{}},
+    {"pattern":"/sessions/:tabId","path":"/sessions/kept","params":{"tabId":"kept"}},
+    {"pattern":"/sessions/:tabId","path":"/sessions/a%20b","params":{"tabId":"a b"}},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%252F","params":{"tabId":"%2F"}},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%E2%9C%93","params":{"tabId":"✓"}},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%2F","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%5c","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%2e%2e","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/..","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%FF","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%ED%A0%80","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%00","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%C2%85","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/%","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/a/","params":null},
+    {"pattern":"/sessions/:tabId","path":"/sessions/a?tab=b","params":null},
+    {"pattern":"/files/*path","path":"/files","params":null},
+    {"pattern":"/files/*path","path":"/files/","params":null},
+    {"pattern":"/files/*path","path":"/files/a/b.txt","params":{"path":"a/b.txt"}},
+    {"pattern":"/files/*path","path":"/files/a","params":{"path":"a"}},
+    {"pattern":"/files/*path","path":"/files/a%20b/c","params":{"path":"a b/c"}},
+    {"pattern":"/files/*path","path":"/files/a//b","params":null},
+    {"pattern":"/files/*path","path":"/files/a/%2F/b","params":null},
+    {"pattern":"/settings/:section/*rest","path":"/settings/theme/dark/editor","params":{"section":"theme","rest":"dark/editor"}},
+    {"pattern":"/settings/:section/*rest","path":"/settings/theme","params":null}
+  ],
+  "overlaps": [
+    {"a":"/files","b":"/files/*path","overlap":false},
+    {"a":"/files/:id","b":"/files/*path","overlap":true},
+    {"a":"/a/*x","b":"/a/*y","overlap":true},
+    {"a":"/a/:id/*rest","b":"/a/b","overlap":false},
+    {"a":"/a/:id/*rest","b":"/a/b/c","overlap":true},
+    {"a":"/a/*rest","b":"/b/*rest","overlap":false}
+  ]
+}

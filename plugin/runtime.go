@@ -118,6 +118,8 @@ const (
 	FeatureScopedHost         = "host.scoped.v1"
 	FeatureActivationCheck    = "activation.check.v1"
 	FeatureShellContributions = "ui.contributions.v1"
+	FeatureDocumentPaths      = "ui.document-paths.v1"
+	FeatureUIModuleMount      = "ui.mount.v1"
 )
 
 // UIContribution names a shell extension slot. The host resolves PanelID and

@@ -124,6 +124,11 @@ type PanelSpec struct {
 	// is rewritten to /p/<id>/... for an out-of-process plugin, so declare it
 	// relative to the plugin root.
 	Module string `json:"module,omitempty"`
+	// DocumentPaths maps friendly shell document paths to this panel. These
+	// are not plugin HTTP/API handlers; the host admits and serves its shell
+	// for the current owner generation. See ValidateDocumentPath. Root / is
+	// host composition (the default-view slot), never a plugin document claim.
+	DocumentPaths []string `json:"documentPaths,omitempty"`
 }
 
 type LauncherSpec struct {
@@ -260,6 +265,9 @@ func (m Manifest) validate(requireVersion bool) error {
 		if t != TargetGateway && t != TargetVault {
 			return fmt.Errorf("targets: unknown %q (gateway|vault)", t)
 		}
+	}
+	if err := m.validateDocumentPaths(); err != nil {
+		return err
 	}
 	return m.validateRuntimeContract()
 }

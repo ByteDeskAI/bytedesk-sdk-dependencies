@@ -82,6 +82,7 @@ export interface PanelSpec {
   kind: string
   url: string
   module?: string
+  documentPaths?: string[]
 }
 
 export interface Permissions {

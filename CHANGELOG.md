@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0-rc.5] - 2026-09-09
+
+### Added
+
+- Canonical panel document-path contributions, explicit feature negotiation, validated named parameters and one-or-more catch-alls, overlap checks, and decode-once matching with shared browser parity vectors.
+- Feature identifiers for document routing and framework-independent UI mounting. Hosts advertise them only after implementation.
+
 ## [0.4.0-rc.4] - 2026-09-09
 
 ### Added
