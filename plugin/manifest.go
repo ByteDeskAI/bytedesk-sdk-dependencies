@@ -45,6 +45,12 @@ type Manifest struct {
 	// critical plugin that fails to start halts the host rather than running
 	// with the capability missing. Meaningless for extensions.
 	Critical bool `json:"critical,omitempty"`
+
+	// Protocol and Permissions request host capabilities; they do not grant
+	// authority. UI declares shell slots owned by this plugin generation.
+	Protocol    *ProtocolRequirements `json:"protocol,omitempty"`
+	Permissions *Permissions          `json:"permissions,omitempty"`
+	UI          []UIContribution      `json:"ui,omitempty"`
 }
 
 // When constrains a plugin or family member to a set of operating systems,
@@ -252,7 +258,7 @@ func (m Manifest) validate(requireVersion bool) error {
 			return fmt.Errorf("targets: unknown %q (gateway|vault)", t)
 		}
 	}
-	return nil
+	return m.validateRuntimeContract()
 }
 
 // TargetsOrDefault returns declared targets, or ["gateway"] for historical

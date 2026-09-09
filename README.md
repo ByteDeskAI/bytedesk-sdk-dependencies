@@ -26,3 +26,15 @@ The numbers do not have to match. Bump this repo when the common contract
 changes; each SDK adopts the new tag when it is ready.
 
 See gateway ADR 0014.
+
+## Live plugin contracts (0.4 prerelease)
+
+`RuntimeSnapshot` carries a host epoch and a lossless decimal-string revision; `RuntimeStatus.Available` is the authority for dispatch. Generation is an opaque string. A process restart changes the epoch, so consumers must not compare revisions across epochs. These are runtime facts, never manifest fields.
+
+`ActivationChecker.CheckActivation` is an optional pre-publication check after `Start`. Failure prevents candidate publication and requires cleanup. Existing `Readier.Ready` remains a degraded-health report; its behavior is unchanged.
+
+`Manifest.Protocol` declares required protocol features. `CheckProtocol` rejects unsupported major versions/features; legacy version zero may not request new features. Optional `Negotiator` adds negotiation without extending `Host`. Protocol support does not imply authority. `Permissions` requests exact publish/subscribe/request names; host policy decides the grants and state access remains owner-scoped.
+
+`Manifest.UI` declares shell slots with owner-local panel IDs or commands. The host validates availability and authority when resolving them. An active default-view contribution replaces hard-coded product routing; the host chooses descending priority, then lexical owner/contribution ID, and supplies its generic fallback when none is available.
+
+Generate browser declarations with `go run ./cmd/plugin-typescript -out typescript/contracts.d.ts`; `go test ./...` verifies they match the Go JSON model. The Gateway SDK distributes these declarations to UI consumers. No host implementation belongs in this module.

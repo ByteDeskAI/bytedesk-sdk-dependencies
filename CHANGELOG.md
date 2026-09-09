@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0-rc.1] - 2026-09-08
+
+### Added
+
+- Host-owned runtime snapshots, generation identity and lifecycle operation contracts.
+- Optional activation checks and protocol capability negotiation without changing Plugin or Host method sets.
+- Exact requested permissions and validated declarative shell contributions.
+- Browser declarations generated from canonical Go JSON contracts with a drift test.
+
 ## [Unreleased]
 
 ## [0.3.0] - 2026-09-06
