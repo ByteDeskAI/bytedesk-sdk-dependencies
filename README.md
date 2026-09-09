@@ -38,3 +38,19 @@ See gateway ADR 0014.
 `Manifest.UI` declares shell slots with owner-local panel IDs or commands. The host validates availability and authority when resolving them. An active default-view contribution replaces hard-coded product routing; the host chooses descending priority, then lexical owner/contribution ID, and supplies its generic fallback when none is available.
 
 Generate browser declarations with `go run ./cmd/plugin-typescript -out typescript/contracts.d.ts`; `go test ./...` verifies they match the Go JSON model. The Gateway SDK distributes these declarations to UI consumers. No host implementation belongs in this module.
+
+
+## Required peer versions
+
+Use `Requirement.MatchesVersion(actual)` to evaluate `requires[].version`; do not
+implement host-specific range parsers. `Validate` and `ValidateDiscover` reject
+malformed constraints. An empty constraint accepts legacy versions without parsing.
+Constrained versions use [Masterminds semantic-version ranges](https://github.com/Masterminds/semver/tree/v3.5.0): comparisons, AND/OR, caret, tilde and wildcards.
+Short numeric versions and a leading `v` are normalized. Prereleases are excluded
+unless the range includes an explicit prerelease comparator, such as
+`>=1.3.0-0 <2.0.0`. Invalid constrained versions return an error, never a match.
+
+This helper evaluates version compatibility only. The host must separately verify
+installation, dependency availability, generation ownership and authority. Adoption
+adds the pinned `github.com/Masterminds/semver/v3` dependency; no manifest fields or
+existing Host/Plugin interfaces change.

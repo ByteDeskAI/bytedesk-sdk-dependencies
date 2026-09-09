@@ -240,6 +240,9 @@ func (m Manifest) validate(requireVersion bool) error {
 		if rid == id {
 			return fmt.Errorf("requires.id cannot be self")
 		}
+		if err := req.ValidateVersionConstraint(); err != nil {
+			return err
+		}
 	}
 	if m.Spawn {
 		bin := strings.TrimSpace(m.Binary)

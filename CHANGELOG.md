@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0-rc.4] - 2026-09-09
+
+### Added
+
+- Canonical Requirement version-range validation and matching, with explicit prerelease behavior and compatibility for unconstrained legacy versions. Manifest authoring and discovery reject malformed constraints.
+
 ## [0.4.0-rc.3] - 2026-09-08
 
 ### Added
