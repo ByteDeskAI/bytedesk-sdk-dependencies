@@ -136,6 +136,8 @@ export function isPresentationGroup(value) {
 export function isPresentationItem(value) {
   if (!record(value)) return false
   if (!(str(value.terminalId))) return false
+  if (!(value.agentId === undefined || str(value.agentId))) return false
+  if (!(value.displayName === undefined || str(value.displayName))) return false
   if (!(list(value.groupPath, isPresentationGroup))) return false
   if (!(list(value.badges, isPresentationBadge))) return false
   if (!(num(value.priority))) return false

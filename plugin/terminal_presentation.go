@@ -80,11 +80,13 @@ type PresentationBadge struct {
 }
 
 type PresentationItem struct {
-	TerminalID string              `json:"terminalId" bd:"subject"`
-	GroupPath  []PresentationGroup `json:"groupPath" bd:"subject"`
-	Badges     []PresentationBadge `json:"badges" bd:"subject"`
-	Priority   int32               `json:"priority" bd:"subject"`
-	Freshness  string              `json:"freshness" bd:"subject"`
+	TerminalID  string              `json:"terminalId" bd:"subject"`
+	AgentID     string              `json:"agentId,omitempty" bd:"subject"`
+	DisplayName string              `json:"displayName,omitempty" bd:"subject"`
+	GroupPath   []PresentationGroup `json:"groupPath" bd:"subject"`
+	Badges      []PresentationBadge `json:"badges" bd:"subject"`
+	Priority    int32               `json:"priority" bd:"subject"`
+	Freshness   string              `json:"freshness" bd:"subject"`
 }
 
 type PresentationResult struct {
@@ -208,6 +210,16 @@ func ValidatePresentationResult(request PresentationRequest, current []Presentat
 			return fmt.Errorf("terminalId %q is not currently authorized at the requested incarnation", item.TerminalID)
 		}
 		seen[item.TerminalID] = true
+		if item.AgentID != "" {
+			if err := presentationText("agentId", item.AgentID, 128, true); err != nil {
+				return err
+			}
+		}
+		if item.DisplayName != "" {
+			if err := presentationText("displayName", item.DisplayName, 160, true); err != nil {
+				return err
+			}
+		}
 		if item.GroupPath == nil || len(item.GroupPath) > TerminalPresentationMaxGroups {
 			return fmt.Errorf("groupPath must be an array of at most %d segments", TerminalPresentationMaxGroups)
 		}

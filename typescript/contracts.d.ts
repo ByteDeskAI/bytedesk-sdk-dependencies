@@ -103,6 +103,8 @@ export interface PresentationGroup {
 
 export interface PresentationItem {
   readonly terminalId: string
+  readonly agentId?: string
+  readonly displayName?: string
   readonly groupPath: readonly PresentationGroup[]
   readonly badges: readonly PresentationBadge[]
   readonly priority: number

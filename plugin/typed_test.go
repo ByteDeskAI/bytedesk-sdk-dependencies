@@ -347,7 +347,7 @@ func TestMechanismAndTypedAPIShareOneCodePath(t *testing.T) {
 	// its hash, so this is the only way to name the same operation twice — and
 	// it pins the identity: if the schema drifts without a revision bump, the
 	// schema check fails here and this test says so.
-	d := NewDescriptor(cmd.Name(), 1, "bf4dbefbc9cd9832e1803f4c91e34802ab02a41ff793e9ae3ba9a3926294c0d7")
+	d := NewDescriptor(cmd.Name(), 2, "3b8d09c15b513b8f7c7bd71dd8574c0f3c35fd029d8c99e549295845329ae1b0")
 	if d.Name() != cmd.Name() {
 		t.Fatalf("Descriptor.Name() = %q", d.Name())
 	}

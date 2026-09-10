@@ -123,6 +123,34 @@ func TestTerminalPresentationBounds(t *testing.T) {
 	}
 }
 
+func TestTerminalPresentationOptionalAgentIdentity(t *testing.T) {
+	v := loadPresentationVectors(t)
+	request, result := v.AcceptRequests[0], v.AcceptResults[0]
+	result.Items[0].AgentID = "codex-qi"
+	result.Items[0].DisplayName = "Codex Qi"
+	if err := ValidatePresentationResult(request, request.Terminals, result); err != nil {
+		t.Fatalf("valid agent identity rejected: %v", err)
+	}
+
+	for _, tc := range []struct {
+		name   string
+		mutate func(*PresentationItem)
+	}{
+		{"agent id controls", func(item *PresentationItem) { item.AgentID = "bad\nidentity" }},
+		{"display name controls", func(item *PresentationItem) { item.DisplayName = "bad\ndisplay name" }},
+		{"agent id too long", func(item *PresentationItem) { item.AgentID = strings.Repeat("a", 129) }},
+		{"display name too long", func(item *PresentationItem) { item.DisplayName = strings.Repeat("d", 161) }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			invalid := v.AcceptResults[0]
+			tc.mutate(&invalid.Items[0])
+			if err := ValidatePresentationResult(request, request.Terminals, invalid); err == nil {
+				t.Fatal("invalid agent identity accepted")
+			}
+		})
+	}
+}
+
 func TestTerminalPresentationIdentifiers(t *testing.T) {
 	if TerminalPresentationPoint != "terminal.presentation" || TerminalPresentationInterface != "terminal.presentation.v1" || TerminalPresentationCommand != "terminal.presentation.project.v1" || TerminalPresentationBindingRead != "terminal.presentation.binding.read.v1" {
 		t.Fatal("canonical identifiers drifted")

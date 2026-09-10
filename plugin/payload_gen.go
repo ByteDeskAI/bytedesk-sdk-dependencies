@@ -41,5 +41,5 @@ type Payload interface {
 		When
 }
 
-// CmdTerminalPresentationProject is the generated descriptor for terminal.presentation.project.v1 revision 1.
-var CmdTerminalPresentationProject = NewCommand[PresentationRequest, PresentationResult]("terminal.presentation.project.v1", 1, "bf4dbefbc9cd9832e1803f4c91e34802ab02a41ff793e9ae3ba9a3926294c0d7")
+// CmdTerminalPresentationProject is the generated descriptor for terminal.presentation.project.v1 revision 2.
+var CmdTerminalPresentationProject = NewCommand[PresentationRequest, PresentationResult]("terminal.presentation.project.v1", 2, "3b8d09c15b513b8f7c7bd71dd8574c0f3c35fd029d8c99e549295845329ae1b0")

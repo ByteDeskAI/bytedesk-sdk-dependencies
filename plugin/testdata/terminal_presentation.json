@@ -10,7 +10,7 @@
     {"name":"unknown field","json":"{\"lease\":{\"hostEpoch\":\"e\",\"pluginId\":\"p\",\"providerId\":\"p\",\"generation\":\"g\",\"subjectLease\":\"s\",\"requestId\":\"r\",\"viewRevision\":\"v\"},\"terminals\":[],\"extra\":true}"}
   ],
   "acceptResults": [
-    {"lease":{"hostEpoch":"epoch","pluginId":"generic","providerId":"presenter","generation":"gen","subjectLease":"subject","requestId":"request","viewRevision":"view"},"maxAgeMs":30000,"items":[{"terminalId":"plain","groupPath":[],"badges":[{"label":"Local","icon":"terminal"}],"priority":-1000,"freshness":"unknown"},{"terminalId":"tmux","groupPath":[{"id":"g","label":"Group"}],"badges":[],"priority":1000,"freshness":"fresh"}]}
+    {"lease":{"hostEpoch":"epoch","pluginId":"generic","providerId":"presenter","generation":"gen","subjectLease":"subject","requestId":"request","viewRevision":"view"},"maxAgeMs":30000,"items":[{"terminalId":"plain","agentId":"codex-qi","displayName":"Codex Qi","groupPath":[],"badges":[{"label":"Local","icon":"terminal"}],"priority":-1000,"freshness":"unknown"},{"terminalId":"tmux","groupPath":[{"id":"g","label":"Group"}],"badges":[],"priority":1000,"freshness":"fresh"}]}
   ],
   "rejectResults": [
     {"name":"null items","json":"{\"lease\":{\"hostEpoch\":\"epoch\",\"pluginId\":\"generic\",\"providerId\":\"presenter\",\"generation\":\"gen\",\"subjectLease\":\"subject\",\"requestId\":\"request\",\"viewRevision\":\"view\"},\"maxAgeMs\":1,\"items\":null}"},

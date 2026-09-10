@@ -67,7 +67,7 @@ func targets() map[string]target {
 			ops: []operation{{
 				name:  plugin.TerminalPresentationCommand,
 				kind:  kindCommand,
-				rev:   1,
+				rev:   2,
 				goVar: "CmdTerminalPresentationProject",
 				req:   reflect.TypeOf(plugin.PresentationRequest{}),
 				resp:  reflect.TypeOf(plugin.PresentationResult{}),
