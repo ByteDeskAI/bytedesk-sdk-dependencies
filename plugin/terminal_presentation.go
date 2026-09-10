@@ -35,62 +35,62 @@ const (
 )
 
 type PresentationLease struct {
-	HostEpoch    string `json:"hostEpoch"`
-	PluginID     string `json:"pluginId"`
-	ProviderID   string `json:"providerId"`
-	Generation   string `json:"generation"`
-	SubjectLease string `json:"subjectLease"`
-	RequestID    string `json:"requestId"`
-	ViewRevision string `json:"viewRevision"`
+	HostEpoch    string `json:"hostEpoch" bd:"public"`
+	PluginID     string `json:"pluginId" bd:"public"`
+	ProviderID   string `json:"providerId" bd:"public"`
+	Generation   string `json:"generation" bd:"public"`
+	SubjectLease string `json:"subjectLease" bd:"subject"`
+	RequestID    string `json:"requestId" bd:"public"`
+	ViewRevision string `json:"viewRevision" bd:"public"`
 }
 
 type TerminalBindingContext struct {
-	Kind string                   `json:"kind"`
-	Tmux *TmuxPresentationContext `json:"tmux,omitempty"`
+	Kind string                   `json:"kind" bd:"subject"`
+	Tmux *TmuxPresentationContext `json:"tmux,omitempty" bd:"subject"`
 }
 
 type TmuxPresentationContext struct {
-	RepositoryKey  string `json:"repositoryKey"`
-	ServerKey      string `json:"serverKey"`
-	ServerPID      string `json:"serverPid"`
-	SessionID      string `json:"sessionId"`
-	SessionCreated string `json:"sessionCreated"`
-	PaneID         string `json:"paneId"`
-	PanePID        string `json:"panePid"`
+	RepositoryKey  string `json:"repositoryKey" bd:"subject"`
+	ServerKey      string `json:"serverKey" bd:"subject"`
+	ServerPID      string `json:"serverPid" bd:"subject"`
+	SessionID      string `json:"sessionId" bd:"subject"`
+	SessionCreated string `json:"sessionCreated" bd:"subject"`
+	PaneID         string `json:"paneId" bd:"subject"`
+	PanePID        string `json:"panePid" bd:"subject"`
 }
 
 type PresentationTerminal struct {
-	TerminalID string                 `json:"terminalId"`
-	Context    TerminalBindingContext `json:"context"`
+	TerminalID string                 `json:"terminalId" bd:"subject"`
+	Context    TerminalBindingContext `json:"context" bd:"subject"`
 }
 
 type PresentationRequest struct {
-	Lease     PresentationLease      `json:"lease"`
-	Terminals []PresentationTerminal `json:"terminals"`
+	Lease     PresentationLease      `json:"lease" bd:"public"`
+	Terminals []PresentationTerminal `json:"terminals" bd:"subject"`
 }
 
 type PresentationGroup struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
+	ID    string `json:"id" bd:"subject"`
+	Label string `json:"label" bd:"subject"`
 }
 
 type PresentationBadge struct {
-	Label string `json:"label"`
-	Icon  string `json:"icon,omitempty"`
+	Label string `json:"label" bd:"subject"`
+	Icon  string `json:"icon,omitempty" bd:"subject"`
 }
 
 type PresentationItem struct {
-	TerminalID string              `json:"terminalId"`
-	GroupPath  []PresentationGroup `json:"groupPath"`
-	Badges     []PresentationBadge `json:"badges"`
-	Priority   int32               `json:"priority"`
-	Freshness  string              `json:"freshness"`
+	TerminalID string              `json:"terminalId" bd:"subject"`
+	GroupPath  []PresentationGroup `json:"groupPath" bd:"subject"`
+	Badges     []PresentationBadge `json:"badges" bd:"subject"`
+	Priority   int32               `json:"priority" bd:"subject"`
+	Freshness  string              `json:"freshness" bd:"subject"`
 }
 
 type PresentationResult struct {
-	Lease    PresentationLease  `json:"lease"`
-	MaxAgeMS uint32             `json:"maxAgeMs"`
-	Items    []PresentationItem `json:"items"`
+	Lease    PresentationLease  `json:"lease" bd:"public"`
+	MaxAgeMS uint32             `json:"maxAgeMs" bd:"public"`
+	Items    []PresentationItem `json:"items" bd:"subject"`
 }
 
 // TerminalPresentationProvider is an optional adapter over CommandHandler.

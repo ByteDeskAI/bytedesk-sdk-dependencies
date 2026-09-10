@@ -11,21 +11,21 @@ import (
 // Generation is an opaque string so transports cannot lose integer precision.
 // Available is authoritative; a health state alone never grants access.
 type RuntimeStatus struct {
-	ID            string `json:"id"`
-	Installed     bool   `json:"installed"`
-	DesiredState  string `json:"desiredState"`
-	ObservedState string `json:"observedState"`
-	Available     bool   `json:"available"`
-	Generation    string `json:"generation"`
-	Reason        string `json:"reason,omitempty"`
+	ID            string `json:"id" bd:"public"`
+	Installed     bool   `json:"installed" bd:"public"`
+	DesiredState  string `json:"desiredState" bd:"public"`
+	ObservedState string `json:"observedState" bd:"public"`
+	Available     bool   `json:"available" bd:"public"`
+	Generation    string `json:"generation" bd:"public"`
+	Reason        string `json:"reason,omitempty" bd:"public"`
 }
 
 // RuntimeSnapshot is published atomically with contributions at Revision.
 // Epoch changes across host restarts; revisions are comparable only within it.
 type RuntimeSnapshot struct {
-	Epoch    string          `json:"epoch"`
-	Revision uint64          `json:"revision,string"`
-	Plugins  []RuntimeStatus `json:"plugins"`
+	Epoch    string          `json:"epoch" bd:"public"`
+	Revision uint64          `json:"revision,string" bd:"public"`
+	Plugins  []RuntimeStatus `json:"plugins" bd:"public"`
 }
 
 const (
@@ -42,12 +42,12 @@ const (
 // LifecycleOperation remains queryable when draining or removal is incomplete.
 // A pending/failed operation must not be reported as successful removal.
 type LifecycleOperation struct {
-	ID         string `json:"id"`
-	PluginID   string `json:"pluginId"`
-	Action     string `json:"action"`
-	State      string `json:"state"`
-	Generation string `json:"generation,omitempty"`
-	Reason     string `json:"reason,omitempty"`
+	ID         string `json:"id" bd:"public"`
+	PluginID   string `json:"pluginId" bd:"public"`
+	Action     string `json:"action" bd:"public"`
+	State      string `json:"state" bd:"public"`
+	Generation string `json:"generation,omitempty" bd:"public"`
+	Reason     string `json:"reason,omitempty" bd:"public"`
 }
 
 // ActivationChecker is optional and runs after Start, before publication.
@@ -61,26 +61,26 @@ type ActivationChecker interface {
 // are exact; wildcard interpretation is deliberately not part of this contract.
 // StateDir always addresses the caller's own state, regardless of permissions.
 type Permissions struct {
-	Publish   []string `json:"publish,omitempty"`
-	Subscribe []string `json:"subscribe,omitempty"`
-	Request   []string `json:"request,omitempty"`
+	Publish   []string `json:"publish,omitempty" bd:"public"`
+	Subscribe []string `json:"subscribe,omitempty" bd:"public"`
+	Request   []string `json:"request,omitempty" bd:"public"`
 }
 
 // ProtocolRequirements declares required features of the host protocol.
 // Major zero is the legacy protocol, with no new required features.
 type ProtocolRequirements struct {
-	Major    uint32   `json:"major"`
-	Required []string `json:"required,omitempty"`
+	Major    uint32   `json:"major" bd:"public"`
+	Required []string `json:"required,omitempty" bd:"public"`
 }
 
 // HostCapabilities is scoped to one admitted plugin generation. Features
 // describe protocol support; Grants describe authority. Neither implies the other.
 type HostCapabilities struct {
-	Major      uint32      `json:"major"`
-	Features   []string    `json:"features"`
-	PluginID   string      `json:"pluginId"`
-	Generation string      `json:"generation"`
-	Grants     Permissions `json:"grants"`
+	Major      uint32      `json:"major" bd:"public"`
+	Features   []string    `json:"features" bd:"public"`
+	PluginID   string      `json:"pluginId" bd:"public"`
+	Generation string      `json:"generation" bd:"public"`
+	Grants     Permissions `json:"grants" bd:"public"`
 }
 
 // Negotiator is an optional Host interface; legacy Host implementations keep
@@ -126,13 +126,13 @@ const (
 // Command within the owner's declared contributions and granted authority.
 // Priority selects a default view; ties resolve by owner ID then contribution ID.
 type UIContribution struct {
-	ID       string `json:"id"`
-	Slot     string `json:"slot"`
-	PanelID  string `json:"panelId,omitempty"`
-	Command  string `json:"command,omitempty"`
-	Label    string `json:"label,omitempty"`
-	Icon     string `json:"icon,omitempty"`
-	Priority int    `json:"priority,omitempty"`
+	ID       string `json:"id" bd:"public"`
+	Slot     string `json:"slot" bd:"public"`
+	PanelID  string `json:"panelId,omitempty" bd:"public"`
+	Command  string `json:"command,omitempty" bd:"public"`
+	Label    string `json:"label,omitempty" bd:"public"`
+	Icon     string `json:"icon,omitempty" bd:"public"`
+	Priority int    `json:"priority,omitempty" bd:"public"`
 }
 
 const (

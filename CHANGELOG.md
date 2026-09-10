@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.0-rc.7] - 2026-09-10
+
+### Added
+
+- Typed capability layer (ADR 0025): `Descriptor`, `NewDescriptor`, `Invoke`, `Observe`, `Publish` and `HandleRaw` as the cross-package mechanism, with `Command`/`Event`/`Call`/`Emit`/`On`/`Handle` implemented on top so there is one code path. Consumer packages generate their own `Payload` union and typed wrappers over `plugin.Descriptor`; `plugin` never imports a consumer, so no import cycle is possible.
+- Classification: a `bd` struct tag (`public` | `subject` | `secret`) on every JSON-visible field, and a generated `Payload` union type set per package. A union without `~` matches exactly the named types, so an unclassified type cannot be passed to a typed call and cannot be smuggled in by embedding a member — a marker method would have been promoted through embedding and is deliberately not used.
+- `bd.schema-id.v1`: SHA-256 over a length-delimited canonical AST covering operation kind, name, revision and request/response schemas, with fields sorted by JSON name and classification included. Type and package names deliberately do not affect the hash.
+- Deterministic `typescript/schemas.json` sidecar carrying the canonical AST beside every hash, so a mismatch is a diff rather than two opaque hex strings.
+- `messaging` contract package and generated TypeScript runtime validators.
+
+### Changed
+
+- The generator classifies by reachability from flagged seed roots instead of a type-name prefix. Output is byte-identical: `typescript/contracts.d.ts` is unchanged.
+- Unsupported field kinds, unclassified fields, secret fields reachable from an exposed type, 64-bit integers without `,string`, and cyclic payload graphs are now named generator errors rather than a bare panic.
+
+### Notes
+
+- Classification is purely additive: tagging the shipped `Manifest`, `RuntimeSnapshot` and `PresentationRequest`/`Result` types produced a zero-byte `.d.ts` diff and no behavioural change.
+- `terminal.presentation.project.v1` keeps schema id `bf4dbefbc9cd9832e1803f4c91e34802ab02a41ff793e9ae3ba9a3926294c0d7`, so no consumer renegotiates.
+
 ## [0.4.0-rc.5] - 2026-09-09
 
 ### Added

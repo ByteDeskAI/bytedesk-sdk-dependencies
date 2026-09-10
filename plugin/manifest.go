@@ -9,82 +9,82 @@ import (
 
 // Manifest is the CDM for plugin.json (nav, panels, spawn, commercial fields).
 type Manifest struct {
-	ID               string         `json:"id"`
-	Version          string         `json:"version,omitempty"`
-	Nav              []NavItem      `json:"nav,omitempty"`
-	Panels           []PanelSpec    `json:"panels,omitempty"`
-	Launchers        []LauncherSpec `json:"launchers,omitempty"`
-	Scopes           []string       `json:"scopes,omitempty"`
-	Routes           []string       `json:"routes,omitempty"`
-	Spawn            bool           `json:"spawn,omitempty"`
-	Binary           string         `json:"binary,omitempty"`
-	Socket           string         `json:"socket,omitempty"`
-	MinCoreVersion   string         `json:"minCoreVersion,omitempty"`
-	Targets          []string       `json:"targets,omitempty"` // gateway, vault
-	Role             string         `json:"role,omitempty"`    // system | extension
-	Provides         []string       `json:"provides,omitempty"`
-	Requires         []Requirement  `json:"requires,omitempty"`
-	RequiresProvides []string       `json:"requiresProvides,omitempty"`
-	Pricing          *Pricing       `json:"pricing,omitempty"`
-	Publisher        *Publisher     `json:"publisher,omitempty"`
+	ID               string         `json:"id" bd:"public"`
+	Version          string         `json:"version,omitempty" bd:"public"`
+	Nav              []NavItem      `json:"nav,omitempty" bd:"public"`
+	Panels           []PanelSpec    `json:"panels,omitempty" bd:"public"`
+	Launchers        []LauncherSpec `json:"launchers,omitempty" bd:"public"`
+	Scopes           []string       `json:"scopes,omitempty" bd:"public"`
+	Routes           []string       `json:"routes,omitempty" bd:"public"`
+	Spawn            bool           `json:"spawn,omitempty" bd:"public"`
+	Binary           string         `json:"binary,omitempty" bd:"public"`
+	Socket           string         `json:"socket,omitempty" bd:"public"`
+	MinCoreVersion   string         `json:"minCoreVersion,omitempty" bd:"public"`
+	Targets          []string       `json:"targets,omitempty" bd:"public"` // gateway, vault
+	Role             string         `json:"role,omitempty" bd:"public"`    // system | extension
+	Provides         []string       `json:"provides,omitempty" bd:"public"`
+	Requires         []Requirement  `json:"requires,omitempty" bd:"public"`
+	RequiresProvides []string       `json:"requiresProvides,omitempty" bd:"public"`
+	Pricing          *Pricing       `json:"pricing,omitempty" bd:"public"`
+	Publisher        *Publisher     `json:"publisher,omitempty" bd:"public"`
 
 	// Family declares platform members the host selects between (ADR 0020).
 	// Until now this lived only in the gateway's private parser, so an SDK
 	// author could not express a family at all.
-	Family *Family `json:"family,omitempty"`
+	Family *Family `json:"family,omitempty" bd:"public"`
 	// When constrains this plugin to a set of operating systems.
-	When When `json:"when,omitzero"`
+	When When `json:"when,omitzero" bd:"public"`
 
 	// Extends names extension points this plugin owns; Implements registers it
 	// into points other plugins own (ADR 0023). The host mediates: a plugin
 	// never loads, execs or proxies another.
-	Extends    []ExtensionPoint `json:"extends,omitempty"`
-	Implements []Provider       `json:"implements,omitempty"`
+	Extends    []ExtensionPoint `json:"extends,omitempty" bd:"public"`
+	Implements []Provider       `json:"implements,omitempty" bd:"public"`
 
 	// Critical marks a role:system plugin the host must not serve without. A
 	// critical plugin that fails to start halts the host rather than running
 	// with the capability missing. Meaningless for extensions.
-	Critical bool `json:"critical,omitempty"`
+	Critical bool `json:"critical,omitempty" bd:"public"`
 
 	// Protocol and Permissions request host capabilities; they do not grant
 	// authority. UI declares shell slots owned by this plugin generation.
-	Protocol    *ProtocolRequirements `json:"protocol,omitempty"`
-	Permissions *Permissions          `json:"permissions,omitempty"`
-	UI          []UIContribution      `json:"ui,omitempty"`
+	Protocol    *ProtocolRequirements `json:"protocol,omitempty" bd:"public"`
+	Permissions *Permissions          `json:"permissions,omitempty" bd:"public"`
+	UI          []UIContribution      `json:"ui,omitempty" bd:"public"`
 }
 
 // When constrains a plugin or family member to a set of operating systems,
 // matched against runtime.GOOS.
 type When struct {
-	OS []string `json:"os,omitempty"`
+	OS []string `json:"os,omitempty" bd:"public"`
 }
 
 // FamilyMember is one platform member of a family.
 type FamilyMember struct {
-	ID   string `json:"id"`
-	When When   `json:"when,omitzero"`
+	ID   string `json:"id" bd:"public"`
+	When When   `json:"when,omitzero" bd:"public"`
 }
 
 // Family declares the platform members a host selects between (ADR 0020).
 // Selector is "runtime.os" in v1.
 type Family struct {
-	Selector string         `json:"selector,omitempty"`
-	Members  []FamilyMember `json:"members,omitempty"`
+	Selector string         `json:"selector,omitempty" bd:"public"`
+	Members  []FamilyMember `json:"members,omitempty" bd:"public"`
 }
 
 // ExtensionPoint is a named seam a plugin owns and others register into.
 type ExtensionPoint struct {
-	Name        string `json:"name"`
-	Interface   string `json:"interface,omitempty"`
-	Description string `json:"description,omitempty"`
+	Name        string `json:"name" bd:"public"`
+	Interface   string `json:"interface,omitempty" bd:"public"`
+	Description string `json:"description,omitempty" bd:"public"`
 }
 
 // Provider registers a plugin into someone else's extension point. Higher
 // Priority wins when a point takes a single provider.
 type Provider struct {
-	Point    string `json:"point"`
-	ID       string `json:"id"`
-	Priority int    `json:"priority,omitempty"`
+	Point    string `json:"point" bd:"public"`
+	ID       string `json:"id" bd:"public"`
+	Priority int    `json:"priority,omitempty" bd:"public"`
 }
 
 // Host identifiers used in Manifest.Targets.
@@ -101,54 +101,54 @@ const (
 
 // Requirement is a host-resolved peer (id + optional version constraint).
 type Requirement struct {
-	ID      string `json:"id"`
-	Version string `json:"version,omitempty"`
+	ID      string `json:"id" bd:"public"`
+	Version string `json:"version,omitempty" bd:"public"`
 }
 
 type NavItem struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
-	Icon  string `json:"icon,omitempty"`
-	Href  string `json:"href"`
-	Order int    `json:"order,omitempty"`
+	ID    string `json:"id" bd:"public"`
+	Label string `json:"label" bd:"public"`
+	Icon  string `json:"icon,omitempty" bd:"public"`
+	Href  string `json:"href" bd:"public"`
+	Order int    `json:"order,omitempty" bd:"public"`
 }
 
 type PanelSpec struct {
-	ID   string `json:"id"`
-	Kind string `json:"kind"`
-	URL  string `json:"url"`
+	ID   string `json:"id" bd:"public"`
+	Kind string `json:"kind" bd:"public"`
+	URL  string `json:"url" bd:"public"`
 	// Module is an optional ES module the shell mounts in-page instead of
 	// iframing URL (ADR 0024). URL stays required and remains the fallback:
 	// the host renders the iframe when Module is absent, when the bundle fails
 	// to load, or when the plugin is not trusted to mount in-page. Like URL, it
 	// is rewritten to /p/<id>/... for an out-of-process plugin, so declare it
 	// relative to the plugin root.
-	Module string `json:"module,omitempty"`
+	Module string `json:"module,omitempty" bd:"public"`
 	// DocumentPaths maps friendly shell document paths to this panel. These
 	// are not plugin HTTP/API handlers; the host admits and serves its shell
 	// for the current owner generation. See ValidateDocumentPath. Root / is
 	// host composition (the default-view slot), never a plugin document claim.
-	DocumentPaths []string `json:"documentPaths,omitempty"`
+	DocumentPaths []string `json:"documentPaths,omitempty" bd:"public"`
 }
 
 type LauncherSpec struct {
-	Kind        string `json:"kind"`
-	Title       string `json:"title"`
-	Description string `json:"description,omitempty"`
+	Kind        string `json:"kind" bd:"public"`
+	Title       string `json:"title" bd:"public"`
+	Description string `json:"description,omitempty" bd:"public"`
 	// Group buckets launchers in the shell's launch menu.
-	Group string `json:"group,omitempty"`
+	Group string `json:"group,omitempty" bd:"public"`
 }
 
 type Pricing struct {
-	Model     string `json:"model"` // free | trial | paid
-	SKU       string `json:"sku,omitempty"`
-	TrialDays int    `json:"trialDays,omitempty"`
+	Model     string `json:"model" bd:"public"` // free | trial | paid
+	SKU       string `json:"sku,omitempty" bd:"public"`
+	TrialDays int    `json:"trialDays,omitempty" bd:"public"`
 }
 
 type Publisher struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	URL  string `json:"url,omitempty"`
+	ID   string `json:"id" bd:"public"`
+	Name string `json:"name" bd:"public"`
+	URL  string `json:"url,omitempty" bd:"public"`
 }
 
 // UnmarshalJSON accepts either a publisher object or a legacy string id
