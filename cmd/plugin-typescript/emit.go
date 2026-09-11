@@ -73,6 +73,15 @@ func emitDTS(ms *modelSet) []byte {
 		}
 		b.WriteString("}\n\n")
 	}
+	// The guards emitJS writes, declared so tsc sees the same module surface the
+	// paired .js exports. Without these an `import { isManifest }` is a TS2305
+	// against a symbol that resolves perfectly at runtime. They narrow, so a
+	// guard is usable in control flow rather than merely present.
+	b.WriteString("// Runtime shape guards. The paired JS module exports one per declaration\n")
+	b.WriteString("// above; they check structure only, not the host's security invariants.\n")
+	for _, name := range ms.names {
+		fmt.Fprintf(&b, "export declare function is%s(value: unknown): value is %s\n", name, name)
+	}
 	return append(bytes.TrimRight(b.Bytes(), "\n"), '\n')
 }
 

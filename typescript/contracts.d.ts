@@ -208,3 +208,34 @@ export interface UIContribution {
 export interface When {
   os?: string[]
 }
+
+// Runtime shape guards. The paired JS module exports one per declaration
+// above; they check structure only, not the host's security invariants.
+export declare function isExtensionPoint(value: unknown): value is ExtensionPoint
+export declare function isFamily(value: unknown): value is Family
+export declare function isFamilyMember(value: unknown): value is FamilyMember
+export declare function isHostCapabilities(value: unknown): value is HostCapabilities
+export declare function isLauncherSpec(value: unknown): value is LauncherSpec
+export declare function isLifecycleOperation(value: unknown): value is LifecycleOperation
+export declare function isManifest(value: unknown): value is Manifest
+export declare function isNavItem(value: unknown): value is NavItem
+export declare function isPanelSpec(value: unknown): value is PanelSpec
+export declare function isPermissions(value: unknown): value is Permissions
+export declare function isPresentationBadge(value: unknown): value is PresentationBadge
+export declare function isPresentationGroup(value: unknown): value is PresentationGroup
+export declare function isPresentationItem(value: unknown): value is PresentationItem
+export declare function isPresentationLease(value: unknown): value is PresentationLease
+export declare function isPresentationRequest(value: unknown): value is PresentationRequest
+export declare function isPresentationResult(value: unknown): value is PresentationResult
+export declare function isPresentationTerminal(value: unknown): value is PresentationTerminal
+export declare function isPricing(value: unknown): value is Pricing
+export declare function isProtocolRequirements(value: unknown): value is ProtocolRequirements
+export declare function isProvider(value: unknown): value is Provider
+export declare function isPublisher(value: unknown): value is Publisher
+export declare function isRequirement(value: unknown): value is Requirement
+export declare function isRuntimeSnapshot(value: unknown): value is RuntimeSnapshot
+export declare function isRuntimeStatus(value: unknown): value is RuntimeStatus
+export declare function isTerminalBindingContext(value: unknown): value is TerminalBindingContext
+export declare function isTmuxPresentationContext(value: unknown): value is TmuxPresentationContext
+export declare function isUIContribution(value: unknown): value is UIContribution
+export declare function isWhen(value: unknown): value is When
