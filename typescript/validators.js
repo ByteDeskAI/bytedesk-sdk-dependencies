@@ -8,6 +8,20 @@ const num = (v) => typeof v === 'number' && Number.isFinite(v)
 const dec = (v) => str(v) && decimal.test(v)
 const list = (v, of) => Array.isArray(v) && v.every(of)
 
+export function isConfig(value) {
+  if (!record(value)) return false
+  if (!(value.sections === undefined || list(value.sections, isConfigSection))) return false
+  return true
+}
+
+export function isConfigSection(value) {
+  if (!record(value)) return false
+  if (!(str(value.id))) return false
+  if (!(value.title === undefined || str(value.title))) return false
+  if (!(value.description === undefined || str(value.description))) return false
+  return true
+}
+
 export function isExtensionPoint(value) {
   if (!record(value)) return false
   if (!(str(value.name))) return false
@@ -88,6 +102,7 @@ export function isManifest(value) {
   if (!(value.protocol === undefined || isProtocolRequirements(value.protocol))) return false
   if (!(value.permissions === undefined || isPermissions(value.permissions))) return false
   if (!(value.ui === undefined || list(value.ui, isUIContribution))) return false
+  if (!(value.config === undefined || isConfig(value.config))) return false
   return true
 }
 

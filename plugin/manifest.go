@@ -51,6 +51,34 @@ type Manifest struct {
 	Protocol    *ProtocolRequirements `json:"protocol,omitempty" bd:"public"`
 	Permissions *Permissions          `json:"permissions,omitempty" bd:"public"`
 	UI          []UIContribution      `json:"ui,omitempty" bd:"public"`
+
+	// Config declares the settings sections this plugin contributes. It is
+	// SCHEMA, never values: the host owns values and reads its own record, so a
+	// plugin describes what it configures and the operator's choices never live
+	// in a file the plugin writes (ADR 0026 C0). A section is served at the
+	// settings.section extension point, which the plugin must also name in
+	// Implements; this field is what lets the host list and label a section
+	// before the plugin is asked for anything.
+	Config *Config `json:"config,omitempty" bd:"public"`
+}
+
+// SettingsSectionPoint is the extension point a plugin implements to contribute
+// a settings section. Its operations are cmd.settings.section.v1.snapshot and
+// cmd.settings.section.v1.patch.
+const SettingsSectionPoint = "settings.section"
+
+// Config is a plugin's declared configuration surface.
+type Config struct {
+	Sections []ConfigSection `json:"sections,omitempty" bd:"public"`
+}
+
+// ConfigSection names one settings section. ID must equal the contribution ID
+// the plugin registers at SettingsSectionPoint. Typed field schema is added to
+// this struct by the manifest settings-schema work before the SDK is tagged.
+type ConfigSection struct {
+	ID          string `json:"id" bd:"public"`
+	Title       string `json:"title,omitempty" bd:"public"`
+	Description string `json:"description,omitempty" bd:"public"`
 }
 
 // When constrains a plugin or family member to a set of operating systems,

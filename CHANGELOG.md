@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`Manifest.Config` and `SettingsSectionPoint`.** A plugin declares the settings sections it contributes as manifest data — `Config.Sections[]` with `id`, `title` and `description` — so the host can list and label a section before asking the plugin for anything. It is schema, never values: the host owns values and reads its own record (gateway ADR 0026 C0). `SettingsSectionPoint` (`settings.section`) is the extension point the plugin implements; its operations are `cmd.settings.section.v1.snapshot` and `cmd.settings.section.v1.patch`. Typed field schema is added to `ConfigSection` before the SDK is tagged. The TypeScript declarations, JS validators and Go payload union are regenerated.
+
 ### Fixed
 
 - **TypeScript declarations for the runtime shape guards.** `cmd/plugin-typescript` emitted an `is<Type>` guard per declaration into the paired `.js` module but never declared them in `contracts.d.ts`, so `import { isManifest }` was a TS2305 error against a symbol that resolves at runtime. The emitter now declares every guard as a narrowing predicate (`value is <Type>`), and the generator tests assert the declarations stay in step with the exports. Guards check structure only, not the host's security invariants.

@@ -11,7 +11,9 @@ package plugin
 // Membership is published API surface. Adding a type is free; removing one
 // breaks every consumer, so it needs a changelog entry.
 type Payload interface {
-	ExtensionPoint |
+	Config |
+		ConfigSection |
+		ExtensionPoint |
 		Family |
 		FamilyMember |
 		HostCapabilities |
