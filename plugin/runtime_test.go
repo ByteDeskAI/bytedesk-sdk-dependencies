@@ -1,7 +1,9 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
+	"slices"
 	"testing"
 )
 
@@ -24,6 +26,47 @@ func TestProtocolRequiresExplicitSupportedCapabilities(t *testing.T) {
 				t.Fatalf("CheckProtocol = %v, want success %v", err, tc.ok)
 			}
 		})
+	}
+}
+
+type hookedPlugin struct{}
+
+func (hookedPlugin) CheckActivation(context.Context) error           { return nil }
+func (hookedPlugin) Ready(context.Context) error                     { return nil }
+func (hookedPlugin) HealthSections(context.Context) []map[string]any { return nil }
+
+func TestLifecycleHooksAreEntryOnlyAndAcknowledgedFromTheRequest(t *testing.T) {
+	if got := DeclaredHooks(hookedPlugin{}); !slices.Equal(got, []string{HookActivationCheck, HookReady, HookHealth}) {
+		t.Fatalf("DeclaredHooks = %v", got)
+	}
+	if got := DeclaredHooks(struct{}{}); len(got) != 0 {
+		t.Fatalf("plain value declared hooks: %v", got)
+	}
+	host := HostCapabilities{Major: ProtocolMajor}
+	for _, tc := range []struct {
+		name string
+		have []string
+		need ProtocolRequirements
+		ok   bool
+	}{
+		{"declared", []string{HookReady}, ProtocolRequirements{Major: 1, Hooks: []string{HookActivationCheck, HookReady}}, true},
+		{"exit veto", nil, ProtocolRequirements{Major: 1, Hooks: []string{"stop"}}, false},
+		{"unknown hook", nil, ProtocolRequirements{Major: 1, Hooks: []string{"exit"}}, false},
+		{"duplicate hook", nil, ProtocolRequirements{Major: 1, Hooks: []string{HookReady, HookReady}}, false},
+		{"unversioned hooks", nil, ProtocolRequirements{Hooks: []string{HookReady}}, false},
+		{"host acknowledged undeclared", []string{HookHealth}, ProtocolRequirements{Major: 1, Hooks: []string{HookReady}}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			have := host
+			have.Hooks = tc.have
+			if err := CheckProtocol(have, tc.need); (err == nil) != tc.ok {
+				t.Fatalf("CheckProtocol = %v, want success %v", err, tc.ok)
+			}
+		})
+	}
+	m := Manifest{ID: "sample", Version: "1.0.0", Protocol: &ProtocolRequirements{Major: 1, Hooks: []string{"stop"}}}
+	if err := m.Validate(); err == nil {
+		t.Fatal("manifest declared a stop hook")
 	}
 }
 

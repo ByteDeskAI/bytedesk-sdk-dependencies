@@ -47,6 +47,7 @@ export interface HostCapabilities {
   pluginId: string
   generation: string
   grants: Permissions
+  hooks?: string[]
 }
 
 export interface LauncherSpec {
@@ -172,6 +173,7 @@ export interface Pricing {
 export interface ProtocolRequirements {
   major: number
   required?: string[]
+  hooks?: string[]
 }
 
 export interface Provider {

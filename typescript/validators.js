@@ -68,6 +68,7 @@ export function isHostCapabilities(value) {
   if (!(str(value.pluginId))) return false
   if (!(str(value.generation))) return false
   if (!(isPermissions(value.grants))) return false
+  if (!(value.hooks === undefined || list(value.hooks, str))) return false
   return true
 }
 
@@ -223,6 +224,7 @@ export function isProtocolRequirements(value) {
   if (!record(value)) return false
   if (!(num(value.major))) return false
   if (!(value.required === undefined || list(value.required, str))) return false
+  if (!(value.hooks === undefined || list(value.hooks, str))) return false
   return true
 }
 

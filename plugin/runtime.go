@@ -71,6 +71,9 @@ type Permissions struct {
 type ProtocolRequirements struct {
 	Major    uint32   `json:"major" bd:"public"`
 	Required []string `json:"required,omitempty" bd:"public"`
+	// Hooks lists the lifecycle hooks the plugin implements. ServePlugin fills
+	// it with DeclaredHooks; it is advertisement, not a requirement.
+	Hooks []string `json:"hooks,omitempty" bd:"public"`
 }
 
 // HostCapabilities is scoped to one admitted plugin generation. Features
@@ -81,6 +84,57 @@ type HostCapabilities struct {
 	PluginID   string      `json:"pluginId" bd:"public"`
 	Generation string      `json:"generation" bd:"public"`
 	Grants     Permissions `json:"grants" bd:"public"`
+	// Hooks is the subset of the requested hooks the host will call over the
+	// lifecycle hook verb. A plugin must not also run those hooks itself.
+	Hooks []string `json:"hooks,omitempty" bd:"public"`
+}
+
+// Lifecycle hooks a plugin advertises through negotiation. Across a process
+// boundary the host cannot type-assert, so it calls each acknowledged hook over
+// one generic verb instead. Every hook runs on entry or reports health; there
+// is deliberately no stop hook, so a plugin cannot declare an exit veto.
+const (
+	HookActivationCheck = "activation.check"
+	HookReady           = "ready"
+	HookHealth          = "health"
+
+	// LifecycleHookCommand is the one host-to-plugin verb for acknowledged
+	// hooks: POST /cmd.lifecycle.v1.hook {"hook":"<name>"} answered
+	// {"error":"<reason or empty>","result":<hook result or null>}.
+	LifecycleHookCommand = "cmd.lifecycle.v1.hook"
+)
+
+// DeclaredHooks returns the lifecycle hooks p implements, found by local type
+// assertion, in a stable order.
+func DeclaredHooks(p any) []string {
+	var hooks []string
+	if _, ok := p.(ActivationChecker); ok {
+		hooks = append(hooks, HookActivationCheck)
+	}
+	if _, ok := p.(Readier); ok {
+		hooks = append(hooks, HookReady)
+	}
+	if _, ok := p.(HealthContributor); ok {
+		hooks = append(hooks, HookHealth)
+	}
+	return hooks
+}
+
+func validateHooks(major uint32, hooks []string) error {
+	if major == 0 && len(hooks) != 0 {
+		return fmt.Errorf("protocol.hooks needs an explicit major version")
+	}
+	if err := validateExactNames("protocol.hooks", hooks); err != nil {
+		return err
+	}
+	for _, hook := range hooks {
+		switch hook {
+		case HookActivationCheck, HookReady, HookHealth:
+		default:
+			return fmt.Errorf("protocol.hooks: unknown lifecycle hook %q", hook)
+		}
+	}
+	return nil
 }
 
 // Negotiator is an optional Host interface; legacy Host implementations keep
@@ -94,6 +148,14 @@ type Negotiator interface {
 func CheckProtocol(have HostCapabilities, need ProtocolRequirements) error {
 	if err := validateExactNames("protocol.required", need.Required); err != nil {
 		return err
+	}
+	if err := validateHooks(need.Major, need.Hooks); err != nil {
+		return err
+	}
+	for _, hook := range have.Hooks {
+		if !slices.Contains(need.Hooks, hook) {
+			return fmt.Errorf("host acknowledged undeclared lifecycle hook %q", hook)
+		}
 	}
 	if need.Major == 0 {
 		if len(need.Required) != 0 {
@@ -117,6 +179,7 @@ const (
 	FeatureRuntimeSnapshot    = "runtime.snapshot.v1"
 	FeatureScopedHost         = "host.scoped.v1"
 	FeatureActivationCheck    = "activation.check.v1"
+	FeatureLifecycleHooks     = "lifecycle.hooks.v1"
 	FeatureShellContributions = "ui.contributions.v1"
 	FeatureDocumentPaths      = "ui.document-paths.v1"
 	FeatureUIModuleMount      = "ui.mount.v1"
@@ -150,6 +213,9 @@ func (m Manifest) validateRuntimeContract() error {
 			return fmt.Errorf("protocol.required needs an explicit major version")
 		}
 		if err := validateExactNames("protocol.required", p.Required); err != nil {
+			return err
+		}
+		if err := validateHooks(p.Major, p.Hooks); err != nil {
 			return err
 		}
 	}
