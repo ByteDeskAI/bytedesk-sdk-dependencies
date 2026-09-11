@@ -2,7 +2,15 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking: extension point names are namespaced.** `HostPointNamespace` (`host.`) and `ValidateExtendsName`. Manifest validation refuses an `extends` name that is not lowercase, at least three dot-separated segments, and under either `host.` or the plugin's publisher id; `implements` entries are left to the host, so installed packages using the old bare names still pass discovery. `SettingsSectionPoint` is now `host.settings.section` and `TerminalPresentationPoint` is now `host.terminal.presentation`; the terminal presentation interface and command names are unchanged.
+
 ### Added
+
+- **Typed settings field schema.** `ConfigSection.Fields []ConfigField` with `key`, `kind` (`bool`, `int`, `string`, `stringList`, `enum`, `secret`), `label`, `description`, `default`, `min`, `max`, `nullable`, `choices`, `readOnly` and `requiresRestart`. `ConfigFieldsFromStruct` derives fields from `json` tags plus a `config:"label=…,enum=a|b,min=,max=,default=,readonly,secret,restart"` tag; unknown tag keys are errors. Manifest validation checks declared sections. The TypeScript declarations, JS validators and Go payload union are regenerated.
+
+- **Lifecycle hooks through negotiation.** `Hooks` on `ProtocolRequirements` (declared by the plugin) and `HostCapabilities` (acknowledged by the host), `DeclaredHooks` to build the set by local type assertion, the constants `HookActivationCheck`, `HookReady` and `HookHealth`, `LifecycleHookCommand` and `FeatureLifecycleHooks`. `CheckProtocol` and manifest validation refuse unknown hook names and a host acknowledging a hook the plugin did not declare. There is no stop hook.
 
 - **`Manifest.Config` and `SettingsSectionPoint`.** A plugin declares the settings sections it contributes as manifest data — `Config.Sections[]` with `id`, `title` and `description` — so the host can list and label a section before asking the plugin for anything. It is schema, never values: the host owns values and reads its own record (gateway ADR 0026 C0). `SettingsSectionPoint` (`settings.section`) is the extension point the plugin implements; its operations are `cmd.settings.section.v1.snapshot` and `cmd.settings.section.v1.patch`. Typed field schema is added to `ConfigSection` before the SDK is tagged. The TypeScript declarations, JS validators and Go payload union are regenerated.
 
