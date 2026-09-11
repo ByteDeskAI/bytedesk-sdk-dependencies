@@ -4,10 +4,25 @@ export interface Config {
   sections?: ConfigSection[]
 }
 
+export interface ConfigField {
+  key: string
+  kind: string
+  label?: string
+  description?: string
+  default?: string
+  min?: number
+  max?: number
+  nullable?: boolean
+  choices?: string[]
+  readOnly?: boolean
+  requiresRestart?: boolean
+}
+
 export interface ConfigSection {
   id: string
   title?: string
   description?: string
+  fields?: ConfigField[]
 }
 
 export interface ExtensionPoint {
@@ -223,6 +238,7 @@ export interface When {
 // Runtime shape guards. The paired JS module exports one per declaration
 // above; they check structure only, not the host's security invariants.
 export declare function isConfig(value: unknown): value is Config
+export declare function isConfigField(value: unknown): value is ConfigField
 export declare function isConfigSection(value: unknown): value is ConfigSection
 export declare function isExtensionPoint(value: unknown): value is ExtensionPoint
 export declare function isFamily(value: unknown): value is Family

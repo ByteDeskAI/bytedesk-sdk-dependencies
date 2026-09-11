@@ -72,13 +72,15 @@ type Config struct {
 	Sections []ConfigSection `json:"sections,omitempty" bd:"public"`
 }
 
-// ConfigSection names one settings section. ID must equal the contribution ID
-// the plugin registers at SettingsSectionPoint. Typed field schema is added to
-// this struct by the manifest settings-schema work before the SDK is tagged.
+// ConfigSection names one settings section and the fields it shows. ID must
+// equal the contribution ID the plugin registers at SettingsSectionPoint. Fields
+// is the typed schema a host renders controls from; ConfigFieldsFromStruct
+// derives it from a tagged struct.
 type ConfigSection struct {
-	ID          string `json:"id" bd:"public"`
-	Title       string `json:"title,omitempty" bd:"public"`
-	Description string `json:"description,omitempty" bd:"public"`
+	ID          string        `json:"id" bd:"public"`
+	Title       string        `json:"title,omitempty" bd:"public"`
+	Description string        `json:"description,omitempty" bd:"public"`
+	Fields      []ConfigField `json:"fields,omitempty" bd:"public"`
 }
 
 // When constrains a plugin or family member to a set of operating systems,
@@ -295,6 +297,9 @@ func (m Manifest) validate(requireVersion bool) error {
 		}
 	}
 	if err := m.validateDocumentPaths(); err != nil {
+		return err
+	}
+	if err := m.Config.validate(); err != nil {
 		return err
 	}
 	return m.validateRuntimeContract()

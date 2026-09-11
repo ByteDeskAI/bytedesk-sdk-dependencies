@@ -12,6 +12,7 @@ package plugin
 // breaks every consumer, so it needs a changelog entry.
 type Payload interface {
 	Config |
+		ConfigField |
 		ConfigSection |
 		ExtensionPoint |
 		Family |

@@ -14,11 +14,28 @@ export function isConfig(value) {
   return true
 }
 
+export function isConfigField(value) {
+  if (!record(value)) return false
+  if (!(str(value.key))) return false
+  if (!(str(value.kind))) return false
+  if (!(value.label === undefined || str(value.label))) return false
+  if (!(value.description === undefined || str(value.description))) return false
+  if (!(value.default === undefined || str(value.default))) return false
+  if (!(value.min === undefined || num(value.min))) return false
+  if (!(value.max === undefined || num(value.max))) return false
+  if (!(value.nullable === undefined || bool(value.nullable))) return false
+  if (!(value.choices === undefined || list(value.choices, str))) return false
+  if (!(value.readOnly === undefined || bool(value.readOnly))) return false
+  if (!(value.requiresRestart === undefined || bool(value.requiresRestart))) return false
+  return true
+}
+
 export function isConfigSection(value) {
   if (!record(value)) return false
   if (!(str(value.id))) return false
   if (!(value.title === undefined || str(value.title))) return false
   if (!(value.description === undefined || str(value.description))) return false
+  if (!(value.fields === undefined || list(value.fields, isConfigField))) return false
   return true
 }
 
