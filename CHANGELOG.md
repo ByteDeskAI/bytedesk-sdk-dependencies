@@ -4,6 +4,8 @@
 
 ### Changed
 
+- **Breaking: UI contribution slots name a role, never a position (gateway ADR 0026 D1, TM-255).** `SlotToolbar`, `SlotOverlay` and `SlotBadge` are removed, and manifest validation refuses `toolbar`, `overlay` and `badge` as unknown slots. The roles are `SlotMainNavigation` (`main-navigation`), `SlotSubNavigation` (`sub-navigation`), `SlotPrimaryAction` (`primary-action`), `SlotSecondaryActions` (`secondary-actions`), `SlotStatusIndicator` (`status-indicator`), `SlotObjectActions` (`object-actions`) and `SlotLauncher` (`launcher`). Like the old panel slots, each requires only `panelId`. `SlotDefaultView`, `SlotSettings` (the settings-section role) and `SlotCommand` already named a function and are unchanged. A contribution declares what it is, and the shell decides where that role renders. To migrate, replace `toolbar` with `primary-action` and `badge` with `status-indicator`. `overlay` has no replacement role.
+
 - **Breaking: extension point names are namespaced.** `HostPointNamespace` (`host.`) and `ValidateExtendsName`. Manifest validation refuses an `extends` name that is not lowercase dot-separated segments under either `host.` (followed by an area and a name, e.g. `host.settings.section`) or the plugin's publisher id (at least two segments, e.g. `acme.widgets`); `implements` entries are left to the host, so installed packages using the old bare names still pass discovery. `SettingsSectionPoint` is now `host.settings.section` and `TerminalPresentationPoint` is now `host.terminal.presentation`; the terminal presentation interface and command names are unchanged.
 
 ### Added

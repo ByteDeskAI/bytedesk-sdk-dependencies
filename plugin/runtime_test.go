@@ -115,6 +115,26 @@ func TestRuntimeManifestRejectsAmbiguousAuthorityAndForeignPanels(t *testing.T) 
 	}
 }
 
+// TestUIContributionRolesAreFunctionalNames is TM-255: every role names what a
+// contribution is, and the positional slot names are refused outright.
+func TestUIContributionRolesAreFunctionalNames(t *testing.T) {
+	manifest := func(slot string) Manifest {
+		return Manifest{ID: "sample", Version: "1.0.0", Panels: []PanelSpec{{ID: "main", Kind: "page", URL: "/"}},
+			UI: []UIContribution{{ID: "c", Slot: slot, PanelID: "main"}}}
+	}
+	for _, role := range []string{SlotDefaultView, SlotMainNavigation, SlotSubNavigation, SlotPrimaryAction,
+		SlotSecondaryActions, SlotStatusIndicator, SlotObjectActions, SlotLauncher, SlotSettings} {
+		if m := manifest(role); m.Validate() != nil {
+			t.Errorf("role %q refused: %v", role, m.Validate())
+		}
+	}
+	for _, positional := range []string{"toolbar", "overlay", "badge"} {
+		if m := manifest(positional); m.Validate() == nil {
+			t.Errorf("positional slot %q accepted", positional)
+		}
+	}
+}
+
 func TestRuntimeSnapshotRevisionIsLosslessOnWire(t *testing.T) {
 	raw, err := json.Marshal(RuntimeSnapshot{Epoch: "host-a", Revision: ^uint64(0), Plugins: []RuntimeStatus{}})
 	if err != nil {

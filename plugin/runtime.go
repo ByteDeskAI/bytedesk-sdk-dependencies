@@ -185,8 +185,9 @@ const (
 	FeatureUIModuleMount      = "ui.mount.v1"
 )
 
-// UIContribution names a shell extension slot. The host resolves PanelID and
-// Command within the owner's declared contributions and granted authority.
+// UIContribution names the role a contribution plays in the shell. The host
+// resolves PanelID and Command within the owner's declared contributions and
+// granted authority.
 // Priority selects a default view; ties resolve by owner ID then contribution ID.
 type UIContribution struct {
 	ID       string `json:"id" bd:"public"`
@@ -198,13 +199,21 @@ type UIContribution struct {
 	Priority int    `json:"priority,omitempty" bd:"public"`
 }
 
+// Contribution roles (gateway ADR 0026 D1). A slot names what a contribution
+// is, never where it sits: the shell owns the role-to-region map, so a redesign
+// changes one mapping and no plugin. Settings and command already named a
+// function and keep their names; SlotSettings is the settings-section role.
 const (
-	SlotDefaultView = "default-view"
-	SlotToolbar     = "toolbar"
-	SlotOverlay     = "overlay"
-	SlotBadge       = "badge"
-	SlotSettings    = "settings"
-	SlotCommand     = "command"
+	SlotDefaultView      = "default-view"
+	SlotMainNavigation   = "main-navigation"
+	SlotSubNavigation    = "sub-navigation"
+	SlotPrimaryAction    = "primary-action"
+	SlotSecondaryActions = "secondary-actions"
+	SlotStatusIndicator  = "status-indicator"
+	SlotObjectActions    = "object-actions"
+	SlotLauncher         = "launcher"
+	SlotSettings         = "settings"
+	SlotCommand          = "command"
 )
 
 func (m Manifest) validateRuntimeContract() error {
@@ -241,7 +250,8 @@ func (m Manifest) validateRuntimeContract() error {
 		}
 		seen[item.ID] = true
 		switch item.Slot {
-		case SlotDefaultView, SlotToolbar, SlotOverlay, SlotBadge, SlotSettings:
+		case SlotDefaultView, SlotMainNavigation, SlotSubNavigation, SlotPrimaryAction, SlotSecondaryActions,
+			SlotStatusIndicator, SlotObjectActions, SlotLauncher, SlotSettings:
 			if item.PanelID == "" || item.Command != "" {
 				return fmt.Errorf("ui slot %q requires only panelId", item.Slot)
 			}
