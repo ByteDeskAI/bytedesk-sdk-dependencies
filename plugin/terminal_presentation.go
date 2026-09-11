@@ -300,7 +300,14 @@ func validateTerminalContext(v TerminalBindingContext) error {
 	return nil
 }
 
-func sameTerminalIncarnation(a, b PresentationTerminal) bool { return a == b }
+// sameTerminalIncarnation compares bindings by value. The tmux context is a
+// pointer, so == would refuse a freshly re-resolved binding with identical fields.
+func sameTerminalIncarnation(a, b PresentationTerminal) bool {
+	if a.TerminalID != b.TerminalID || a.Context.Kind != b.Context.Kind || (a.Context.Tmux == nil) != (b.Context.Tmux == nil) {
+		return false
+	}
+	return a.Context.Tmux == nil || *a.Context.Tmux == *b.Context.Tmux
+}
 
 func presentationText(name, value string, max int, nonempty bool) error {
 	if !utf8.ValidString(value) || len(value) > max || (nonempty && value == "") || strings.ContainsRune(value, 0) || strings.ContainsFunc(value, unicode.IsControl) {
