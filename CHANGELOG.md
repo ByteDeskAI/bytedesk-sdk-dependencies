@@ -4,7 +4,7 @@
 
 ### Changed
 
-- **Breaking: extension point names are namespaced.** `HostPointNamespace` (`host.`) and `ValidateExtendsName`. Manifest validation refuses an `extends` name that is not lowercase, at least three dot-separated segments, and under either `host.` or the plugin's publisher id; `implements` entries are left to the host, so installed packages using the old bare names still pass discovery. `SettingsSectionPoint` is now `host.settings.section` and `TerminalPresentationPoint` is now `host.terminal.presentation`; the terminal presentation interface and command names are unchanged.
+- **Breaking: extension point names are namespaced.** `HostPointNamespace` (`host.`) and `ValidateExtendsName`. Manifest validation refuses an `extends` name that is not lowercase dot-separated segments under either `host.` (followed by an area and a name, e.g. `host.settings.section`) or the plugin's publisher id (at least two segments, e.g. `acme.widgets`); `implements` entries are left to the host, so installed packages using the old bare names still pass discovery. `SettingsSectionPoint` is now `host.settings.section` and `TerminalPresentationPoint` is now `host.terminal.presentation`; the terminal presentation interface and command names are unchanged.
 
 ### Added
 

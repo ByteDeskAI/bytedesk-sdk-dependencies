@@ -74,14 +74,15 @@ const HostPointNamespace = "host."
 const SettingsSectionPoint = HostPointNamespace + "settings.section"
 
 // ValidateExtendsName checks one name a plugin declares in Extends. A point
-// name is lowercase letters, digits and hyphens in at least three dot-separated
-// segments, and it starts with HostPointNamespace or with the publisher id and a
-// dot: "acme.widgets.panel" for publisher "acme". A nil or empty publisher has
-// no namespace. The version is not part of the name; it belongs in Interface.
+// name is lowercase letters, digits and hyphens between dots. A host name has an
+// area and a name after HostPointNamespace ("host.settings.section"); any other
+// name starts with the publisher id and a dot ("acme.widgets" or
+// "acme.widgets.panel" for publisher "acme"). A nil or empty publisher has no
+// namespace. The version is not part of the name; it belongs in Interface.
 func ValidateExtendsName(publisher *Publisher, name string) error {
 	segments := strings.Split(name, ".")
-	if len(segments) < 3 {
-		return fmt.Errorf("extends: extension point %q needs at least three dot-separated segments", name)
+	if len(segments) < 2 {
+		return fmt.Errorf("extends: extension point %q needs at least two dot-separated segments", name)
 	}
 	for _, segment := range segments {
 		if segment == "" || strings.Trim(segment, "abcdefghijklmnopqrstuvwxyz0123456789-") != "" {
@@ -89,6 +90,9 @@ func ValidateExtendsName(publisher *Publisher, name string) error {
 		}
 	}
 	if strings.HasPrefix(name, HostPointNamespace) {
+		if len(segments) < 3 {
+			return fmt.Errorf("extends: host extension point %q needs an area and a name after %q", name, HostPointNamespace)
+		}
 		return nil
 	}
 	if publisher != nil {
