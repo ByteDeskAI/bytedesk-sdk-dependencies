@@ -16,6 +16,8 @@
 
 ### Fixed
 
+- **Terminal presentation admission compares incarnations by value.** `sameTerminalIncarnation` compared `PresentationTerminal` with `==`, and the tmux context is a pointer, so a freshly re-resolved tmux binding never matched the requested one and every tmux-bound terminal failed admission. It now compares the terminal id, the binding kind and the tmux fields by value.
+
 - **TypeScript declarations for the runtime shape guards.** `cmd/plugin-typescript` emitted an `is<Type>` guard per declaration into the paired `.js` module but never declared them in `contracts.d.ts`, so `import { isManifest }` was a TS2305 error against a symbol that resolves at runtime. The emitter now declares every guard as a narrowing predicate (`value is <Type>`), and the generator tests assert the declarations stay in step with the exports. Guards check structure only, not the host's security invariants.
 
 ## [0.4.0-rc.7] - 2026-09-10
