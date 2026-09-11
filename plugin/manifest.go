@@ -56,16 +56,48 @@ type Manifest struct {
 	// SCHEMA, never values: the host owns values and reads its own record, so a
 	// plugin describes what it configures and the operator's choices never live
 	// in a file the plugin writes (ADR 0026 C0). A section is served at the
-	// settings.section extension point, which the plugin must also name in
+	// host.settings.section extension point, which the plugin must also name in
 	// Implements; this field is what lets the host list and label a section
 	// before the plugin is asked for anything.
 	Config *Config `json:"config,omitempty" bd:"public"`
 }
 
+// HostPointNamespace prefixes every extension point the host owns. Only the
+// host and plugins compiled into it may declare a point under it. A manifest
+// cannot prove where it runs, so the host enforces that half at admission;
+// Validate only checks that a name is well formed and namespaced.
+const HostPointNamespace = "host."
+
 // SettingsSectionPoint is the extension point a plugin implements to contribute
-// a settings section. Its operations are cmd.settings.section.v1.snapshot and
-// cmd.settings.section.v1.patch.
-const SettingsSectionPoint = "settings.section"
+// a settings section. Its operations are cmd.host.settings.section.v1.snapshot
+// and cmd.host.settings.section.v1.patch.
+const SettingsSectionPoint = HostPointNamespace + "settings.section"
+
+// ValidateExtendsName checks one name a plugin declares in Extends. A point
+// name is lowercase letters, digits and hyphens in at least three dot-separated
+// segments, and it starts with HostPointNamespace or with the publisher id and a
+// dot: "acme.widgets.panel" for publisher "acme". A nil or empty publisher has
+// no namespace. The version is not part of the name; it belongs in Interface.
+func ValidateExtendsName(publisher *Publisher, name string) error {
+	segments := strings.Split(name, ".")
+	if len(segments) < 3 {
+		return fmt.Errorf("extends: extension point %q needs at least three dot-separated segments", name)
+	}
+	for _, segment := range segments {
+		if segment == "" || strings.Trim(segment, "abcdefghijklmnopqrstuvwxyz0123456789-") != "" {
+			return fmt.Errorf("extends: extension point %q must be lowercase letters, digits and hyphens between dots", name)
+		}
+	}
+	if strings.HasPrefix(name, HostPointNamespace) {
+		return nil
+	}
+	if publisher != nil {
+		if namespace := strings.ToLower(strings.TrimSpace(publisher.ID)); namespace != "" && strings.HasPrefix(name, namespace+".") {
+			return nil
+		}
+	}
+	return fmt.Errorf("extends: extension point %q must start with the publisher id or %q", name, HostPointNamespace)
+}
 
 // Config is a plugin's declared configuration surface.
 type Config struct {
@@ -294,6 +326,11 @@ func (m Manifest) validate(requireVersion bool) error {
 		t = strings.ToLower(strings.TrimSpace(t))
 		if t != TargetGateway && t != TargetVault {
 			return fmt.Errorf("targets: unknown %q (gateway|vault)", t)
+		}
+	}
+	for _, point := range m.Extends {
+		if err := ValidateExtendsName(m.Publisher, strings.TrimSpace(point.Name)); err != nil {
+			return err
 		}
 	}
 	if err := m.validateDocumentPaths(); err != nil {

@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	TerminalPresentationPoint       = "terminal.presentation"
+	TerminalPresentationPoint       = HostPointNamespace + "terminal.presentation"
 	TerminalPresentationInterface   = "terminal.presentation.v1"
 	TerminalPresentationCommand     = "terminal.presentation.project.v1"
 	TerminalPresentationBindingRead = "terminal.presentation.binding.read.v1"

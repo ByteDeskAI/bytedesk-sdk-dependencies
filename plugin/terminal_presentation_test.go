@@ -152,7 +152,7 @@ func TestTerminalPresentationOptionalAgentIdentity(t *testing.T) {
 }
 
 func TestTerminalPresentationIdentifiers(t *testing.T) {
-	if TerminalPresentationPoint != "terminal.presentation" || TerminalPresentationInterface != "terminal.presentation.v1" || TerminalPresentationCommand != "terminal.presentation.project.v1" || TerminalPresentationBindingRead != "terminal.presentation.binding.read.v1" {
+	if TerminalPresentationPoint != "host.terminal.presentation" || TerminalPresentationInterface != "terminal.presentation.v1" || TerminalPresentationCommand != "terminal.presentation.project.v1" || TerminalPresentationBindingRead != "terminal.presentation.binding.read.v1" {
 		t.Fatal("canonical identifiers drifted")
 	}
 }
