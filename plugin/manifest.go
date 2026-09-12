@@ -9,24 +9,38 @@ import (
 
 // Manifest is the CDM for plugin.json (nav, panels, spawn, commercial fields).
 type Manifest struct {
-	ID               string         `json:"id" bd:"public"`
-	Version          string         `json:"version,omitempty" bd:"public"`
-	Nav              []NavItem      `json:"nav,omitempty" bd:"public"`
-	Panels           []PanelSpec    `json:"panels,omitempty" bd:"public"`
-	Launchers        []LauncherSpec `json:"launchers,omitempty" bd:"public"`
-	Scopes           []string       `json:"scopes,omitempty" bd:"public"`
-	Routes           []string       `json:"routes,omitempty" bd:"public"`
-	Spawn            bool           `json:"spawn,omitempty" bd:"public"`
-	Binary           string         `json:"binary,omitempty" bd:"public"`
-	Socket           string         `json:"socket,omitempty" bd:"public"`
-	MinCoreVersion   string         `json:"minCoreVersion,omitempty" bd:"public"`
-	Targets          []string       `json:"targets,omitempty" bd:"public"` // gateway, vault
-	Role             string         `json:"role,omitempty" bd:"public"`    // system | extension
-	Provides         []string       `json:"provides,omitempty" bd:"public"`
-	Requires         []Requirement  `json:"requires,omitempty" bd:"public"`
-	RequiresProvides []string       `json:"requiresProvides,omitempty" bd:"public"`
-	Pricing          *Pricing       `json:"pricing,omitempty" bd:"public"`
-	Publisher        *Publisher     `json:"publisher,omitempty" bd:"public"`
+	ID        string         `json:"id" bd:"public"`
+	Version   string         `json:"version,omitempty" bd:"public"`
+	Nav       []NavItem      `json:"nav,omitempty" bd:"public"`
+	Panels    []PanelSpec    `json:"panels,omitempty" bd:"public"`
+	Launchers []LauncherSpec `json:"launchers,omitempty" bd:"public"`
+	Scopes    []string       `json:"scopes,omitempty" bd:"public"`
+	Routes    []string       `json:"routes,omitempty" bd:"public"`
+	// PublicRoutes are the routes above that an UNAUTHENTICATED caller may
+	// reach. Anything not named here is authenticated, so the safe answer is
+	// the default and a plugin has to ask for anonymity deliberately
+	// (gateway TM-325).
+	//
+	// This exists because some plugin routes cannot require a session by
+	// definition: a login page, a PWA service worker fetched before any session
+	// exists, a guest grant link, a health probe. Until now the host had no way
+	// to tell those from the rest, so it could not check authentication before
+	// revealing whether a plugin was running.
+	//
+	// Every entry must also appear in Routes. Declaring a public route this
+	// manifest does not own would let a plugin open a hole in another's surface.
+	PublicRoutes     []string      `json:"publicRoutes,omitempty" bd:"public"`
+	Spawn            bool          `json:"spawn,omitempty" bd:"public"`
+	Binary           string        `json:"binary,omitempty" bd:"public"`
+	Socket           string        `json:"socket,omitempty" bd:"public"`
+	MinCoreVersion   string        `json:"minCoreVersion,omitempty" bd:"public"`
+	Targets          []string      `json:"targets,omitempty" bd:"public"` // gateway, vault
+	Role             string        `json:"role,omitempty" bd:"public"`    // system | extension
+	Provides         []string      `json:"provides,omitempty" bd:"public"`
+	Requires         []Requirement `json:"requires,omitempty" bd:"public"`
+	RequiresProvides []string      `json:"requiresProvides,omitempty" bd:"public"`
+	Pricing          *Pricing      `json:"pricing,omitempty" bd:"public"`
+	Publisher        *Publisher    `json:"publisher,omitempty" bd:"public"`
 
 	// Family declares platform members the host selects between (ADR 0020).
 	// Until now this lived only in the gateway's private parser, so an SDK
@@ -340,10 +354,73 @@ func (m Manifest) validate(requireVersion bool) error {
 	if err := m.validateDocumentPaths(); err != nil {
 		return err
 	}
+	if err := m.validatePublicRoutes(); err != nil {
+		return err
+	}
 	if err := m.Config.validate(); err != nil {
 		return err
 	}
 	return m.validateRuntimeContract()
+}
+
+// validatePublicRoutes holds the one rule that makes the field safe to trust:
+// a plugin may only waive authentication on a route it already declared.
+//
+// Without it, a manifest could name another plugin's route, or a host route, as
+// public and open a hole in a surface it does not own. The host resolves route
+// ownership separately, but a manifest that cannot express the claim at all is
+// the cheaper guarantee.
+func (m Manifest) validatePublicRoutes() error {
+	if len(m.PublicRoutes) == 0 {
+		return nil
+	}
+	declared := make(map[string]bool, len(m.Routes))
+	for _, route := range m.Routes {
+		declared[strings.TrimSpace(route)] = true
+	}
+	seen := map[string]bool{}
+	for _, route := range m.PublicRoutes {
+		route = strings.TrimSpace(route)
+		if route == "" {
+			return fmt.Errorf("publicRoutes entry is empty")
+		}
+		if seen[route] {
+			return fmt.Errorf("duplicate publicRoutes entry %q", route)
+		}
+		seen[route] = true
+		if !declared[route] {
+			return fmt.Errorf("publicRoutes %q is not one of this manifest's routes", route)
+		}
+	}
+	return nil
+}
+
+// PublicRoute reports whether path is served anonymously by this manifest.
+//
+// A declared route ending in "/" is a prefix, matching how the host mounts
+// routes; anything else is exact. The default is false, so a caller asking
+// about an unknown path is told to authenticate.
+func (m Manifest) PublicRoute(path string) bool {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return false
+	}
+	for _, route := range m.PublicRoutes {
+		route = strings.TrimSpace(route)
+		if route == "" {
+			continue
+		}
+		if strings.HasSuffix(route, "/") {
+			if strings.HasPrefix(path, route) {
+				return true
+			}
+			continue
+		}
+		if path == route {
+			return true
+		}
+	}
+	return false
 }
 
 // TargetsOrDefault returns declared targets, or ["gateway"] for historical

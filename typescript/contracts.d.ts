@@ -80,6 +80,7 @@ export interface Manifest {
   launchers?: LauncherSpec[]
   scopes?: string[]
   routes?: string[]
+  publicRoutes?: string[]
   spawn?: boolean
   binary?: string
   socket?: string

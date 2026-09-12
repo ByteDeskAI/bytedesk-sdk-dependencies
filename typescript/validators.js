@@ -109,6 +109,7 @@ export function isManifest(value) {
   if (!(value.launchers === undefined || list(value.launchers, isLauncherSpec))) return false
   if (!(value.scopes === undefined || list(value.scopes, str))) return false
   if (!(value.routes === undefined || list(value.routes, str))) return false
+  if (!(value.publicRoutes === undefined || list(value.publicRoutes, str))) return false
   if (!(value.spawn === undefined || bool(value.spawn))) return false
   if (!(value.binary === undefined || str(value.binary))) return false
   if (!(value.socket === undefined || str(value.socket))) return false
