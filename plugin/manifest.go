@@ -16,16 +16,24 @@ type Manifest struct {
 	Launchers []LauncherSpec `json:"launchers,omitempty" bd:"public"`
 	Scopes    []string       `json:"scopes,omitempty" bd:"public"`
 	Routes    []string       `json:"routes,omitempty" bd:"public"`
-	// PublicRoutes are the routes above that an UNAUTHENTICATED caller may
-	// reach. Anything not named here is authenticated, so the safe answer is
-	// the default and a plugin has to ask for anonymity deliberately
+	// PublicRoutes are the routes above that the host's OPERATOR SESSION GATE
+	// does not apply to. Anything not named here requires a session, so the
+	// safe answer is the default and a plugin has to ask deliberately
 	// (gateway TM-325).
 	//
-	// This exists because some plugin routes cannot require a session by
-	// definition: a login page, a PWA service worker fetched before any session
-	// exists, a guest grant link, a health probe. Until now the host had no way
-	// to tell those from the rest, so it could not check authentication before
-	// revealing whether a plugin was running.
+	// It does NOT mean the route is unprotected, and reading it that way is the
+	// mistake this comment exists to prevent. A route named here may still
+	// enforce its own credential: a guest share link is authorised by the token
+	// in its URL, and a deploy probe by coming from loopback. What the
+	// declaration says is "do not ask this route for a session cookie", because
+	// for these routes a session cannot exist yet or never will.
+	//
+	// The cases are narrow and each is real: a login page, the PWA manifest and
+	// service worker a browser fetches before any session exists, a guest share
+	// link, a deploy probe. Until now the host had no way to tell those from the
+	// rest, so it could not check authentication before revealing whether a
+	// plugin was running — which let an anonymous caller fingerprint the
+	// running plugin set from status codes.
 	//
 	// Every entry must also appear in Routes. Declaring a public route this
 	// manifest does not own would let a plugin open a hole in another's surface.
