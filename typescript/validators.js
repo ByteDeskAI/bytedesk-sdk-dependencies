@@ -8,6 +8,14 @@ const num = (v) => typeof v === 'number' && Number.isFinite(v)
 const dec = (v) => str(v) && decimal.test(v)
 const list = (v, of) => Array.isArray(v) && v.every(of)
 
+export function isBinding(value) {
+  if (!record(value)) return false
+  if (!(str(value.kind))) return false
+  if (!(str(value.event))) return false
+  if (!(value.field === undefined || str(value.field))) return false
+  return true
+}
+
 export function isConfig(value) {
   if (!record(value)) return false
   if (!(value.sections === undefined || list(value.sections, isConfigSection))) return false
@@ -299,6 +307,7 @@ export function isUIContribution(value) {
   if (!(value.label === undefined || str(value.label))) return false
   if (!(value.icon === undefined || str(value.icon))) return false
   if (!(value.priority === undefined || num(value.priority))) return false
+  if (!(value.bindings === undefined || list(value.bindings, isBinding))) return false
   return true
 }
 

@@ -135,6 +135,55 @@ func TestUIContributionRolesAreFunctionalNames(t *testing.T) {
 	}
 }
 
+// TestContributionBindingsValidateShapeOnly is gateway TM-256. A binding says
+// which event a contribution follows; the manifest checks only that the
+// declaration is well formed, because whether the plugin may subscribe to that
+// event is the host's question and no manifest can answer it for itself.
+func TestContributionBindingsValidateShapeOnly(t *testing.T) {
+	manifest := func(bindings ...Binding) Manifest {
+		return Manifest{ID: "sample", Version: "1.0.0",
+			Panels: []PanelSpec{{ID: "main", Kind: "page", URL: "/"}},
+			UI:     []UIContribution{{ID: "c", Slot: SlotMainNavigation, PanelID: "main", Bindings: bindings}}}
+	}
+
+	for _, kind := range []string{BindCount, BindBadge, BindLiveness, BindToggle} {
+		m := manifest(Binding{Kind: kind, Event: "event.sample.v1.changed", Field: "unread"})
+		if err := m.Validate(); err != nil {
+			t.Errorf("kind %q refused: %v", kind, err)
+		}
+	}
+	// No bindings at all stays valid: every contribution that exists today has none.
+	if err := manifest().Validate(); err != nil {
+		t.Errorf("a contribution without bindings was refused: %v", err)
+	}
+	// The payload itself may be the value, so an empty field is allowed.
+	if err := manifest(Binding{Kind: BindCount, Event: "event.sample.v1.changed"}).Validate(); err != nil {
+		t.Errorf("an empty field was refused: %v", err)
+	}
+
+	for name, bindings := range map[string][]Binding{
+		"unknown kind":    {{Kind: "colour", Event: "event.sample.v1.changed"}},
+		"empty kind":      {{Event: "event.sample.v1.changed"}},
+		"missing event":   {{Kind: BindCount}},
+		"wildcard event":  {{Kind: BindCount, Event: "event.sample.v1.*"}},
+		"duplicate kind":  {{Kind: BindCount, Event: "event.a.v1.x"}, {Kind: BindCount, Event: "event.b.v1.y"}},
+		"field is a path": {{Kind: BindCount, Event: "event.sample.v1.changed", Field: "a.b"}},
+	} {
+		if err := manifest(bindings...).Validate(); err == nil {
+			t.Errorf("%s was accepted", name)
+		}
+	}
+
+	// Two different kinds on one contribution is the point: a nav item can carry
+	// a count and a liveness dot at once.
+	if err := manifest(
+		Binding{Kind: BindCount, Event: "event.sample.v1.changed", Field: "unread"},
+		Binding{Kind: BindLiveness, Event: "event.sample.v1.health", Field: "up"},
+	).Validate(); err != nil {
+		t.Errorf("two kinds on one contribution refused: %v", err)
+	}
+}
+
 func TestRuntimeSnapshotRevisionIsLosslessOnWire(t *testing.T) {
 	raw, err := json.Marshal(RuntimeSnapshot{Epoch: "host-a", Revision: ^uint64(0), Plugins: []RuntimeStatus{}})
 	if err != nil {

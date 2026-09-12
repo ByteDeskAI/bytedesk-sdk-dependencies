@@ -197,7 +197,46 @@ type UIContribution struct {
 	Label    string `json:"label,omitempty" bd:"public"`
 	Icon     string `json:"icon,omitempty" bd:"public"`
 	Priority int    `json:"priority,omitempty" bd:"public"`
+	// Bindings make the contribution reactive. At most one per kind.
+	Bindings []Binding `json:"bindings,omitempty" bd:"public"`
 }
+
+// Binding declares that one aspect of a contribution follows a bus event
+// (gateway TM-256).
+//
+// The plugin declares the event it already publishes; the host subscribes on
+// the plugin's behalf, under the subscribe grant that plugin already has to
+// hold, and the shell re-renders. The author writes no frontend code, and the
+// host never hands a plugin the shell to do it themselves.
+//
+// A binding is a request, not authority. The host resolves it through the same
+// four conjuncts as any other subscribe, so declaring one for an event the
+// plugin was never granted is refused rather than obeyed — and refused
+// observably, because a silently dead badge is indistinguishable from a quiet
+// one.
+type Binding struct {
+	// Kind is what the shell renders: BindCount, BindBadge, BindLiveness or
+	// BindToggle.
+	Kind string `json:"kind" bd:"public"`
+	// Event is the exact bus event carrying the value.
+	Event string `json:"event" bd:"public"`
+	// Field is the JSON field of the event payload to read. Empty means the
+	// payload is the value itself.
+	Field string `json:"field,omitempty" bd:"public"`
+}
+
+// Binding kinds. Each says what the shell does with the value, not where the
+// contribution sits — the same separation the slot roles make.
+const (
+	// BindCount is a number beside the label, hidden at zero.
+	BindCount = "count"
+	// BindBadge is a short string, such as a status word.
+	BindBadge = "badge"
+	// BindLiveness is a boolean shown as present or absent, for a dot.
+	BindLiveness = "liveness"
+	// BindToggle is a boolean the contribution renders as on or off.
+	BindToggle = "toggle"
+)
 
 // Contribution roles (gateway ADR 0026 D1). A slot names what a contribution
 // is, never where it sits: the shell owns the role-to-region map, so a redesign
@@ -274,6 +313,44 @@ func (m Manifest) validateRuntimeContract() error {
 			}
 		default:
 			return fmt.Errorf("unknown ui slot %q", item.Slot)
+		}
+		if err := validateBindings(item.ID, item.Bindings); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateBindings checks the shape only. Whether the plugin may subscribe to
+// the event it names is the host's four-conjunct question, asked at
+// registration, and no manifest can answer it for itself.
+func validateBindings(contributionID string, bindings []Binding) error {
+	seen := map[string]bool{}
+	for _, bind := range bindings {
+		switch bind.Kind {
+		case BindCount, BindBadge, BindLiveness, BindToggle:
+		default:
+			return fmt.Errorf("ui %q: unknown binding kind %q", contributionID, bind.Kind)
+		}
+		if seen[bind.Kind] {
+			return fmt.Errorf("ui %q: duplicate binding kind %q", contributionID, bind.Kind)
+		}
+		seen[bind.Kind] = true
+		if err := validateExactNames("ui.bindings.event", []string{bind.Event}); err != nil {
+			return err
+		}
+		// A field selects one value out of the payload, so it is one JSON key,
+		// not a path. A path would be a query language nobody asked for, and the
+		// host would have to evaluate it against a payload a plugin controls.
+		// validateIDSegment is not enough here: it permits dots, which is
+		// exactly the separator a path would use.
+		if bind.Field != "" {
+			if err := validateIDSegment("ui.bindings.field", bind.Field); err != nil {
+				return err
+			}
+			if strings.ContainsAny(bind.Field, ".[]") {
+				return fmt.Errorf("ui %q: binding field %q must be one JSON key, not a path", contributionID, bind.Field)
+			}
 		}
 	}
 	return nil
