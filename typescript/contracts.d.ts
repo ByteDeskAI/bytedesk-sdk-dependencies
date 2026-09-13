@@ -41,6 +41,9 @@ export interface DesktopApplication {
   manual?: boolean
   revision?: string
   iconUrl?: string
+  launcherPath?: string
+  installedAt?: string
+  installedAtEstimated?: boolean
 }
 
 export interface DesktopApplicationSession {

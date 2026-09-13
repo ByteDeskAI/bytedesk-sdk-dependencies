@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
@@ -47,15 +48,18 @@ type DesktopSessionStatus struct {
 }
 
 type DesktopApplication struct {
-	ID       string `json:"id" bd:"subject"`
-	Name     string `json:"name" bd:"subject"`
-	Kind     string `json:"kind" bd:"subject"`
-	Preset   string `json:"preset,omitempty" bd:"subject"`
-	Status   string `json:"status" bd:"subject"`
-	Error    string `json:"error,omitempty" bd:"subject"`
-	Manual   bool   `json:"manual,omitempty" bd:"subject"`
-	Revision string `json:"revision,omitempty" bd:"subject"`
-	IconURL  string `json:"iconUrl,omitempty" bd:"subject"`
+	ID                   string `json:"id" bd:"subject"`
+	Name                 string `json:"name" bd:"subject"`
+	Kind                 string `json:"kind" bd:"subject"`
+	Preset               string `json:"preset,omitempty" bd:"subject"`
+	Status               string `json:"status" bd:"subject"`
+	Error                string `json:"error,omitempty" bd:"subject"`
+	Manual               bool   `json:"manual,omitempty" bd:"subject"`
+	Revision             string `json:"revision,omitempty" bd:"subject"`
+	IconURL              string `json:"iconUrl,omitempty" bd:"subject"`
+	LauncherPath         string `json:"launcherPath,omitempty" bd:"subject"`
+	InstalledAt          string `json:"installedAt,omitempty" bd:"subject"`
+	InstalledAtEstimated bool   `json:"installedAtEstimated,omitempty" bd:"subject"`
 }
 
 type DesktopApplicationWindow struct {
@@ -159,6 +163,21 @@ func (v DesktopApplication) Validate() error {
 		if err := desktopText("application."+name, value, 1024, false); err != nil {
 			return err
 		}
+	}
+	if v.LauncherPath != "" {
+		if len(v.LauncherPath) > 4096 || !filepath.IsAbs(v.LauncherPath) || strings.ContainsAny(v.LauncherPath, "\x00\r\n") {
+			return fmt.Errorf("application.launcherPath must be an absolute host path")
+		}
+	}
+	if v.InstalledAt != "" {
+		if len(v.InstalledAt) > 64 || strings.ContainsAny(v.InstalledAt, "\x00\r\n") {
+			return fmt.Errorf("application.installedAt must be RFC3339")
+		}
+		if _, err := time.Parse(time.RFC3339, v.InstalledAt); err != nil {
+			return fmt.Errorf("application.installedAt must be RFC3339: %w", err)
+		}
+	} else if v.InstalledAtEstimated {
+		return fmt.Errorf("application.installedAtEstimated requires installedAt")
 	}
 	return validateDesktopSize(v)
 }

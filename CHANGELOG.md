@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.9] - 2026-09-13
+
 ### Changed
 
 - **Breaking: UI contribution slots name a role, never a position (gateway ADR 0026 D1, TM-255).** `SlotToolbar`, `SlotOverlay` and `SlotBadge` are removed, and manifest validation refuses `toolbar`, `overlay` and `badge` as unknown slots. The roles are `SlotMainNavigation` (`main-navigation`), `SlotSubNavigation` (`sub-navigation`), `SlotPrimaryAction` (`primary-action`), `SlotSecondaryActions` (`secondary-actions`), `SlotStatusIndicator` (`status-indicator`), `SlotObjectActions` (`object-actions`) and `SlotLauncher` (`launcher`). Like the old panel slots, each requires only `panelId`. `SlotDefaultView`, `SlotSettings` (the settings-section role) and `SlotCommand` already named a function and are unchanged. A contribution declares what it is, and the shell decides where that role renders. To migrate, replace `toolbar` with `primary-action` and `badge` with `status-indicator`. `overlay` has no replacement role.
@@ -10,7 +12,9 @@
 
 ### Added
 
-- **Typed desktop Applications host service (gateway TM-326).** Adds bounded, validated status, scan, register, open, refresh, viewer-ticket and quit commands. Scan results expose public application records and opaque session identities without returning host paths or desktop credentials.
+- **Applications catalog metadata (gateway TM-331).** `DesktopApplication` now carries optional `launcherPath`, `installedAt`, and `installedAtEstimated` fields alongside `iconUrl`. Launcher paths are absolute host paths for authorized catalog display, install times are RFC3339, and an estimated flag is valid only when an install time is present. Executables and desktop credentials remain host-private.
+
+- **Typed desktop Applications host service (gateway TM-326).** Adds bounded, validated status, scan, register, open, refresh, viewer-ticket and quit commands. Scan results expose bounded catalog records and opaque session identities without returning executables or desktop credentials.
 
 - **Reactive contribution bindings (gateway TM-256).** `UIContribution.Bindings []Binding` declares that one aspect of a contribution follows a bus event the plugin already publishes. `Binding` carries `Kind` — `BindCount`, `BindBadge`, `BindLiveness` or `BindToggle` — the exact `Event`, and an optional `Field` naming one JSON key of that event's payload; an empty field means the payload is the value. The plugin writes no frontend code, and the host never hands it the shell to draw a badge itself. A contribution may carry one binding of each kind, so a nav item can show an unread count and a liveness dot at once. A binding is a request, not authority: the host resolves the named event through the same conjuncts as any other subscribe, so one declared for an event the plugin was never granted is refused rather than obeyed. Manifest validation checks shape only — known kind, no duplicate kind, exact event name, and a field that is one JSON key rather than a path, because a path would be a query language evaluated by the host against a payload the plugin controls. Additive: every contribution that exists today declares none and is unchanged.
 

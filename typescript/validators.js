@@ -58,6 +58,9 @@ export function isDesktopApplication(value) {
   if (!(value.manual === undefined || bool(value.manual))) return false
   if (!(value.revision === undefined || str(value.revision))) return false
   if (!(value.iconUrl === undefined || str(value.iconUrl))) return false
+  if (!(value.launcherPath === undefined || str(value.launcherPath))) return false
+  if (!(value.installedAt === undefined || str(value.installedAt))) return false
+  if (!(value.installedAtEstimated === undefined || bool(value.installedAtEstimated))) return false
   return true
 }
 
