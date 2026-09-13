@@ -15,6 +15,24 @@ type Payload interface {
 		Config |
 		ConfigField |
 		ConfigSection |
+		DesktopApplication |
+		DesktopApplicationSession |
+		DesktopApplicationWindow |
+		DesktopApplicationsOpenRequest |
+		DesktopApplicationsOpenResult |
+		DesktopApplicationsQuitRequest |
+		DesktopApplicationsQuitResult |
+		DesktopApplicationsRefreshRequest |
+		DesktopApplicationsRefreshResult |
+		DesktopApplicationsRegisterRequest |
+		DesktopApplicationsRegisterResult |
+		DesktopApplicationsScanRequest |
+		DesktopApplicationsScanResult |
+		DesktopApplicationsStatusRequest |
+		DesktopApplicationsStatusResult |
+		DesktopApplicationsViewerTicketRequest |
+		DesktopApplicationsViewerTicketResult |
+		DesktopSessionStatus |
 		ExtensionPoint |
 		Family |
 		FamilyMember |
@@ -47,3 +65,24 @@ type Payload interface {
 
 // CmdTerminalPresentationProject is the generated descriptor for terminal.presentation.project.v1 revision 2.
 var CmdTerminalPresentationProject = NewCommand[PresentationRequest, PresentationResult]("terminal.presentation.project.v1", 2, "3b8d09c15b513b8f7c7bd71dd8574c0f3c35fd029d8c99e549295845329ae1b0")
+
+// CmdDesktopApplicationsStatus is the generated descriptor for cmd.desktop-applications.v1.status revision 1.
+var CmdDesktopApplicationsStatus = NewCommand[DesktopApplicationsStatusRequest, DesktopApplicationsStatusResult]("cmd.desktop-applications.v1.status", 1, "a5377f746e1a8c185530e49d0c0c3edfdb67af4212772aca9884e3cd4c652eeb")
+
+// CmdDesktopApplicationsScan is the generated descriptor for cmd.desktop-applications.v1.scan revision 1.
+var CmdDesktopApplicationsScan = NewCommand[DesktopApplicationsScanRequest, DesktopApplicationsScanResult]("cmd.desktop-applications.v1.scan", 1, "dc96558764acbdb0d2d4b1e4eb145fd09a3c658bb813cc2f4ba6cf1bdb33db2b")
+
+// CmdDesktopApplicationsRegister is the generated descriptor for cmd.desktop-applications.v1.register revision 1.
+var CmdDesktopApplicationsRegister = NewCommand[DesktopApplicationsRegisterRequest, DesktopApplicationsRegisterResult]("cmd.desktop-applications.v1.register", 1, "d9931cbd066b61f6b9104286297b03ad0a91cf6c9a7e2b1210410b140b355cb5")
+
+// CmdDesktopApplicationsOpen is the generated descriptor for cmd.desktop-applications.v1.open revision 1.
+var CmdDesktopApplicationsOpen = NewCommand[DesktopApplicationsOpenRequest, DesktopApplicationsOpenResult]("cmd.desktop-applications.v1.open", 1, "5baa7d4ddf71da7e93da5e2327c273d32176524239872b76e47a6c432772333e")
+
+// CmdDesktopApplicationsRefresh is the generated descriptor for cmd.desktop-applications.v1.refresh revision 1.
+var CmdDesktopApplicationsRefresh = NewCommand[DesktopApplicationsRefreshRequest, DesktopApplicationsRefreshResult]("cmd.desktop-applications.v1.refresh", 1, "ed0615f3b487e99d6e9c16fe1d1d2ebed74e4d6e22f5756238d20f001120909a")
+
+// CmdDesktopApplicationsViewerTicket is the generated descriptor for cmd.desktop-applications.v1.viewer-ticket revision 1.
+var CmdDesktopApplicationsViewerTicket = NewCommand[DesktopApplicationsViewerTicketRequest, DesktopApplicationsViewerTicketResult]("cmd.desktop-applications.v1.viewer-ticket", 1, "a19dc252c64ab47a3b997e610118a3d7a56c2cb5ea3aac077051f43e1a109bdc")
+
+// CmdDesktopApplicationsQuit is the generated descriptor for cmd.desktop-applications.v1.quit revision 1.
+var CmdDesktopApplicationsQuit = NewCommand[DesktopApplicationsQuitRequest, DesktopApplicationsQuitResult]("cmd.desktop-applications.v1.quit", 1, "7b40318af1df2da39cbcc59ed265ea9cd5ed9ff1c92a12029032a878b663d4cb")

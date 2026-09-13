@@ -31,6 +31,98 @@ export interface ConfigSection {
   fields?: ConfigField[]
 }
 
+export interface DesktopApplication {
+  id: string
+  name: string
+  kind: string
+  preset?: string
+  status: string
+  error?: string
+  manual?: boolean
+  revision?: string
+  iconUrl?: string
+}
+
+export interface DesktopApplicationSession {
+  id: string
+  applicationId: string
+  name: string
+  state: string
+  windows: DesktopApplicationWindow[] | null
+  viewerUrl: string
+  error?: string
+}
+
+export interface DesktopApplicationWindow {
+  id: string
+  title: string
+}
+
+export interface DesktopApplicationsOpenRequest {
+  applicationId: string
+  windowId?: string
+}
+
+export interface DesktopApplicationsOpenResult {
+  session: DesktopApplicationSession
+}
+
+export interface DesktopApplicationsQuitRequest {
+  sessionId: string
+}
+
+export interface DesktopApplicationsQuitResult {
+  ok: boolean
+}
+
+export interface DesktopApplicationsRefreshRequest {
+  sessionId: string
+}
+
+export interface DesktopApplicationsRefreshResult {
+  session: DesktopApplicationSession
+}
+
+export interface DesktopApplicationsRegisterRequest {
+  applicationId?: string
+  name: string
+  path: string
+}
+
+export interface DesktopApplicationsRegisterResult {
+  application: DesktopApplication
+}
+
+export interface DesktopApplicationsScanRequest {
+}
+
+export interface DesktopApplicationsScanResult {
+  desktop: DesktopSessionStatus
+  applications: DesktopApplication[] | null
+}
+
+export interface DesktopApplicationsStatusRequest {
+}
+
+export interface DesktopApplicationsStatusResult {
+  desktop: DesktopSessionStatus
+}
+
+export interface DesktopApplicationsViewerTicketRequest {
+  sessionId: string
+  origin: string
+}
+
+export interface DesktopApplicationsViewerTicketResult {
+  ticket: string
+  expiresIn: number
+}
+
+export interface DesktopSessionStatus {
+  available: boolean
+  message: string
+}
+
 export interface ExtensionPoint {
   name: string
   interface?: string
@@ -251,6 +343,24 @@ export declare function isBinding(value: unknown): value is Binding
 export declare function isConfig(value: unknown): value is Config
 export declare function isConfigField(value: unknown): value is ConfigField
 export declare function isConfigSection(value: unknown): value is ConfigSection
+export declare function isDesktopApplication(value: unknown): value is DesktopApplication
+export declare function isDesktopApplicationSession(value: unknown): value is DesktopApplicationSession
+export declare function isDesktopApplicationWindow(value: unknown): value is DesktopApplicationWindow
+export declare function isDesktopApplicationsOpenRequest(value: unknown): value is DesktopApplicationsOpenRequest
+export declare function isDesktopApplicationsOpenResult(value: unknown): value is DesktopApplicationsOpenResult
+export declare function isDesktopApplicationsQuitRequest(value: unknown): value is DesktopApplicationsQuitRequest
+export declare function isDesktopApplicationsQuitResult(value: unknown): value is DesktopApplicationsQuitResult
+export declare function isDesktopApplicationsRefreshRequest(value: unknown): value is DesktopApplicationsRefreshRequest
+export declare function isDesktopApplicationsRefreshResult(value: unknown): value is DesktopApplicationsRefreshResult
+export declare function isDesktopApplicationsRegisterRequest(value: unknown): value is DesktopApplicationsRegisterRequest
+export declare function isDesktopApplicationsRegisterResult(value: unknown): value is DesktopApplicationsRegisterResult
+export declare function isDesktopApplicationsScanRequest(value: unknown): value is DesktopApplicationsScanRequest
+export declare function isDesktopApplicationsScanResult(value: unknown): value is DesktopApplicationsScanResult
+export declare function isDesktopApplicationsStatusRequest(value: unknown): value is DesktopApplicationsStatusRequest
+export declare function isDesktopApplicationsStatusResult(value: unknown): value is DesktopApplicationsStatusResult
+export declare function isDesktopApplicationsViewerTicketRequest(value: unknown): value is DesktopApplicationsViewerTicketRequest
+export declare function isDesktopApplicationsViewerTicketResult(value: unknown): value is DesktopApplicationsViewerTicketResult
+export declare function isDesktopSessionStatus(value: unknown): value is DesktopSessionStatus
 export declare function isExtensionPoint(value: unknown): value is ExtensionPoint
 export declare function isFamily(value: unknown): value is Family
 export declare function isFamilyMember(value: unknown): value is FamilyMember

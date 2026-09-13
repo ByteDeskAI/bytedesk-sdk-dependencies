@@ -10,6 +10,8 @@
 
 ### Added
 
+- **Typed desktop Applications host service (gateway TM-326).** Adds bounded, validated status, scan, register, open, refresh, viewer-ticket and quit commands. Scan results expose public application records and opaque session identities without returning host paths or desktop credentials.
+
 - **Reactive contribution bindings (gateway TM-256).** `UIContribution.Bindings []Binding` declares that one aspect of a contribution follows a bus event the plugin already publishes. `Binding` carries `Kind` — `BindCount`, `BindBadge`, `BindLiveness` or `BindToggle` — the exact `Event`, and an optional `Field` naming one JSON key of that event's payload; an empty field means the payload is the value. The plugin writes no frontend code, and the host never hands it the shell to draw a badge itself. A contribution may carry one binding of each kind, so a nav item can show an unread count and a liveness dot at once. A binding is a request, not authority: the host resolves the named event through the same conjuncts as any other subscribe, so one declared for an event the plugin was never granted is refused rather than obeyed. Manifest validation checks shape only — known kind, no duplicate kind, exact event name, and a field that is one JSON key rather than a path, because a path would be a query language evaluated by the host against a payload the plugin controls. Additive: every contribution that exists today declares none and is unchanged.
 
 - **Optional interfaces beside `Host` and `Plugin` (gateway ADR 0026 B2, B3, B4, E1; TM-268).** `Host`'s method set is pinned, because every deployed plugin links its own copy, so these arrive alongside it and a plugin type-asserts for what it wants. An older host implements none of them and keeps working.

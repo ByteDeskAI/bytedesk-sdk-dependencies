@@ -59,6 +59,20 @@ func targets() map[string]target {
 				{typ: reflect.TypeOf(plugin.HostCapabilities{})},
 				{typ: reflect.TypeOf(plugin.ProtocolRequirements{})},
 				{typ: reflect.TypeOf(plugin.LifecycleOperation{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsStatusRequest{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsStatusResult{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsScanRequest{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsScanResult{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsRegisterRequest{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsRegisterResult{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsOpenRequest{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsOpenResult{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsRefreshRequest{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsRefreshResult{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsViewerTicketRequest{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsViewerTicketResult{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsQuitRequest{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsQuitResult{})},
 				{typ: reflect.TypeOf(plugin.PresentationRequest{}), readonly: true},
 				{typ: reflect.TypeOf(plugin.PresentationResult{}), readonly: true},
 			},
@@ -71,6 +85,27 @@ func targets() map[string]target {
 				goVar: "CmdTerminalPresentationProject",
 				req:   reflect.TypeOf(plugin.PresentationRequest{}),
 				resp:  reflect.TypeOf(plugin.PresentationResult{}),
+			}, {
+				name: plugin.DesktopApplicationsStatusCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
+				goVar: "CmdDesktopApplicationsStatus", req: reflect.TypeOf(plugin.DesktopApplicationsStatusRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsStatusResult{}),
+			}, {
+				name: plugin.DesktopApplicationsScanCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
+				goVar: "CmdDesktopApplicationsScan", req: reflect.TypeOf(plugin.DesktopApplicationsScanRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsScanResult{}),
+			}, {
+				name: plugin.DesktopApplicationsRegisterCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
+				goVar: "CmdDesktopApplicationsRegister", req: reflect.TypeOf(plugin.DesktopApplicationsRegisterRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsRegisterResult{}),
+			}, {
+				name: plugin.DesktopApplicationsOpenCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
+				goVar: "CmdDesktopApplicationsOpen", req: reflect.TypeOf(plugin.DesktopApplicationsOpenRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsOpenResult{}),
+			}, {
+				name: plugin.DesktopApplicationsRefreshCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
+				goVar: "CmdDesktopApplicationsRefresh", req: reflect.TypeOf(plugin.DesktopApplicationsRefreshRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsRefreshResult{}),
+			}, {
+				name: plugin.DesktopApplicationsViewerTicketCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
+				goVar: "CmdDesktopApplicationsViewerTicket", req: reflect.TypeOf(plugin.DesktopApplicationsViewerTicketRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsViewerTicketResult{}),
+			}, {
+				name: plugin.DesktopApplicationsQuitCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
+				goVar: "CmdDesktopApplicationsQuit", req: reflect.TypeOf(plugin.DesktopApplicationsQuitRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsQuitResult{}),
 			}},
 		},
 		"messaging": messagingTarget(),

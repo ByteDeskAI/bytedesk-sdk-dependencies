@@ -47,6 +47,134 @@ export function isConfigSection(value) {
   return true
 }
 
+export function isDesktopApplication(value) {
+  if (!record(value)) return false
+  if (!(str(value.id))) return false
+  if (!(str(value.name))) return false
+  if (!(str(value.kind))) return false
+  if (!(value.preset === undefined || str(value.preset))) return false
+  if (!(str(value.status))) return false
+  if (!(value.error === undefined || str(value.error))) return false
+  if (!(value.manual === undefined || bool(value.manual))) return false
+  if (!(value.revision === undefined || str(value.revision))) return false
+  if (!(value.iconUrl === undefined || str(value.iconUrl))) return false
+  return true
+}
+
+export function isDesktopApplicationSession(value) {
+  if (!record(value)) return false
+  if (!(str(value.id))) return false
+  if (!(str(value.applicationId))) return false
+  if (!(str(value.name))) return false
+  if (!(str(value.state))) return false
+  if (!(value.windows === null || list(value.windows, isDesktopApplicationWindow))) return false
+  if (!(str(value.viewerUrl))) return false
+  if (!(value.error === undefined || str(value.error))) return false
+  return true
+}
+
+export function isDesktopApplicationWindow(value) {
+  if (!record(value)) return false
+  if (!(str(value.id))) return false
+  if (!(str(value.title))) return false
+  return true
+}
+
+export function isDesktopApplicationsOpenRequest(value) {
+  if (!record(value)) return false
+  if (!(str(value.applicationId))) return false
+  if (!(value.windowId === undefined || str(value.windowId))) return false
+  return true
+}
+
+export function isDesktopApplicationsOpenResult(value) {
+  if (!record(value)) return false
+  if (!(isDesktopApplicationSession(value.session))) return false
+  return true
+}
+
+export function isDesktopApplicationsQuitRequest(value) {
+  if (!record(value)) return false
+  if (!(str(value.sessionId))) return false
+  return true
+}
+
+export function isDesktopApplicationsQuitResult(value) {
+  if (!record(value)) return false
+  if (!(bool(value.ok))) return false
+  return true
+}
+
+export function isDesktopApplicationsRefreshRequest(value) {
+  if (!record(value)) return false
+  if (!(str(value.sessionId))) return false
+  return true
+}
+
+export function isDesktopApplicationsRefreshResult(value) {
+  if (!record(value)) return false
+  if (!(isDesktopApplicationSession(value.session))) return false
+  return true
+}
+
+export function isDesktopApplicationsRegisterRequest(value) {
+  if (!record(value)) return false
+  if (!(value.applicationId === undefined || str(value.applicationId))) return false
+  if (!(str(value.name))) return false
+  if (!(str(value.path))) return false
+  return true
+}
+
+export function isDesktopApplicationsRegisterResult(value) {
+  if (!record(value)) return false
+  if (!(isDesktopApplication(value.application))) return false
+  return true
+}
+
+export function isDesktopApplicationsScanRequest(value) {
+  if (!record(value)) return false
+  return true
+}
+
+export function isDesktopApplicationsScanResult(value) {
+  if (!record(value)) return false
+  if (!(isDesktopSessionStatus(value.desktop))) return false
+  if (!(value.applications === null || list(value.applications, isDesktopApplication))) return false
+  return true
+}
+
+export function isDesktopApplicationsStatusRequest(value) {
+  if (!record(value)) return false
+  return true
+}
+
+export function isDesktopApplicationsStatusResult(value) {
+  if (!record(value)) return false
+  if (!(isDesktopSessionStatus(value.desktop))) return false
+  return true
+}
+
+export function isDesktopApplicationsViewerTicketRequest(value) {
+  if (!record(value)) return false
+  if (!(str(value.sessionId))) return false
+  if (!(str(value.origin))) return false
+  return true
+}
+
+export function isDesktopApplicationsViewerTicketResult(value) {
+  if (!record(value)) return false
+  if (!(str(value.ticket))) return false
+  if (!(num(value.expiresIn))) return false
+  return true
+}
+
+export function isDesktopSessionStatus(value) {
+  if (!record(value)) return false
+  if (!(bool(value.available))) return false
+  if (!(str(value.message))) return false
+  return true
+}
+
 export function isExtensionPoint(value) {
   if (!record(value)) return false
   if (!(str(value.name))) return false
