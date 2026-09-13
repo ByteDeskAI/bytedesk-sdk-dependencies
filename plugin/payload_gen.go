@@ -28,6 +28,8 @@ type Payload interface {
 		DesktopApplicationsRegisterResult |
 		DesktopApplicationsScanRequest |
 		DesktopApplicationsScanResult |
+		DesktopApplicationsScanV2Request |
+		DesktopApplicationsScanV2Result |
 		DesktopApplicationsStatusRequest |
 		DesktopApplicationsStatusResult |
 		DesktopApplicationsViewerTicketRequest |
@@ -71,6 +73,9 @@ var CmdDesktopApplicationsStatus = NewCommand[DesktopApplicationsStatusRequest, 
 
 // CmdDesktopApplicationsScan is the generated descriptor for cmd.desktop-applications.v1.scan revision 1.
 var CmdDesktopApplicationsScan = NewCommand[DesktopApplicationsScanRequest, DesktopApplicationsScanResult]("cmd.desktop-applications.v1.scan", 1, "521b2d817dcc6b25007330b0fdcb2391d021d0c2c0cc123e43bba7a0fbd1d66d")
+
+// CmdDesktopApplicationsScanV2 is the generated descriptor for cmd.desktop-applications.v2.scan revision 2.
+var CmdDesktopApplicationsScanV2 = NewCommand[DesktopApplicationsScanV2Request, DesktopApplicationsScanV2Result]("cmd.desktop-applications.v2.scan", 2, "8c83a90a815ddb0ad17dc364c61135779690e569f87d95d4ccda550c2ac8b2d0")
 
 // CmdDesktopApplicationsRegister is the generated descriptor for cmd.desktop-applications.v1.register revision 1.
 var CmdDesktopApplicationsRegister = NewCommand[DesktopApplicationsRegisterRequest, DesktopApplicationsRegisterResult]("cmd.desktop-applications.v1.register", 1, "41b2ad77baea5ac98c2a4705190fb105837b237684732aa913a18acd9eec1254")

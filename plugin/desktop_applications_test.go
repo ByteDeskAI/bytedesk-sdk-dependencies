@@ -13,6 +13,7 @@ func TestDesktopApplicationsContractIdentity(t *testing.T) {
 	want := map[string]string{
 		"status":   "cmd.desktop-applications.v1.status",
 		"scan":     "cmd.desktop-applications.v1.scan",
+		"scan-v2":  "cmd.desktop-applications.v2.scan",
 		"register": "cmd.desktop-applications.v1.register",
 		"open":     "cmd.desktop-applications.v1.open",
 		"refresh":  "cmd.desktop-applications.v1.refresh",
@@ -21,6 +22,7 @@ func TestDesktopApplicationsContractIdentity(t *testing.T) {
 	}
 	got := map[string]string{
 		"status": DesktopApplicationsStatusCommand, "scan": DesktopApplicationsScanCommand,
+		"scan-v2":  DesktopApplicationsScanV2Command,
 		"register": DesktopApplicationsRegisterCommand, "open": DesktopApplicationsOpenCommand,
 		"refresh": DesktopApplicationsRefreshCommand, "ticket": DesktopApplicationsViewerTicketCommand,
 		"quit": DesktopApplicationsQuitCommand,
@@ -29,6 +31,88 @@ func TestDesktopApplicationsContractIdentity(t *testing.T) {
 		if got[name] != value {
 			t.Fatalf("%s command = %q, want %q", name, got[name], value)
 		}
+	}
+}
+
+func TestDesktopApplicationsScanV2RequestValidation(t *testing.T) {
+	for name, request := range map[string]DesktopApplicationsScanV2Request{
+		"start default page": {},
+		"start max page":     {Limit: DesktopApplicationsScanV2MaxLimit},
+		"poll":               {ScanID: "scan-1"},
+		"page":               {ScanID: "scan-1", Cursor: "page-2", Limit: 25},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if err := request.Validate(); err != nil {
+				t.Fatalf("valid request: %v", err)
+			}
+		})
+	}
+	for name, request := range map[string]DesktopApplicationsScanV2Request{
+		"negative limit": {Limit: -1},
+		"large limit":    {Limit: DesktopApplicationsScanV2MaxLimit + 1},
+		"orphan cursor":  {Cursor: "page-2"},
+		"large scan id":  {ScanID: strings.Repeat("s", 257)},
+		"large cursor":   {ScanID: "scan-1", Cursor: strings.Repeat("c", 257)},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if err := request.Validate(); err == nil {
+				t.Fatalf("invalid request accepted: %#v", request)
+			}
+		})
+	}
+	if DesktopApplicationsScanV2DefaultLimit != 100 || DesktopApplicationsScanV2MaxLimit != 200 {
+		t.Fatalf("scan v2 page limits = %d/%d", DesktopApplicationsScanV2DefaultLimit, DesktopApplicationsScanV2MaxLimit)
+	}
+}
+
+func TestDesktopApplicationsScanV2ResultValidation(t *testing.T) {
+	app := DesktopApplication{ID: "codex", Name: "Codex", Kind: DesktopApplicationKindDesktop, Status: DesktopApplicationReady}
+	valid := []DesktopApplicationsScanV2Result{
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Scanning, Applications: []DesktopApplication{}},
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Complete, Revision: "revision-1", ScannedAt: "2026-09-13T15:00:00Z", Total: 1, Applications: []DesktopApplication{app}},
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Complete, Revision: "revision-1", ScannedAt: "2026-09-13T15:00:00Z", Total: 250, Applications: []DesktopApplication{app}, NextCursor: "page-2"},
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Failed, Applications: []DesktopApplication{}, Error: "scan unavailable"},
+	}
+	for _, result := range valid {
+		if err := result.Validate(); err != nil {
+			t.Errorf("valid %s result: %v", result.State, err)
+		}
+	}
+
+	invalid := []DesktopApplicationsScanV2Result{
+		{State: DesktopApplicationsScanV2Scanning, Applications: []DesktopApplication{}},
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Scanning, Applications: nil},
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Scanning, Applications: []DesktopApplication{}, Error: "not ready"},
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Complete, Revision: "revision-1", Applications: []DesktopApplication{}},
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Complete, Revision: "revision-1", ScannedAt: "yesterday", Applications: []DesktopApplication{}},
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Complete, Revision: "revision-1", ScannedAt: "2026-09-13T15:00:00Z", Applications: []DesktopApplication{app}},
+		{ScanID: "scan-1", State: DesktopApplicationsScanV2Failed, Applications: []DesktopApplication{}},
+	}
+	for i, result := range invalid {
+		if err := result.Validate(); err == nil {
+			t.Errorf("invalid result %d accepted: %#v", i, result)
+		}
+	}
+}
+
+func TestDesktopApplicationsScanV2PayloadLimit(t *testing.T) {
+	apps := make([]DesktopApplication, 13)
+	for i := range apps {
+		apps[i] = DesktopApplication{
+			ID:           "app-" + strings.Repeat("x", i+1),
+			Name:         "Application",
+			Kind:         DesktopApplicationKindDesktop,
+			Status:       DesktopApplicationReady,
+			LauncherPath: "/" + strings.Repeat("p", 4000),
+		}
+	}
+	result := DesktopApplicationsScanV2Result{
+		ScanID: "scan-1", State: DesktopApplicationsScanV2Complete,
+		Revision: "revision-1", ScannedAt: "2026-09-13T15:00:00Z",
+		Total: len(apps), Applications: apps,
+	}
+	if err := result.Validate(); err == nil || !strings.Contains(err.Error(), "exceeds 49152 bytes") {
+		t.Fatalf("oversize result error = %v", err)
 	}
 }
 

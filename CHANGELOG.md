@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.10] - 2026-09-13
+
+### Added
+
+- **Asynchronous, paged Applications discovery (gateway TM-331).** Adds `cmd.desktop-applications.v2.scan` without changing the v1 scan command. An empty scan id starts or joins discovery; callers poll by scan id and page one immutable completed snapshot with bounded cursors and a default page size of 100 (maximum 200). Results distinguish `scanning`, `complete`, and `failed`, carry no desktop-availability state, require a non-nil application page, and are capped at 48 KiB on the wire.
+
 ## [0.4.0-rc.9] - 2026-09-13
 
 ### Changed

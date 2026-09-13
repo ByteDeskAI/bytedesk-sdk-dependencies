@@ -16,13 +16,17 @@ const (
 
 	DesktopApplicationsStatusCommand       = "cmd.desktop-applications.v1.status"
 	DesktopApplicationsScanCommand         = "cmd.desktop-applications.v1.scan"
+	DesktopApplicationsScanV2Command       = "cmd.desktop-applications.v2.scan"
 	DesktopApplicationsRegisterCommand     = "cmd.desktop-applications.v1.register"
 	DesktopApplicationsOpenCommand         = "cmd.desktop-applications.v1.open"
 	DesktopApplicationsRefreshCommand      = "cmd.desktop-applications.v1.refresh"
 	DesktopApplicationsViewerTicketCommand = "cmd.desktop-applications.v1.viewer-ticket"
 	DesktopApplicationsQuitCommand         = "cmd.desktop-applications.v1.quit"
 
-	DesktopApplicationsMaxBytes = 1 << 20
+	DesktopApplicationsMaxBytes           = 1 << 20
+	DesktopApplicationsScanV2MaxBytes     = 48 << 10
+	DesktopApplicationsScanV2DefaultLimit = 100
+	DesktopApplicationsScanV2MaxLimit     = 200
 )
 
 const (
@@ -33,6 +37,10 @@ const (
 	DesktopApplicationReady   = "ready"
 	DesktopApplicationMissing = "missing"
 	DesktopApplicationInvalid = "invalid"
+
+	DesktopApplicationsScanV2Scanning = "scanning"
+	DesktopApplicationsScanV2Complete = "complete"
+	DesktopApplicationsScanV2Failed   = "failed"
 
 	DesktopSessionStarting     = "starting"
 	DesktopSessionReady        = "ready"
@@ -86,6 +94,29 @@ type DesktopApplicationsScanRequest struct{}
 type DesktopApplicationsScanResult struct {
 	Desktop      DesktopSessionStatus `json:"desktop" bd:"subject"`
 	Applications []DesktopApplication `json:"applications" bd:"subject"`
+}
+
+// DesktopApplicationsScanV2Request starts or joins an asynchronous scan when
+// ScanID is empty. A ScanID polls the same immutable result snapshot; Cursor
+// selects a page from that snapshot.
+type DesktopApplicationsScanV2Request struct {
+	ScanID string `json:"scanId,omitempty" bd:"subject"`
+	Cursor string `json:"cursor,omitempty" bd:"subject"`
+	Limit  int    `json:"limit,omitempty" bd:"public"`
+}
+
+// DesktopApplicationsScanV2Result reports discovery separately from desktop
+// availability. Complete means discovery has finished; NextCursor pages the
+// resulting immutable application snapshot.
+type DesktopApplicationsScanV2Result struct {
+	ScanID       string               `json:"scanId" bd:"subject"`
+	State        string               `json:"state" bd:"public"`
+	Revision     string               `json:"revision,omitempty" bd:"subject"`
+	ScannedAt    string               `json:"scannedAt,omitempty" bd:"subject"`
+	Total        int                  `json:"total" bd:"public"`
+	Applications []DesktopApplication `json:"applications" bd:"subject"`
+	NextCursor   string               `json:"nextCursor,omitempty" bd:"subject"`
+	Error        string               `json:"error,omitempty" bd:"subject"`
 }
 
 type DesktopApplicationsRegisterRequest struct {
@@ -231,6 +262,84 @@ func (v DesktopApplicationsScanResult) Validate() error {
 	}
 	return validateDesktopSize(v)
 }
+func (v DesktopApplicationsScanV2Request) Validate() error {
+	if v.ScanID != "" {
+		if err := desktopText("scanId", v.ScanID, 256, true); err != nil {
+			return err
+		}
+	}
+	if v.Cursor != "" {
+		if err := desktopText("cursor", v.Cursor, 256, true); err != nil {
+			return err
+		}
+		if v.ScanID == "" {
+			return fmt.Errorf("cursor requires scanId")
+		}
+	}
+	if v.Limit < 0 || v.Limit > DesktopApplicationsScanV2MaxLimit {
+		return fmt.Errorf("limit must be zero or in 1..200")
+	}
+	return validateDesktopScanV2Size(v)
+}
+func (v DesktopApplicationsScanV2Result) Validate() error {
+	if err := desktopText("scanId", v.ScanID, 256, true); err != nil {
+		return err
+	}
+	if err := desktopText("revision", v.Revision, 256, false); err != nil {
+		return err
+	}
+	if err := desktopText("nextCursor", v.NextCursor, 256, false); err != nil {
+		return err
+	}
+	if err := desktopText("error", v.Error, 512, false); err != nil {
+		return err
+	}
+	if v.ScannedAt != "" {
+		if len(v.ScannedAt) > 64 || strings.ContainsAny(v.ScannedAt, "\x00\r\n") {
+			return fmt.Errorf("scannedAt must be RFC3339")
+		}
+		if _, err := time.Parse(time.RFC3339, v.ScannedAt); err != nil {
+			return fmt.Errorf("scannedAt must be RFC3339: %w", err)
+		}
+	}
+	if v.Total < 0 {
+		return fmt.Errorf("total must be nonnegative")
+	}
+	if v.Applications == nil || len(v.Applications) > DesktopApplicationsScanV2MaxLimit {
+		return fmt.Errorf("applications must be an array of at most 200 items")
+	}
+	for _, app := range v.Applications {
+		if err := app.Validate(); err != nil {
+			return err
+		}
+	}
+	if len(v.Applications) > v.Total {
+		return fmt.Errorf("application page cannot exceed total")
+	}
+	switch v.State {
+	case DesktopApplicationsScanV2Scanning:
+		if v.Revision != "" || v.ScannedAt != "" || v.Total != 0 || len(v.Applications) != 0 || v.NextCursor != "" || v.Error != "" {
+			return fmt.Errorf("scanning result cannot contain snapshot data or an error")
+		}
+	case DesktopApplicationsScanV2Complete:
+		if strings.TrimSpace(v.Revision) == "" || v.ScannedAt == "" {
+			return fmt.Errorf("complete result requires revision and scannedAt")
+		}
+		if v.Error != "" {
+			return fmt.Errorf("complete result cannot contain an error")
+		}
+	case DesktopApplicationsScanV2Failed:
+		if strings.TrimSpace(v.Error) == "" {
+			return fmt.Errorf("failed result requires an error")
+		}
+		if v.Revision != "" || v.ScannedAt != "" || v.Total != 0 || len(v.Applications) != 0 || v.NextCursor != "" {
+			return fmt.Errorf("failed result cannot contain snapshot data")
+		}
+	default:
+		return fmt.Errorf("invalid scan state %q", v.State)
+	}
+	return validateDesktopScanV2Size(v)
+}
 func (v DesktopApplicationsRegisterRequest) Validate() error {
 	if v.ApplicationID != "" && !desktopApplicationID.MatchString(v.ApplicationID) {
 		return fmt.Errorf("invalid application id %q", v.ApplicationID)
@@ -309,6 +418,17 @@ func validateDesktopSize(v any) error {
 	}
 	if len(raw) > DesktopApplicationsMaxBytes {
 		return fmt.Errorf("desktop applications payload exceeds %d bytes", DesktopApplicationsMaxBytes)
+	}
+	return nil
+}
+
+func validateDesktopScanV2Size(v any) error {
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	if len(raw) > DesktopApplicationsScanV2MaxBytes {
+		return fmt.Errorf("desktop applications scan v2 payload exceeds %d bytes", DesktopApplicationsScanV2MaxBytes)
 	}
 	return nil
 }
