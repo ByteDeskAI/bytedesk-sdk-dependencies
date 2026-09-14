@@ -60,6 +60,9 @@ export function isDesktopApplication(value) {
   if (!(value.manual === undefined || bool(value.manual))) return false
   if (!(value.revision === undefined || str(value.revision))) return false
   if (!(value.iconUrl === undefined || str(value.iconUrl))) return false
+  if (!(value.launcherPath === undefined || str(value.launcherPath))) return false
+  if (!(value.installedAt === undefined || str(value.installedAt))) return false
+  if (!(value.installedAtEstimated === undefined || bool(value.installedAtEstimated))) return false
   return true
 }
 
@@ -142,6 +145,27 @@ export function isDesktopApplicationsScanResult(value) {
   if (!record(value)) return false
   if (!(isDesktopSessionStatus(value.desktop))) return false
   if (!(value.applications === null || list(value.applications, isDesktopApplication))) return false
+  return true
+}
+
+export function isDesktopApplicationsScanV2Request(value) {
+  if (!record(value)) return false
+  if (!(value.scanId === undefined || str(value.scanId))) return false
+  if (!(value.cursor === undefined || str(value.cursor))) return false
+  if (!(value.limit === undefined || num(value.limit))) return false
+  return true
+}
+
+export function isDesktopApplicationsScanV2Result(value) {
+  if (!record(value)) return false
+  if (!(str(value.scanId))) return false
+  if (!(str(value.state))) return false
+  if (!(value.revision === undefined || str(value.revision))) return false
+  if (!(value.scannedAt === undefined || str(value.scannedAt))) return false
+  if (!(num(value.total))) return false
+  if (!(value.applications === null || list(value.applications, isDesktopApplication))) return false
+  if (!(value.nextCursor === undefined || str(value.nextCursor))) return false
+  if (!(value.error === undefined || str(value.error))) return false
   return true
 }
 

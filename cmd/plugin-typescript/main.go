@@ -63,6 +63,8 @@ func targets() map[string]target {
 				{typ: reflect.TypeOf(plugin.DesktopApplicationsStatusResult{})},
 				{typ: reflect.TypeOf(plugin.DesktopApplicationsScanRequest{})},
 				{typ: reflect.TypeOf(plugin.DesktopApplicationsScanResult{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsScanV2Request{})},
+				{typ: reflect.TypeOf(plugin.DesktopApplicationsScanV2Result{})},
 				{typ: reflect.TypeOf(plugin.DesktopApplicationsRegisterRequest{})},
 				{typ: reflect.TypeOf(plugin.DesktopApplicationsRegisterResult{})},
 				{typ: reflect.TypeOf(plugin.DesktopApplicationsOpenRequest{})},
@@ -91,6 +93,9 @@ func targets() map[string]target {
 			}, {
 				name: plugin.DesktopApplicationsScanCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
 				goVar: "CmdDesktopApplicationsScan", req: reflect.TypeOf(plugin.DesktopApplicationsScanRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsScanResult{}),
+			}, {
+				name: plugin.DesktopApplicationsScanV2Command, kind: kindCommand, rev: 2,
+				goVar: "CmdDesktopApplicationsScanV2", req: reflect.TypeOf(plugin.DesktopApplicationsScanV2Request{}), resp: reflect.TypeOf(plugin.DesktopApplicationsScanV2Result{}),
 			}, {
 				name: plugin.DesktopApplicationsRegisterCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
 				goVar: "CmdDesktopApplicationsRegister", req: reflect.TypeOf(plugin.DesktopApplicationsRegisterRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsRegisterResult{}),
