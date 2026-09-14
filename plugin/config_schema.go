@@ -17,6 +17,7 @@ const (
 	ConfigKindStringList = "stringList"
 	ConfigKindEnum       = "enum"
 	ConfigKindSecret     = "secret"
+	ConfigKindProvider   = "provider"
 )
 
 // ConfigField describes one value a settings section shows. Like the section it
@@ -31,15 +32,20 @@ const (
 // read-only secret shows only whether it is set, and a writable one is sent only
 // when the operator types a replacement.
 type ConfigField struct {
-	Key             string   `json:"key" bd:"public"`
-	Kind            string   `json:"kind" bd:"public"`
-	Label           string   `json:"label,omitempty" bd:"public"`
-	Description     string   `json:"description,omitempty" bd:"public"`
-	Default         string   `json:"default,omitempty" bd:"public"`
-	Min             *int     `json:"min,omitempty" bd:"public"`
-	Max             *int     `json:"max,omitempty" bd:"public"`
-	Nullable        bool     `json:"nullable,omitempty" bd:"public"`
-	Choices         []string `json:"choices,omitempty" bd:"public"`
+	Key         string   `json:"key" bd:"public"`
+	Kind        string   `json:"kind" bd:"public"`
+	Label       string   `json:"label,omitempty" bd:"public"`
+	Description string   `json:"description,omitempty" bd:"public"`
+	Default     string   `json:"default,omitempty" bd:"public"`
+	Min         *int     `json:"min,omitempty" bd:"public"`
+	Max         *int     `json:"max,omitempty" bd:"public"`
+	Nullable    bool     `json:"nullable,omitempty" bd:"public"`
+	Choices     []string `json:"choices,omitempty" bd:"public"`
+	// Provider options are resolved by the host from the live Point registry,
+	// filtered by Requires. They are never static Choices. The host validates
+	// stored IDs on read and write; withdrawal is invalid, never silent fallback.
+	Point           string   `json:"point,omitempty" bd:"public"`
+	Requires        []string `json:"requires,omitempty" bd:"public"`
 	ReadOnly        bool     `json:"readOnly,omitempty" bd:"public"`
 	RequiresRestart bool     `json:"requiresRestart,omitempty" bd:"public"`
 }
@@ -53,6 +59,11 @@ type ConfigField struct {
 // skips a field. The config tag is a comma-separated list of:
 //
 //	label=Text  enum=a|b|c  min=0  max=23  default=high  readonly  secret  restart
+//	provider=host.data.store  requires=transactions|blobs
+//
+// provider requires a string field. requires applies only to provider and may
+// precede it. Dataset declarations remain the provider's responsibility; a
+// provider field never grants access to an undeclared dataset.
 //
 // Unknown keys, a key used on the wrong kind, and a default the field would
 // reject are errors naming Type.Field. A field of any other type is an error
@@ -106,8 +117,13 @@ func configFieldFor(key string, typ reflect.Type, tag string) (ConfigField, erro
 	if tag == "" {
 		return f, f.validate()
 	}
+	seen := map[string]bool{}
 	for _, opt := range strings.Split(tag, ",") {
 		k, val, hasVal := strings.Cut(strings.TrimSpace(opt), "=")
+		if seen[k] {
+			return f, fmt.Errorf("repeated config tag key %q", k)
+		}
+		seen[k] = true
 		flag := func(set *bool) error {
 			if hasVal {
 				return fmt.Errorf("config tag %q takes no value", k)
@@ -117,6 +133,19 @@ func configFieldFor(key string, typ reflect.Type, tag string) (ConfigField, erro
 		}
 		var err error
 		switch k {
+		case "provider":
+			if f.Kind != ConfigKindString {
+				return f, fmt.Errorf("config tag provider needs a string field, not %s", f.Kind)
+			}
+			if !hasVal || val == "" {
+				return f, fmt.Errorf("config tag provider needs an extension point")
+			}
+			f.Kind, f.Point = ConfigKindProvider, val
+		case "requires":
+			if !hasVal || val == "" {
+				return f, fmt.Errorf("config tag requires needs capabilities")
+			}
+			f.Requires = strings.Split(val, "|")
 		case "label":
 			f.Label = val
 		case "default":
@@ -160,8 +189,29 @@ func (f ConfigField) validate() error {
 	if strings.TrimSpace(f.Key) == "" {
 		return fmt.Errorf("config field key required")
 	}
-	if !slices.Contains([]string{ConfigKindBool, ConfigKindInt, ConfigKindString, ConfigKindStringList, ConfigKindEnum, ConfigKindSecret}, f.Kind) {
+	if !slices.Contains([]string{ConfigKindBool, ConfigKindInt, ConfigKindString, ConfigKindStringList, ConfigKindEnum, ConfigKindSecret, ConfigKindProvider}, f.Kind) {
 		return fmt.Errorf("config field %s: unknown kind %q", f.Key, f.Kind)
+	}
+	if f.Kind == ConfigKindProvider {
+		parts := strings.Split(f.Point, ".")
+		if len(parts) < 2 || (strings.HasPrefix(f.Point, HostPointNamespace) && len(parts) < 3) {
+			return fmt.Errorf("config field %s: provider needs an exact extension point", f.Key)
+		}
+		for _, part := range parts {
+			if part == "" || strings.Trim(part, "abcdefghijklmnopqrstuvwxyz0123456789-") != "" {
+				return fmt.Errorf("config field %s: invalid provider point %q", f.Key, f.Point)
+			}
+		}
+		if err := validateExactNames("config provider requires", f.Requires); err != nil {
+			return err
+		}
+		if f.Default != "" {
+			if err := validateExactNames("config provider default", []string{f.Default}); err != nil {
+				return err
+			}
+		}
+	} else if f.Point != "" || len(f.Requires) != 0 {
+		return fmt.Errorf("config field %s: point/requires apply only to provider", f.Key)
 	}
 	if (f.Min != nil || f.Max != nil) && f.Kind != ConfigKindInt {
 		return fmt.Errorf("config field %s: min/max apply only to int", f.Key)

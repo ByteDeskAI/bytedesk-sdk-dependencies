@@ -238,23 +238,6 @@ const (
 	BindToggle = "toggle"
 )
 
-// Contribution roles (gateway ADR 0026 D1). A slot names what a contribution
-// is, never where it sits: the shell owns the role-to-region map, so a redesign
-// changes one mapping and no plugin. Settings and command already named a
-// function and keep their names; SlotSettings is the settings-section role.
-const (
-	SlotDefaultView      = "default-view"
-	SlotMainNavigation   = "main-navigation"
-	SlotSubNavigation    = "sub-navigation"
-	SlotPrimaryAction    = "primary-action"
-	SlotSecondaryActions = "secondary-actions"
-	SlotStatusIndicator  = "status-indicator"
-	SlotObjectActions    = "object-actions"
-	SlotLauncher         = "launcher"
-	SlotSettings         = "settings"
-	SlotCommand          = "command"
-)
-
 func (m Manifest) validateRuntimeContract() error {
 	if p := m.Protocol; p != nil {
 		if p.Major == 0 && len(p.Required) != 0 {
@@ -288,6 +271,10 @@ func (m Manifest) validateRuntimeContract() error {
 			return fmt.Errorf("duplicate ui.id %q", item.ID)
 		}
 		seen[item.ID] = true
+		// A vocabulary addition without its eligibility policy is not valid.
+		if _, ok := ContributionRoleFor(item.Slot); !ok {
+			return fmt.Errorf("unknown ui slot %q", item.Slot)
+		}
 		switch item.Slot {
 		case SlotDefaultView, SlotMainNavigation, SlotSubNavigation, SlotPrimaryAction, SlotSecondaryActions,
 			SlotStatusIndicator, SlotObjectActions, SlotLauncher, SlotSettings:

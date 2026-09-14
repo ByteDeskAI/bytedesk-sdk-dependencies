@@ -33,6 +33,8 @@ export function isConfigField(value) {
   if (!(value.max === undefined || num(value.max))) return false
   if (!(value.nullable === undefined || bool(value.nullable))) return false
   if (!(value.choices === undefined || list(value.choices, str))) return false
+  if (!(value.point === undefined || str(value.point))) return false
+  if (!(value.requires === undefined || list(value.requires, str))) return false
   if (!(value.readOnly === undefined || bool(value.readOnly))) return false
   if (!(value.requiresRestart === undefined || bool(value.requiresRestart))) return false
   return true

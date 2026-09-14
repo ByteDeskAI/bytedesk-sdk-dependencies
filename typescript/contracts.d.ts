@@ -20,6 +20,8 @@ export interface ConfigField {
   max?: number
   nullable?: boolean
   choices?: string[]
+  point?: string
+  requires?: string[]
   readOnly?: boolean
   requiresRestart?: boolean
 }
