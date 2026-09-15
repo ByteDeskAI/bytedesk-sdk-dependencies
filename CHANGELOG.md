@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.13] - 2026-09-15
+
+### Fixed
+
+- Component snapshot responses and change events carry a host-owned monotonic revision within their component incarnation, so clients can reject stale events that race the initial snapshot read. Live browser revisions must remain nonnegative JavaScript safe integers; withdrawal may use zero.
+
 ## [0.4.0-rc.12] - 2026-09-15
 
 ### Added
