@@ -79,6 +79,29 @@ framework-independent UI module mount capability supplied by the Gateway UI SDK.
 Generate browser declarations with `go run ./cmd/plugin-typescript -out typescript/contracts.d.ts`; `go test ./...` verifies they match the Go JSON model. The Gateway SDK distributes these declarations to UI consumers. No host implementation belongs in this module.
 
 
+## Provider fields and role eligibility (unreleased)
+
+A `ConfigField` with `Kind: ConfigKindProvider` declares an exact extension
+`Point` and optional required capabilities in `Requires`. Its value is the
+selected provider ID; static `Choices` are invalid for this kind. For struct
+schemas, use a string field with a tag such as
+`config:"provider=host.data.store,requires=transactions|blobs"`.
+
+The host must list eligible live providers, validate the exact selected ID on
+read and write, persist the selection, and coordinate retiring existing handles.
+A withdrawn selection must become unavailable, not silently fall back. The
+declaration does not implement that behavior or grant access to undeclared datasets.
+
+Use `ContributionRoles`, `ContributionRoleFor`, and `ContributionRoleAllowed`
+instead of maintaining a second role-policy table. Eligibility controls admission,
+not permission to execute a command. Pass only host-verified build provenance and
+an explicit grant for the exact plugin and contribution role. A signature or
+`Manifest.Role` is not compiled-in provenance, and broad package trust is not
+role consent. Unknown roles are refused even for compiled-in code.
+
+These declarations require a coordinated SDK release and host adoption; they do
+not prove that an installed host implements provider selection or role enforcement.
+
 ## Required peer versions
 
 Use `Requirement.MatchesVersion(actual)` to evaluate `requires[].version`; do not
