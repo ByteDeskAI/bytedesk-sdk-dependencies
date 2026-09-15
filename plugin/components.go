@@ -176,6 +176,8 @@ type ComponentSnapshotRequest struct {
 	Assignment ComponentAssignment `json:"assignment" bd:"subject"`
 }
 type ComponentSnapshotResult struct {
+	// Revision is host-owned and monotonic within one component incarnation.
+	Revision     uint64            `json:"revision" bd:"public"`
 	Identity     ComponentIdentity `json:"identity" bd:"subject"`
 	Snapshot     json.RawMessage   `json:"snapshot" bd:"subject"`
 	Capabilities []string          `json:"capabilities" bd:"public"`
@@ -186,6 +188,7 @@ type ComponentInvokeRequest struct {
 	Args       []json.RawMessage   `json:"args" bd:"subject"`
 }
 type ComponentChanged struct {
+	Revision  uint64            `json:"revision" bd:"public"`
 	Identity  ComponentIdentity `json:"identity" bd:"subject"`
 	Lease     string            `json:"lease" bd:"subject"`
 	Snapshot  json.RawMessage   `json:"snapshot,omitempty" bd:"subject"`
