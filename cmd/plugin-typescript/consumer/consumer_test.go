@@ -20,6 +20,15 @@ type host struct {
 	published []bus.Envelope
 }
 
+func TestHandleNilCallbackPanicsBeforeRegistrarAccess(t *testing.T) {
+	defer func() {
+		if got := recover(); got != "consumer: Handle needs a handler" {
+			t.Fatalf("nil handler panic = %v", got)
+		}
+	}()
+	Handle(nil, PingCommand, nil)
+}
+
 func newHost() *host {
 	return &host{reg: plugin.NewRegistrar(), subs: map[string][]func(bus.Envelope){}}
 }

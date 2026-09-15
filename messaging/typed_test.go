@@ -67,6 +67,16 @@ func TestGeneratedCommandDescriptorsUseCanonicalSchemaIDs(t *testing.T) {
 	assertCommandSchema(t, host, GetInboxSummary, CommandInboxSummary, InboxSummaryRequest{})
 }
 
+func TestHandleNilCallbackPanicsBeforeRegistrarAccess(t *testing.T) {
+	defer func() {
+		if got := recover(); got != "messaging: Handle needs a handler" {
+			t.Fatalf("nil handler panic = %v", got)
+		}
+	}()
+	// A nil registrar exposes any attempt to register before validating fn.
+	Handle(nil, SendMessage, nil)
+}
+
 func assertCommandSchema[Req, Resp Payload](t *testing.T, host *typedTestHost, command Command[Req, Resp], name string, req Req) {
 	t.Helper()
 	if command.Name() != name {

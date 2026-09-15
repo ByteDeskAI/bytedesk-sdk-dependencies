@@ -20,6 +20,8 @@ export interface ConfigField {
   max?: number
   nullable?: boolean
   choices?: string[]
+  point?: string
+  requires?: string[]
   readOnly?: boolean
   requiresRestart?: boolean
 }
@@ -41,6 +43,10 @@ export interface DesktopApplication {
   manual?: boolean
   revision?: string
   iconUrl?: string
+  launcherPath?: string
+  executablePath?: string
+  installedAt?: string
+  installedAtEstimated?: boolean
 }
 
 export interface DesktopApplicationSession {
@@ -99,6 +105,23 @@ export interface DesktopApplicationsScanRequest {
 export interface DesktopApplicationsScanResult {
   desktop: DesktopSessionStatus
   applications: DesktopApplication[] | null
+}
+
+export interface DesktopApplicationsScanV2Request {
+  scanId?: string
+  cursor?: string
+  limit?: number
+}
+
+export interface DesktopApplicationsScanV2Result {
+  scanId: string
+  state: string
+  revision?: string
+  scannedAt?: string
+  total: number
+  applications: DesktopApplication[] | null
+  nextCursor?: string
+  error?: string
 }
 
 export interface DesktopApplicationsStatusRequest {
@@ -356,6 +379,8 @@ export declare function isDesktopApplicationsRegisterRequest(value: unknown): va
 export declare function isDesktopApplicationsRegisterResult(value: unknown): value is DesktopApplicationsRegisterResult
 export declare function isDesktopApplicationsScanRequest(value: unknown): value is DesktopApplicationsScanRequest
 export declare function isDesktopApplicationsScanResult(value: unknown): value is DesktopApplicationsScanResult
+export declare function isDesktopApplicationsScanV2Request(value: unknown): value is DesktopApplicationsScanV2Request
+export declare function isDesktopApplicationsScanV2Result(value: unknown): value is DesktopApplicationsScanV2Result
 export declare function isDesktopApplicationsStatusRequest(value: unknown): value is DesktopApplicationsStatusRequest
 export declare function isDesktopApplicationsStatusResult(value: unknown): value is DesktopApplicationsStatusResult
 export declare function isDesktopApplicationsViewerTicketRequest(value: unknown): value is DesktopApplicationsViewerTicketRequest

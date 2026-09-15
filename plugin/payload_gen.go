@@ -28,6 +28,8 @@ type Payload interface {
 		DesktopApplicationsRegisterResult |
 		DesktopApplicationsScanRequest |
 		DesktopApplicationsScanResult |
+		DesktopApplicationsScanV2Request |
+		DesktopApplicationsScanV2Result |
 		DesktopApplicationsStatusRequest |
 		DesktopApplicationsStatusResult |
 		DesktopApplicationsViewerTicketRequest |
@@ -70,10 +72,13 @@ var CmdTerminalPresentationProject = NewCommand[PresentationRequest, Presentatio
 var CmdDesktopApplicationsStatus = NewCommand[DesktopApplicationsStatusRequest, DesktopApplicationsStatusResult]("cmd.desktop-applications.v1.status", 1, "a5377f746e1a8c185530e49d0c0c3edfdb67af4212772aca9884e3cd4c652eeb")
 
 // CmdDesktopApplicationsScan is the generated descriptor for cmd.desktop-applications.v1.scan revision 1.
-var CmdDesktopApplicationsScan = NewCommand[DesktopApplicationsScanRequest, DesktopApplicationsScanResult]("cmd.desktop-applications.v1.scan", 1, "dc96558764acbdb0d2d4b1e4eb145fd09a3c658bb813cc2f4ba6cf1bdb33db2b")
+var CmdDesktopApplicationsScan = NewCommand[DesktopApplicationsScanRequest, DesktopApplicationsScanResult]("cmd.desktop-applications.v1.scan", 1, "6fddd6aaa432cb7d88056f74b8d826f965acf9825b0a2941773ec9412f301ca2")
+
+// CmdDesktopApplicationsScanV2 is the generated descriptor for cmd.desktop-applications.v2.scan revision 2.
+var CmdDesktopApplicationsScanV2 = NewCommand[DesktopApplicationsScanV2Request, DesktopApplicationsScanV2Result]("cmd.desktop-applications.v2.scan", 2, "669c04959cfbc69abde5337afa121524ed1c02a6a8aa4618b064133d4a28e5dd")
 
 // CmdDesktopApplicationsRegister is the generated descriptor for cmd.desktop-applications.v1.register revision 1.
-var CmdDesktopApplicationsRegister = NewCommand[DesktopApplicationsRegisterRequest, DesktopApplicationsRegisterResult]("cmd.desktop-applications.v1.register", 1, "d9931cbd066b61f6b9104286297b03ad0a91cf6c9a7e2b1210410b140b355cb5")
+var CmdDesktopApplicationsRegister = NewCommand[DesktopApplicationsRegisterRequest, DesktopApplicationsRegisterResult]("cmd.desktop-applications.v1.register", 1, "5766883aaf37bbf1be7d4391a5b5a9613db1c910dcddd900ab86c242964f1c76")
 
 // CmdDesktopApplicationsOpen is the generated descriptor for cmd.desktop-applications.v1.open revision 1.
 var CmdDesktopApplicationsOpen = NewCommand[DesktopApplicationsOpenRequest, DesktopApplicationsOpenResult]("cmd.desktop-applications.v1.open", 1, "5baa7d4ddf71da7e93da5e2327c273d32176524239872b76e47a6c432772333e")
