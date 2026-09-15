@@ -56,16 +56,20 @@ type DesktopSessionStatus struct {
 }
 
 type DesktopApplication struct {
-	ID                   string `json:"id" bd:"subject"`
-	Name                 string `json:"name" bd:"subject"`
-	Kind                 string `json:"kind" bd:"subject"`
-	Preset               string `json:"preset,omitempty" bd:"subject"`
-	Status               string `json:"status" bd:"subject"`
-	Error                string `json:"error,omitempty" bd:"subject"`
-	Manual               bool   `json:"manual,omitempty" bd:"subject"`
-	Revision             string `json:"revision,omitempty" bd:"subject"`
-	IconURL              string `json:"iconUrl,omitempty" bd:"subject"`
-	LauncherPath         string `json:"launcherPath,omitempty" bd:"subject"`
+	ID           string `json:"id" bd:"subject"`
+	Name         string `json:"name" bd:"subject"`
+	Kind         string `json:"kind" bd:"subject"`
+	Preset       string `json:"preset,omitempty" bd:"subject"`
+	Status       string `json:"status" bd:"subject"`
+	Error        string `json:"error,omitempty" bd:"subject"`
+	Manual       bool   `json:"manual,omitempty" bd:"subject"`
+	Revision     string `json:"revision,omitempty" bd:"subject"`
+	IconURL      string `json:"iconUrl,omitempty" bd:"subject"`
+	LauncherPath string `json:"launcherPath,omitempty" bd:"subject"`
+	// ExecutablePath is the host-resolved binary identity for display. It is
+	// separate from LauncherPath, which preserves registration and launch args.
+	// Absence is allowed for older or unresolved records, not proof of readiness.
+	ExecutablePath       string `json:"executablePath,omitempty" bd:"subject"`
 	InstalledAt          string `json:"installedAt,omitempty" bd:"subject"`
 	InstalledAtEstimated bool   `json:"installedAtEstimated,omitempty" bd:"subject"`
 }
@@ -198,6 +202,11 @@ func (v DesktopApplication) Validate() error {
 	if v.LauncherPath != "" {
 		if len(v.LauncherPath) > 4096 || !filepath.IsAbs(v.LauncherPath) || strings.ContainsAny(v.LauncherPath, "\x00\r\n") {
 			return fmt.Errorf("application.launcherPath must be an absolute host path")
+		}
+	}
+	if v.ExecutablePath != "" {
+		if len(v.ExecutablePath) > 4096 || !filepath.IsAbs(v.ExecutablePath) || strings.ContainsAny(v.ExecutablePath, "\x00\r\n") {
+			return fmt.Errorf("application.executablePath must be an absolute host path")
 		}
 	}
 	if v.InstalledAt != "" {

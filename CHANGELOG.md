@@ -4,7 +4,12 @@
 
 ### Added
 
+- **Resolved Applications executable identity (gateway TM-331).** Optional `DesktopApplication.executablePath` carries an absolute host-resolved binary path separately from the launcher path and arguments. It remains subject-classified data. The added field changes exact typed-schema hashes for scan and registration payloads, so host and plugin consumers must adopt the release together; JSON optionality alone does not preserve schema-hash compatibility.
 - **Provider settings declarations and contribution-role eligibility (gateway TM-258/TM-259).** Provider fields declare an exact extension point and required capabilities, with order-independent struct tags; the host must resolve and validate live choices. Each canonical contribution role now carries installed-artifact eligibility. Trusted chrome and operator-tool roles require explicit per-point consent, and unknown roles fail closed. These declarations do not grant authority or supply Gateway enforcement by themselves.
+
+### Fixed
+
+- Generated messaging artifacts now participate in regeneration checks. Descriptor checks evaluate literal and named constants without weakening schema identity checks. Generated consumer wrappers reject nil handlers before registration, preserving messaging's existing fail-fast behavior.
 
 ## [0.4.0-rc.10] - 2026-09-13
 

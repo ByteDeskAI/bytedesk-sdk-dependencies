@@ -47,6 +47,9 @@ func Call[Req, Resp Payload](ctx context.Context, h plugin.Host, c Command[Req, 
 // Handle registers a typed handler for one of this package's commands. The
 // schema check happens in the registrar before this decodes anything.
 func Handle[Req, Resp Payload](r *plugin.Registrar, c Command[Req, Resp], fn func(context.Context, plugin.Caller, Req) (Resp, error)) {
+	if fn == nil {
+		panic("consumer: Handle needs a handler")
+	}
 	plugin.HandleRaw(r, c.d, func(ctx context.Context, caller plugin.Caller, raw json.RawMessage) (json.RawMessage, error) {
 		var req Req
 		if err := json.Unmarshal(raw, &req); err != nil {

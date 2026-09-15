@@ -2,9 +2,43 @@ package plugin
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 	"testing"
 )
+
+func TestDesktopApplicationExecutablePath(t *testing.T) {
+	base := DesktopApplication{ID: "native-editor", Name: "Native Editor", Kind: DesktopApplicationKindDesktop, Status: DesktopApplicationReady, LauncherPath: "/usr/share/applications/editor.desktop"}
+	for _, path := range []string{"", "/opt/editor/editor", "/" + strings.Repeat("a", 4095)} {
+		app := base
+		app.ExecutablePath = path
+		if err := app.Validate(); err != nil {
+			t.Fatalf("valid executable path rejected: %v", err)
+		}
+		raw, err := json.Marshal(app)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var decoded DesktopApplication
+		if err := json.Unmarshal(raw, &decoded); err != nil || decoded.ExecutablePath != path || decoded.LauncherPath != base.LauncherPath {
+			t.Fatalf("path round trip: %+v %v", decoded, err)
+		}
+		if path == "" && strings.Contains(string(raw), "executablePath") {
+			t.Fatal("optional absent path was serialized")
+		}
+	}
+	for _, path := range []string{"editor", "../editor", "/" + strings.Repeat("a", 4096), "/opt/editor\x00", "/opt/editor\r", "/opt/editor\n"} {
+		app := base
+		app.ExecutablePath = path
+		if err := app.Validate(); err == nil {
+			t.Fatalf("invalid executable path accepted: %q", path)
+		}
+	}
+	field, ok := reflect.TypeOf(base).FieldByName("ExecutablePath")
+	if !ok || field.Tag.Get("bd") != "subject" || field.Tag.Get("json") != "executablePath,omitempty" {
+		t.Fatalf("executable path metadata = %+v", field)
+	}
+}
 
 func TestDesktopApplicationsContractIdentity(t *testing.T) {
 	if DesktopApplicationsService != "desktop-applications" || DesktopApplicationsContractRevision != 1 {

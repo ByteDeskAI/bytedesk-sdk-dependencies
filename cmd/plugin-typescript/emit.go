@@ -122,7 +122,7 @@ func emitGo(t target, ms *modelSet) ([]byte, error) {
 	}
 	b.WriteString("\n}\n")
 	if t.pkg != "plugin" {
-		b.WriteString(consumerWrappers)
+		b.WriteString(strings.ReplaceAll(consumerWrappers, "{{PACKAGE}}", t.pkg))
 	}
 	for _, op := range t.ops {
 		fmt.Fprintf(&b, "\n// %s is the generated descriptor for %s revision %d.\n", op.goVar, op.name, op.rev)
@@ -179,6 +179,9 @@ func Call[Req, Resp Payload](ctx context.Context, h plugin.Host, c Command[Req, 
 // Handle registers a typed handler for one of this package's commands. The
 // schema check happens in the registrar before this decodes anything.
 func Handle[Req, Resp Payload](r *plugin.Registrar, c Command[Req, Resp], fn func(context.Context, plugin.Caller, Req) (Resp, error)) {
+	if fn == nil {
+		panic("{{PACKAGE}}: Handle needs a handler")
+	}
 	plugin.HandleRaw(r, c.d, func(ctx context.Context, caller plugin.Caller, raw json.RawMessage) (json.RawMessage, error) {
 		var req Req
 		if err := json.Unmarshal(raw, &req); err != nil {

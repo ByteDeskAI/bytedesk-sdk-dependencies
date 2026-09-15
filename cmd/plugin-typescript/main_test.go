@@ -3,6 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	goast "go/ast"
+	"go/constant"
+	"go/importer"
+	"go/parser"
+	"go/token"
+	"go/types"
 	"maps"
 	"os"
 	"regexp"
@@ -32,6 +39,7 @@ func TestGeneratedArtifactsMatchCheckedInCopies(t *testing.T) {
 		{"js", "plugin", "../../typescript/validators.js", "typescript/validators.js"},
 		{"go", "plugin", "../../plugin/payload_gen.go", "plugin/payload_gen.go"},
 		{"go", "consumer", "consumer/payload_gen.go", "cmd/plugin-typescript/consumer/payload_gen.go"},
+		{"go", "messaging", "../../messaging/payload_gen.go", "messaging/payload_gen.go"},
 	} {
 		t.Run(tc.emit+"/"+tc.pkg, func(t *testing.T) {
 			want, err := os.ReadFile(tc.path)
@@ -65,65 +73,129 @@ func TestSchemaSidecarMatchesCheckedInCopy(t *testing.T) {
 	}
 }
 
-// The messaging package's descriptors are hand-maintained by that session,
-// while the sidecar is generated from this package's target table. Nothing in
-// the compiler couples the two, so this asserts the property the sidecar exists
-// for: every operation that ships in a descriptor has an entry carrying its
-// canonical AST, at the same revision and hash, and nothing in the sidecar has
-// been dropped from the descriptors.
-//
-// It compares by operation NAME, not by hash, because payload_gen.go NAMES its
-// constants — CommandMessageSend, ContractRevision — instead of inlining their
-// values. What that file ships can therefore change without a single byte of it
-// changing: bump ContractRevision in contract.go, or repoint a Command*
-// constant, and the descriptors silently carry a revision or name the recorded
-// hash was never computed over. A hash-keyed comparison passes straight through
-// both. That is why the revision is checked explicitly even though schema-id
-// already folds it into the digest — the digest only protects a value the file
-// actually pins.
-//
-// The regexes below read constants and descriptors as source text. Reformatting
-// either file so they stop matching does not fail silently: an unmatched
-// descriptor is a sidecar entry nothing ships, and matching nothing at all trips
-// the empty check.
+type shippedDescriptor struct{ rev, hash string }
+
+func TestShippedDescriptorsResolveConstantValues(t *testing.T) {
+	hash := strings.Repeat("a", 64)
+	contract := []byte(fmt.Sprintf("package fixture\nconst Name = \"cmd.example.v1.work\"\nconst Alias = Name\nconst Rev = 1 + 1\nconst Hash = %q\n", hash))
+	for _, args := range []string{`Alias, Rev, Hash`, fmt.Sprintf("\"cmd.example.v1.work\", 2, %q", hash), "(Name),\n (Rev),\n (Hash),"} {
+		got, err := shippedDescriptors(contract, []byte("package fixture\nvar D = plugin.NewDescriptor("+args+")"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(got) != 1 || got["cmd.example.v1.work"] != (shippedDescriptor{rev: "2", hash: hash}) {
+			t.Fatalf("unexpected descriptor values: %#v", got)
+		}
+	}
+	for _, args := range []string{`Missing, Rev, Hash`, `Name, "two", Hash`, `Name, Rev, "bad"`, `Name, Rev`, `Name, dynamic(), Hash`} {
+		if _, err := shippedDescriptors(contract, []byte("package fixture\nvar D = plugin.NewDescriptor("+args+")")); err == nil {
+			t.Fatalf("accepted unresolved or invalid arguments: %s", args)
+		}
+	}
+	duplicate := []byte("package fixture\nvar A = plugin.NewDescriptor(Name, Rev, Hash)\nvar B = plugin.NewDescriptor(Alias, Rev, Hash)")
+	if _, err := shippedDescriptors(contract, duplicate); err == nil || !strings.Contains(err.Error(), "duplicate") {
+		t.Fatalf("duplicate check: %v", err)
+	}
+	if _, err := shippedDescriptors(contract, []byte("package fixture")); err == nil {
+		t.Fatal("accepted empty descriptor set")
+	}
+	// Name, revision and hash changes must remain visible to the bijection check.
+	changed := []byte(fmt.Sprintf("package fixture\nvar D = plugin.NewDescriptor(\"cmd.other.v1.work\", 3, %q)", strings.Repeat("b", 64)))
+	got, err := shippedDescriptors(contract, changed)
+	if err != nil || got["cmd.other.v1.work"] != (shippedDescriptor{rev: "3", hash: strings.Repeat("b", 64)}) {
+		t.Fatalf("changed values were hidden: %#v %v", got, err)
+	}
+}
+
+func shippedDescriptors(contract, source []byte) (map[string]shippedDescriptor, error) {
+	fset := token.NewFileSet()
+	decls, err := parser.ParseFile(fset, "contract.go", contract, 0)
+	if err != nil {
+		return nil, err
+	}
+	config := types.Config{Importer: importer.Default()}
+	pkg, err := config.Check("descriptor-fixture", fset, []*goast.File{decls}, nil)
+	if err != nil {
+		return nil, fmt.Errorf("resolve contract: %w", err)
+	}
+	file, err := parser.ParseFile(fset, "payload_gen.go", source, 0)
+	if err != nil {
+		return nil, err
+	}
+	shipped := map[string]shippedDescriptor{}
+	var failure error
+	goast.Inspect(file, func(node goast.Node) bool {
+		if failure != nil {
+			return false
+		}
+		call, ok := node.(*goast.CallExpr)
+		if !ok {
+			return true
+		}
+		selector, ok := call.Fun.(*goast.SelectorExpr)
+		if !ok || selector.Sel.Name != "NewDescriptor" {
+			return true
+		}
+		owner, ok := selector.X.(*goast.Ident)
+		if !ok || owner.Name != "plugin" {
+			return true
+		}
+		if len(call.Args) != 3 {
+			failure = fmt.Errorf("descriptor needs three arguments")
+			return false
+		}
+		values := make([]constant.Value, 3)
+		for i, arg := range call.Args {
+			start, end := fset.Position(arg.Pos()).Offset, fset.Position(arg.End()).Offset
+			value, err := types.Eval(fset, pkg, token.NoPos, string(source[start:end]))
+			if err != nil || value.Value == nil {
+				failure = fmt.Errorf("descriptor argument %d is not a resolved constant: %v", i, err)
+				return false
+			}
+			values[i] = value.Value
+		}
+		if values[0].Kind() != constant.String || values[1].Kind() != constant.Int || values[2].Kind() != constant.String {
+			failure = fmt.Errorf("descriptor needs string, integer and string constants")
+			return false
+		}
+		name, hash := constant.StringVal(values[0]), constant.StringVal(values[2])
+		if name == "" || !regexp.MustCompile(`^[a-f0-9]{64}$`).MatchString(hash) {
+			failure = fmt.Errorf("invalid descriptor name or hash")
+			return false
+		}
+		if _, exists := shipped[name]; exists {
+			failure = fmt.Errorf("duplicate descriptor %s", name)
+			return false
+		}
+		shipped[name] = shippedDescriptor{rev: values[1].ExactString(), hash: hash}
+		return true
+	})
+	if failure != nil {
+		return nil, failure
+	}
+	if len(shipped) == 0 {
+		return nil, fmt.Errorf("found no descriptors in payload source")
+	}
+	return shipped, nil
+}
+
+// Compare descriptor values, not source spelling: both named constants and
+// generated literals must match the sidecar by name, revision and hash. Checking
+// only hashes would miss a changed operation name or contract revision.
 func TestEveryShippedMessagingDescriptorMatchesItsSidecarEntry(t *testing.T) {
 	const regen = "go run ./cmd/plugin-typescript -emit=json -out typescript/schemas.json"
 
-	// payload_gen.go names its operation and revision constants, so resolve
-	// them from the declaration a reader would consult.
 	contract, err := os.ReadFile("../../messaging/contract.go")
 	if err != nil {
 		t.Fatal(err)
 	}
-	consts := map[string]string{}
-	for _, m := range regexp.MustCompile(`(?m)^\s*(\w+)\s*=\s*"([^"]*)"`).FindAllStringSubmatch(string(contract), -1) {
-		consts[m[1]] = m[2]
-	}
-	for _, m := range regexp.MustCompile(`(?m)^\s*(\w+)\s*=\s*(\d+)$`).FindAllStringSubmatch(string(contract), -1) {
-		consts[m[1]] = m[2]
-	}
-
 	src, err := os.ReadFile("../../messaging/payload_gen.go")
 	if err != nil {
 		t.Fatal(err)
 	}
-	type descriptor struct{ rev, hash string }
-	shipped := map[string]descriptor{}
-	for _, m := range regexp.MustCompile(`plugin\.NewDescriptor\(\s*(\w+),\s*(\w+),\s*"([a-f0-9]{64})"\s*\)`).FindAllStringSubmatch(string(src), -1) {
-		name, ok := consts[m[1]]
-		if !ok {
-			t.Errorf("a descriptor names %s, which messaging/contract.go does not declare; this guard cannot resolve what it ships", m[1])
-			continue
-		}
-		rev, ok := consts[m[2]]
-		if !ok {
-			t.Errorf("%s ships revision %s, which messaging/contract.go does not declare; this guard cannot resolve what it ships", name, m[2])
-			continue
-		}
-		shipped[name] = descriptor{rev: rev, hash: m[3]}
-	}
-	if len(shipped) == 0 {
-		t.Fatal("found no descriptors in messaging/payload_gen.go; this guard is not looking where it thinks it is")
+	shipped, err := shippedDescriptors(contract, src)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	raw, err := os.ReadFile("../../typescript/schemas.json")

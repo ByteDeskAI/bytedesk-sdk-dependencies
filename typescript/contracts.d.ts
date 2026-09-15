@@ -44,6 +44,7 @@ export interface DesktopApplication {
   revision?: string
   iconUrl?: string
   launcherPath?: string
+  executablePath?: string
   installedAt?: string
   installedAtEstimated?: boolean
 }
