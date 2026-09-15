@@ -116,3 +116,7 @@ This helper evaluates version compatibility only. The host must separately verif
 installation, dependency availability, generation ownership and authority. Adoption
 adds the pinned `github.com/Masterminds/semver/v3` dependency; no manifest fields or
 existing Host/Plugin interfaces change.
+
+### Component model
+
+`plugin/components.go` owns component identities, host-issued assignments, readonly family snapshots and additive extension descriptors. Component IDs address mounted views separately from session IDs. A target identity is not permission: hosts issue opaque assignments only after authorization and reject stale generations. Extensions add badges, metadata, actions, menu entries or panels; they cannot replace a component or obtain terminal input/output. The Gateway UI SDK supplies typed handles and controllers over these generated browser contracts.

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.12] - 2026-09-15
+
+### Added
+
+- Component identities, explicit host assignments, additive extension descriptors, and readonly snapshots for workspace, session list, session tab, terminal, stage, Tasks, file tree, and project tools. Browser declarations and validators are generated from these canonical Go contracts. Identities do not grant authority; hosts must validate each assignment and invalidate it on owner or generation changes.
+
 ## [0.4.0-rc.11] - 2026-09-15
 
 ### Added

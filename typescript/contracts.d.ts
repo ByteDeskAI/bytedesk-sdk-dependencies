@@ -6,6 +6,119 @@ export interface Binding {
   field?: string
 }
 
+export interface ComponentAssignRequest {
+  readonly identity: ComponentIdentity
+}
+
+export interface ComponentAssignResult {
+  readonly assignment: ComponentAssignment
+}
+
+export interface ComponentAssignment {
+  readonly identity: ComponentIdentity
+  readonly lease: string
+}
+
+export interface ComponentAvailableRequest {
+}
+
+export interface ComponentAvailableResult {
+  readonly components: readonly ComponentIdentity[]
+}
+
+export interface ComponentContributeRequest {
+  readonly assignment: ComponentAssignment
+  readonly extension: ComponentExtension
+}
+
+export interface ComponentContributeResult {
+  readonly extension: ComponentExtension
+}
+
+export interface ComponentExtension {
+  readonly ownerId: string
+  readonly generation: string
+  readonly panelId?: string
+  readonly icon?: string
+  readonly id: string
+  readonly target: ComponentIdentity
+  readonly point: string
+  readonly label: string
+  readonly order: number
+  readonly command?: string
+}
+
+export interface ComponentFileTreeSnapshot {
+  readonly root: string
+  readonly selectedPath: string
+  readonly expandedPaths: readonly string[]
+  readonly filter: string
+  readonly loading: boolean
+}
+
+export interface ComponentIdentity {
+  readonly id: string
+  readonly family: string
+  readonly ownerId: string
+  readonly generation: string
+  readonly projectId?: string
+  readonly sessionId?: string
+}
+
+export interface ComponentPlacement {
+  readonly sessionId: string
+  readonly column: number
+  readonly row: number
+  readonly width: number
+  readonly height: number
+  readonly displayWidth: number
+  readonly displayHeight: number
+}
+
+export interface ComponentProjectToolsSnapshot {
+  readonly views: readonly string[]
+  readonly selectedView: string
+  readonly expanded: boolean
+  readonly loading: boolean
+}
+
+export interface ComponentSessionListSnapshot {
+  readonly sessionIds: readonly string[]
+  readonly selectedId: string
+  readonly group: string
+}
+
+export interface ComponentSessionTabSnapshot {
+  readonly title: string
+  readonly provider: string
+  readonly status: string
+  readonly pinned: boolean
+}
+
+export interface ComponentStageSnapshot {
+  readonly placements: readonly ComponentPlacement[]
+  readonly saveStatus: string
+}
+
+export interface ComponentTasksSnapshot {
+  readonly available: boolean
+  readonly running: boolean
+  readonly href: string
+  readonly starting: boolean
+  readonly error: string
+}
+
+export interface ComponentTerminalSnapshot {
+  readonly connected: boolean
+  readonly visible: boolean
+  readonly viewMode: string
+}
+
+export interface ComponentWorkspaceSnapshot {
+  readonly ready: boolean
+  readonly children: readonly ComponentIdentity[]
+}
+
 export interface Config {
   sections?: ConfigSection[]
 }
@@ -363,6 +476,24 @@ export interface When {
 // Runtime shape guards. The paired JS module exports one per declaration
 // above; they check structure only, not the host's security invariants.
 export declare function isBinding(value: unknown): value is Binding
+export declare function isComponentAssignRequest(value: unknown): value is ComponentAssignRequest
+export declare function isComponentAssignResult(value: unknown): value is ComponentAssignResult
+export declare function isComponentAssignment(value: unknown): value is ComponentAssignment
+export declare function isComponentAvailableRequest(value: unknown): value is ComponentAvailableRequest
+export declare function isComponentAvailableResult(value: unknown): value is ComponentAvailableResult
+export declare function isComponentContributeRequest(value: unknown): value is ComponentContributeRequest
+export declare function isComponentContributeResult(value: unknown): value is ComponentContributeResult
+export declare function isComponentExtension(value: unknown): value is ComponentExtension
+export declare function isComponentFileTreeSnapshot(value: unknown): value is ComponentFileTreeSnapshot
+export declare function isComponentIdentity(value: unknown): value is ComponentIdentity
+export declare function isComponentPlacement(value: unknown): value is ComponentPlacement
+export declare function isComponentProjectToolsSnapshot(value: unknown): value is ComponentProjectToolsSnapshot
+export declare function isComponentSessionListSnapshot(value: unknown): value is ComponentSessionListSnapshot
+export declare function isComponentSessionTabSnapshot(value: unknown): value is ComponentSessionTabSnapshot
+export declare function isComponentStageSnapshot(value: unknown): value is ComponentStageSnapshot
+export declare function isComponentTasksSnapshot(value: unknown): value is ComponentTasksSnapshot
+export declare function isComponentTerminalSnapshot(value: unknown): value is ComponentTerminalSnapshot
+export declare function isComponentWorkspaceSnapshot(value: unknown): value is ComponentWorkspaceSnapshot
 export declare function isConfig(value: unknown): value is Config
 export declare function isConfigField(value: unknown): value is ConfigField
 export declare function isConfigSection(value: unknown): value is ConfigSection
