@@ -54,6 +54,27 @@ func targets() map[string]target {
 			// its contract and an unrelated type named Presentation* does not
 			// acquire one.
 			roots: []root{
+
+				{typ: reflect.TypeOf(plugin.ComponentAvailableRequest{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentAvailableResult{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentAssignRequest{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentAssignResult{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentContributeRequest{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentContributeResult{}), readonly: true},
+
+				{typ: reflect.TypeOf(plugin.ComponentAssignment{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentWorkspaceSnapshot{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentSessionListSnapshot{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentSessionTabSnapshot{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentTerminalSnapshot{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentPlacement{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentStageSnapshot{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentTasksSnapshot{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentFileTreeSnapshot{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentProjectToolsSnapshot{}), readonly: true},
+
+				{typ: reflect.TypeOf(plugin.ComponentIdentity{}), readonly: true},
+				{typ: reflect.TypeOf(plugin.ComponentExtension{}), readonly: true},
 				{typ: reflect.TypeOf(plugin.Manifest{})},
 				{typ: reflect.TypeOf(plugin.RuntimeSnapshot{})},
 				{typ: reflect.TypeOf(plugin.HostCapabilities{})},

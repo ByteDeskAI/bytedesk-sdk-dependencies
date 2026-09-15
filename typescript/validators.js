@@ -16,6 +16,155 @@ export function isBinding(value) {
   return true
 }
 
+export function isComponentAssignRequest(value) {
+  if (!record(value)) return false
+  if (!(isComponentIdentity(value.identity))) return false
+  return true
+}
+
+export function isComponentAssignResult(value) {
+  if (!record(value)) return false
+  if (!(isComponentAssignment(value.assignment))) return false
+  return true
+}
+
+export function isComponentAssignment(value) {
+  if (!record(value)) return false
+  if (!(isComponentIdentity(value.identity))) return false
+  if (!(str(value.lease))) return false
+  return true
+}
+
+export function isComponentAvailableRequest(value) {
+  if (!record(value)) return false
+  return true
+}
+
+export function isComponentAvailableResult(value) {
+  if (!record(value)) return false
+  if (!(list(value.components, isComponentIdentity))) return false
+  return true
+}
+
+export function isComponentContributeRequest(value) {
+  if (!record(value)) return false
+  if (!(isComponentAssignment(value.assignment))) return false
+  if (!(isComponentExtension(value.extension))) return false
+  return true
+}
+
+export function isComponentContributeResult(value) {
+  if (!record(value)) return false
+  if (!(isComponentExtension(value.extension))) return false
+  return true
+}
+
+export function isComponentExtension(value) {
+  if (!record(value)) return false
+  if (!(str(value.ownerId))) return false
+  if (!(str(value.generation))) return false
+  if (!(value.panelId === undefined || str(value.panelId))) return false
+  if (!(value.icon === undefined || str(value.icon))) return false
+  if (!(str(value.id))) return false
+  if (!(isComponentIdentity(value.target))) return false
+  if (!(str(value.point))) return false
+  if (!(str(value.label))) return false
+  if (!(num(value.order))) return false
+  if (!(value.command === undefined || str(value.command))) return false
+  return true
+}
+
+export function isComponentFileTreeSnapshot(value) {
+  if (!record(value)) return false
+  if (!(str(value.root))) return false
+  if (!(str(value.selectedPath))) return false
+  if (!(list(value.expandedPaths, str))) return false
+  if (!(str(value.filter))) return false
+  if (!(bool(value.loading))) return false
+  return true
+}
+
+export function isComponentIdentity(value) {
+  if (!record(value)) return false
+  if (!(str(value.id))) return false
+  if (!(str(value.family))) return false
+  if (!(str(value.ownerId))) return false
+  if (!(str(value.generation))) return false
+  if (!(value.projectId === undefined || str(value.projectId))) return false
+  if (!(value.sessionId === undefined || str(value.sessionId))) return false
+  return true
+}
+
+export function isComponentPlacement(value) {
+  if (!record(value)) return false
+  if (!(str(value.sessionId))) return false
+  if (!(num(value.column))) return false
+  if (!(num(value.row))) return false
+  if (!(num(value.width))) return false
+  if (!(num(value.height))) return false
+  if (!(num(value.displayWidth))) return false
+  if (!(num(value.displayHeight))) return false
+  return true
+}
+
+export function isComponentProjectToolsSnapshot(value) {
+  if (!record(value)) return false
+  if (!(list(value.views, str))) return false
+  if (!(str(value.selectedView))) return false
+  if (!(bool(value.expanded))) return false
+  if (!(bool(value.loading))) return false
+  return true
+}
+
+export function isComponentSessionListSnapshot(value) {
+  if (!record(value)) return false
+  if (!(list(value.sessionIds, str))) return false
+  if (!(str(value.selectedId))) return false
+  if (!(str(value.group))) return false
+  return true
+}
+
+export function isComponentSessionTabSnapshot(value) {
+  if (!record(value)) return false
+  if (!(str(value.title))) return false
+  if (!(str(value.provider))) return false
+  if (!(str(value.status))) return false
+  if (!(bool(value.pinned))) return false
+  return true
+}
+
+export function isComponentStageSnapshot(value) {
+  if (!record(value)) return false
+  if (!(list(value.placements, isComponentPlacement))) return false
+  if (!(str(value.saveStatus))) return false
+  return true
+}
+
+export function isComponentTasksSnapshot(value) {
+  if (!record(value)) return false
+  if (!(bool(value.available))) return false
+  if (!(bool(value.running))) return false
+  if (!(str(value.href))) return false
+  if (!(bool(value.starting))) return false
+  if (!(str(value.error))) return false
+  return true
+}
+
+export function isComponentTerminalSnapshot(value) {
+  if (!record(value)) return false
+  if (!(bool(value.connected))) return false
+  if (!(bool(value.visible))) return false
+  if (!(str(value.viewMode))) return false
+  return true
+}
+
+export function isComponentWorkspaceSnapshot(value) {
+  if (!record(value)) return false
+  if (!(bool(value.ready))) return false
+  if (!(list(value.children, isComponentIdentity))) return false
+  return true
+}
+
 export function isConfig(value) {
   if (!record(value)) return false
   if (!(value.sections === undefined || list(value.sections, isConfigSection))) return false

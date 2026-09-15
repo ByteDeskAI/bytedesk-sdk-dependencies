@@ -12,6 +12,24 @@ package plugin
 // breaks every consumer, so it needs a changelog entry.
 type Payload interface {
 	Binding |
+		ComponentAssignRequest |
+		ComponentAssignResult |
+		ComponentAssignment |
+		ComponentAvailableRequest |
+		ComponentAvailableResult |
+		ComponentContributeRequest |
+		ComponentContributeResult |
+		ComponentExtension |
+		ComponentFileTreeSnapshot |
+		ComponentIdentity |
+		ComponentPlacement |
+		ComponentProjectToolsSnapshot |
+		ComponentSessionListSnapshot |
+		ComponentSessionTabSnapshot |
+		ComponentStageSnapshot |
+		ComponentTasksSnapshot |
+		ComponentTerminalSnapshot |
+		ComponentWorkspaceSnapshot |
 		Config |
 		ConfigField |
 		ConfigSection |
