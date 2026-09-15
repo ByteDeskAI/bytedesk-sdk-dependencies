@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.11] - 2026-09-15
+
 ### Added
 
 - **Resolved Applications executable identity (gateway TM-331).** Optional `DesktopApplication.executablePath` carries an absolute host-resolved binary path separately from the launcher path and arguments. It remains subject-classified data. The added field changes exact typed-schema hashes for scan and registration payloads, so host and plugin consumers must adopt the release together; JSON optionality alone does not preserve schema-hash compatibility.
