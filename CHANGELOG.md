@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.15] - 2026-09-15
+
+### Added
+
+- Four typed, read-only tmux host commands for availability, sessions, windows, and panes. Availability is public host metadata; inventory output is subject-classified, fixed-format, NUL-free, and capped at 48 KiB after JSON escaping. Requests accept no caller-controlled argv, target, format, or mutation.
+
 ## [0.4.0-rc.14] - 2026-09-15
 
 ### Added

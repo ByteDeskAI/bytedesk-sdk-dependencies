@@ -25,6 +25,19 @@ freshness timers, revocation, rendering, and icon allowlisting.
 `plugin.json` `"targets"` is `["gateway"]`, `["vault"]`, or both. Empty
 targets default to gateway-only (legacy manifests).
 
+## Tmux host reads
+
+The tmux contract exposes four fixed commands: public availability and
+subject-scoped session, window, and pane inventories. Each inventory command
+uses an empty request and a fixed tab-separated tmux format; callers cannot
+supply argv, formats, targets, or mutations. Results reject NUL bytes and are
+limited to 48 KiB after JSON escaping. An empty inventory output means that no
+tmux server is running.
+
+The host remains responsible for deriving the caller subject from its trusted
+request context and limiting subject-scoped rows before returning them. This
+contract does not add arbitrary tmux execution or session lifecycle commands.
+
 ## Versioning
 
 This module’s SemVer (`VERSION`) is independent of the Gateway SDK and Vault

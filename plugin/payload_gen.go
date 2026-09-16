@@ -78,7 +78,16 @@ type Payload interface {
 		RuntimeSnapshot |
 		RuntimeStatus |
 		TerminalBindingContext |
+		TmuxAvailability |
+		TmuxAvailabilityRequest |
+		TmuxAvailabilityResult |
+		TmuxPanesRequest |
+		TmuxPanesResult |
 		TmuxPresentationContext |
+		TmuxSessionsRequest |
+		TmuxSessionsResult |
+		TmuxWindowsRequest |
+		TmuxWindowsResult |
 		UIContribution |
 		When
 }
@@ -109,3 +118,15 @@ var CmdDesktopApplicationsViewerTicket = NewCommand[DesktopApplicationsViewerTic
 
 // CmdDesktopApplicationsQuit is the generated descriptor for cmd.desktop-applications.v1.quit revision 1.
 var CmdDesktopApplicationsQuit = NewCommand[DesktopApplicationsQuitRequest, DesktopApplicationsQuitResult]("cmd.desktop-applications.v1.quit", 1, "7b40318af1df2da39cbcc59ed265ea9cd5ed9ff1c92a12029032a878b663d4cb")
+
+// CmdTmuxAvailability is the generated descriptor for cmd.tmux.v1.availability revision 1.
+var CmdTmuxAvailability = NewCommand[TmuxAvailabilityRequest, TmuxAvailabilityResult]("cmd.tmux.v1.availability", 1, "f8062f381ee51562eb4382bf8e933665bec761f44a9a3ee55920cbf9aabdefd2")
+
+// CmdTmuxSessions is the generated descriptor for cmd.tmux.v1.sessions revision 1.
+var CmdTmuxSessions = NewCommand[TmuxSessionsRequest, TmuxSessionsResult]("cmd.tmux.v1.sessions", 1, "744e1ebd0fd49cb0888975016a649d19aa7cc5b3dd64dd57ca7f45cdb309f28b")
+
+// CmdTmuxWindows is the generated descriptor for cmd.tmux.v1.windows revision 1.
+var CmdTmuxWindows = NewCommand[TmuxWindowsRequest, TmuxWindowsResult]("cmd.tmux.v1.windows", 1, "5ada9d5bd4e11b7c690ddd228f2ff9e5a572f0ab26a25253ceb634bb35557f6d")
+
+// CmdTmuxPanes is the generated descriptor for cmd.tmux.v1.panes revision 1.
+var CmdTmuxPanes = NewCommand[TmuxPanesRequest, TmuxPanesResult]("cmd.tmux.v1.panes", 1, "c31c3da0ba820fa740c2f613e6f4b0c65a1bdb21812072d424a48dc3b9e18dcc")

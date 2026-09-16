@@ -448,6 +448,26 @@ export type TerminalBindingContext =
   | { readonly kind: 'none'; readonly tmux?: never }
   | { readonly kind: 'tmux'; readonly tmux: TmuxPresentationContext }
 
+export interface TmuxAvailability {
+  state: string
+  version?: string
+  message: string
+}
+
+export interface TmuxAvailabilityRequest {
+}
+
+export interface TmuxAvailabilityResult {
+  tmux: TmuxAvailability
+}
+
+export interface TmuxPanesRequest {
+}
+
+export interface TmuxPanesResult {
+  output: string
+}
+
 export interface TmuxPresentationContext {
   readonly repositoryKey: string
   readonly serverKey: string
@@ -456,6 +476,20 @@ export interface TmuxPresentationContext {
   readonly sessionCreated: string
   readonly paneId: string
   readonly panePid: string
+}
+
+export interface TmuxSessionsRequest {
+}
+
+export interface TmuxSessionsResult {
+  output: string
+}
+
+export interface TmuxWindowsRequest {
+}
+
+export interface TmuxWindowsResult {
+  output: string
 }
 
 export interface UIContribution {
@@ -542,6 +576,15 @@ export declare function isRequirement(value: unknown): value is Requirement
 export declare function isRuntimeSnapshot(value: unknown): value is RuntimeSnapshot
 export declare function isRuntimeStatus(value: unknown): value is RuntimeStatus
 export declare function isTerminalBindingContext(value: unknown): value is TerminalBindingContext
+export declare function isTmuxAvailability(value: unknown): value is TmuxAvailability
+export declare function isTmuxAvailabilityRequest(value: unknown): value is TmuxAvailabilityRequest
+export declare function isTmuxAvailabilityResult(value: unknown): value is TmuxAvailabilityResult
+export declare function isTmuxPanesRequest(value: unknown): value is TmuxPanesRequest
+export declare function isTmuxPanesResult(value: unknown): value is TmuxPanesResult
 export declare function isTmuxPresentationContext(value: unknown): value is TmuxPresentationContext
+export declare function isTmuxSessionsRequest(value: unknown): value is TmuxSessionsRequest
+export declare function isTmuxSessionsResult(value: unknown): value is TmuxSessionsResult
+export declare function isTmuxWindowsRequest(value: unknown): value is TmuxWindowsRequest
+export declare function isTmuxWindowsResult(value: unknown): value is TmuxWindowsResult
 export declare function isUIContribution(value: unknown): value is UIContribution
 export declare function isWhen(value: unknown): value is When
