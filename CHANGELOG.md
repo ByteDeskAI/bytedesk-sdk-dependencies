@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.17] - 2026-09-16
+
+### Added
+
+- `host.session.backend`: the extension point the host's terminal runtime asks for a session instead of driving local tmux itself (agent-fabric ADR 0002). `SessionBackend` is `ID`, `Create`, `Close`, `List`, `Attach`, `SendText` and `Capture`; `Attach` returns a `Stream`, an `io.ReadWriteCloser` plus `Resize`, carrying PTY bytes unchanged. The existing local tmux code becomes the `local` backend without moving. The point is in-process only and has no wire schema, because a live byte stream does not fit a command envelope; a spawned plugin can implement it once the host can grant byte streams.
+
 ## [0.4.0-rc.16] - 2026-09-16
 
 ### Added
