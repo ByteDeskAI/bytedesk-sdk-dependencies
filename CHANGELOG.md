@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.16] - 2026-09-16
+
+### Added
+
+- `Host.Profiling()` returns this plugin's host-owned profiler switch (`Enabled` / `Set`). Off is the default. The switch is independent per plugin and takes effect on the next request, command, subscription or tick without a restart. Adding the method is a breaking change for Host implementations; bump consumers together. `NopProfiler()` is the always-off stand-in for tests and unscoped hosts.
+
 ## [0.4.0-rc.15] - 2026-09-15
 
 ### Added

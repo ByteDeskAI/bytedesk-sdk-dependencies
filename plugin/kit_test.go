@@ -35,6 +35,7 @@ func (h *kitHost) Request(context.Context, bus.Envelope) (bus.Envelope, error) {
 	return bus.Envelope{}, nil
 }
 func (h *kitHost) Logger() Logger                              { return nil }
+func (h *kitHost) Profiling() Profiler                         { return NopProfiler() }
 func (h *kitHost) StateDir(string) string                      { return "" }
 func (h *kitHost) Every(time.Duration, func()) (cancel func()) { return func() {} }
 func (h *kitHost) BumpContributions()                          {}

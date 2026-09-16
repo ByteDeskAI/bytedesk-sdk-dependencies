@@ -48,11 +48,24 @@ func (refHost) Request(context.Context, bus.Envelope) (bus.Envelope, error) {
 	return bus.Envelope{}, nil
 }
 func (refHost) Logger() Logger                     { return nil }
+func (refHost) Profiling() Profiler                { return NopProfiler() }
 func (refHost) StateDir(string) string             { return "" }
 func (refHost) Every(time.Duration, func()) func() { return func() {} }
 func (refHost) BumpContributions()                 {}
 
 var _ Host = refHost{}
+var _ Profiler = nopProfiler{}
+
+func TestNopProfilerIsAlwaysOff(t *testing.T) {
+	p := NopProfiler()
+	if p.Enabled() {
+		t.Fatal("NopProfiler started on")
+	}
+	p.Set(true)
+	if p.Enabled() {
+		t.Fatal("NopProfiler accepted Set")
+	}
+}
 
 // TestHostMethodSetIsPinned makes the cost of changing Host visible. Both
 // implementations of Host — in-process and over a socket — must satisfy it, and
@@ -65,6 +78,7 @@ func TestHostMethodSetIsPinned(t *testing.T) {
 		"BumpContributions",
 		"Every",
 		"Logger",
+		"Profiling",
 		"Publish",
 		"Request",
 		"StateDir",

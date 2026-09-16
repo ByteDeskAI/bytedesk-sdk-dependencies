@@ -49,6 +49,7 @@ func (h *typedTestHost) Request(ctx context.Context, env bus.Envelope) (bus.Enve
 }
 
 func (*typedTestHost) Logger() plugin.Logger              { return nil }
+func (*typedTestHost) Profiling() plugin.Profiler         { return plugin.NopProfiler() }
 func (*typedTestHost) StateDir(string) string             { return "" }
 func (*typedTestHost) Every(time.Duration, func()) func() { return func() {} }
 func (*typedTestHost) BumpContributions()                 {}

@@ -51,6 +51,7 @@ func (h *testHost) Request(ctx context.Context, env bus.Envelope) (bus.Envelope,
 }
 
 func (h *testHost) Logger() Logger                     { return nil }
+func (h *testHost) Profiling() Profiler                { return NopProfiler() }
 func (h *testHost) StateDir(string) string             { return "" }
 func (h *testHost) Every(time.Duration, func()) func() { return func() {} }
 func (h *testHost) BumpContributions()                 {}

@@ -59,6 +59,24 @@ type Logger interface {
 	Error(msg string, args ...any)
 }
 
+// Profiler is this plugin's host-owned profiling switch. Off is the default.
+// Set takes effect on the next HTTP request, bus command, subscription or tick
+// without a restart. Enabling this plugin does not enable another. Spawned
+// plugins profile their own process; in-process plugins are attributed with
+// pprof labels on the shared gateway runtime.
+type Profiler interface {
+	Enabled() bool
+	Set(enabled bool)
+}
+
+// NopProfiler is always off. Test hosts and unscoped hosts return it.
+func NopProfiler() Profiler { return nopProfiler{} }
+
+type nopProfiler struct{}
+
+func (nopProfiler) Enabled() bool { return false }
+func (nopProfiler) Set(bool)      {}
+
 // Host is the capability facade a plugin is given at Start. It is the only
 // channel to the host: a plugin never touches host secrets, never reaches
 // another plugin directly, and never loads, execs or proxies a peer.
@@ -83,6 +101,10 @@ type Host interface {
 
 	// Logger returns the host logger, already tagged with this plugin's id.
 	Logger() Logger
+
+	// Profiling returns this plugin's profiler switch. Off is the default.
+	// An unscoped host returns a no-op profiler that is always off.
+	Profiling() Profiler
 
 	// StateDir is where this plugin may persist state. The host owns the path;
 	// a plugin must not assume it is under any particular root.
