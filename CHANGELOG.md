@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.14] - 2026-09-15
+
+### Added
+
+- `LoggerWithCorrelationID` adds a host-minted request correlation id to plugin log entries as structured data without changing the `Logger` interface. Existing hosts and plugins remain source compatible, and transport-specific SDKs retain responsibility for trusting their request boundary.
+
 ## [0.4.0-rc.13] - 2026-09-15
 
 ### Fixed
