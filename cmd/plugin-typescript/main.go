@@ -96,6 +96,14 @@ func targets() map[string]target {
 				{typ: reflect.TypeOf(plugin.DesktopApplicationsViewerTicketResult{})},
 				{typ: reflect.TypeOf(plugin.DesktopApplicationsQuitRequest{})},
 				{typ: reflect.TypeOf(plugin.DesktopApplicationsQuitResult{})},
+				{typ: reflect.TypeOf(plugin.TmuxAvailabilityRequest{})},
+				{typ: reflect.TypeOf(plugin.TmuxAvailabilityResult{})},
+				{typ: reflect.TypeOf(plugin.TmuxSessionsRequest{})},
+				{typ: reflect.TypeOf(plugin.TmuxSessionsResult{})},
+				{typ: reflect.TypeOf(plugin.TmuxWindowsRequest{})},
+				{typ: reflect.TypeOf(plugin.TmuxWindowsResult{})},
+				{typ: reflect.TypeOf(plugin.TmuxPanesRequest{})},
+				{typ: reflect.TypeOf(plugin.TmuxPanesResult{})},
 				{typ: reflect.TypeOf(plugin.PresentationRequest{}), readonly: true},
 				{typ: reflect.TypeOf(plugin.PresentationResult{}), readonly: true},
 			},
@@ -132,6 +140,18 @@ func targets() map[string]target {
 			}, {
 				name: plugin.DesktopApplicationsQuitCommand, kind: kindCommand, rev: plugin.DesktopApplicationsContractRevision,
 				goVar: "CmdDesktopApplicationsQuit", req: reflect.TypeOf(plugin.DesktopApplicationsQuitRequest{}), resp: reflect.TypeOf(plugin.DesktopApplicationsQuitResult{}),
+			}, {
+				name: plugin.TmuxAvailabilityCommand, kind: kindCommand, rev: plugin.TmuxContractRevision,
+				goVar: "CmdTmuxAvailability", req: reflect.TypeOf(plugin.TmuxAvailabilityRequest{}), resp: reflect.TypeOf(plugin.TmuxAvailabilityResult{}),
+			}, {
+				name: plugin.TmuxSessionsCommand, kind: kindCommand, rev: plugin.TmuxContractRevision,
+				goVar: "CmdTmuxSessions", req: reflect.TypeOf(plugin.TmuxSessionsRequest{}), resp: reflect.TypeOf(plugin.TmuxSessionsResult{}),
+			}, {
+				name: plugin.TmuxWindowsCommand, kind: kindCommand, rev: plugin.TmuxContractRevision,
+				goVar: "CmdTmuxWindows", req: reflect.TypeOf(plugin.TmuxWindowsRequest{}), resp: reflect.TypeOf(plugin.TmuxWindowsResult{}),
+			}, {
+				name: plugin.TmuxPanesCommand, kind: kindCommand, rev: plugin.TmuxContractRevision,
+				goVar: "CmdTmuxPanes", req: reflect.TypeOf(plugin.TmuxPanesRequest{}), resp: reflect.TypeOf(plugin.TmuxPanesResult{}),
 			}},
 		},
 		"messaging": messagingTarget(),

@@ -591,6 +591,36 @@ export function isTerminalBindingContext(value) {
   return false
 }
 
+export function isTmuxAvailability(value) {
+  if (!record(value)) return false
+  if (!(str(value.state))) return false
+  if (!(value.version === undefined || str(value.version))) return false
+  if (!(str(value.message))) return false
+  return true
+}
+
+export function isTmuxAvailabilityRequest(value) {
+  if (!record(value)) return false
+  return true
+}
+
+export function isTmuxAvailabilityResult(value) {
+  if (!record(value)) return false
+  if (!(isTmuxAvailability(value.tmux))) return false
+  return true
+}
+
+export function isTmuxPanesRequest(value) {
+  if (!record(value)) return false
+  return true
+}
+
+export function isTmuxPanesResult(value) {
+  if (!record(value)) return false
+  if (!(str(value.output))) return false
+  return true
+}
+
 export function isTmuxPresentationContext(value) {
   if (!record(value)) return false
   if (!(str(value.repositoryKey))) return false
@@ -600,6 +630,28 @@ export function isTmuxPresentationContext(value) {
   if (!(str(value.sessionCreated))) return false
   if (!(str(value.paneId))) return false
   if (!(str(value.panePid))) return false
+  return true
+}
+
+export function isTmuxSessionsRequest(value) {
+  if (!record(value)) return false
+  return true
+}
+
+export function isTmuxSessionsResult(value) {
+  if (!record(value)) return false
+  if (!(str(value.output))) return false
+  return true
+}
+
+export function isTmuxWindowsRequest(value) {
+  if (!record(value)) return false
+  return true
+}
+
+export function isTmuxWindowsResult(value) {
+  if (!record(value)) return false
+  if (!(str(value.output))) return false
   return true
 }
 
