@@ -38,6 +38,21 @@ The host remains responsible for deriving the caller subject from its trusted
 request context and limiting subject-scoped rows before returning them. This
 contract does not add arbitrary tmux execution or session lifecycle commands.
 
+## Session backends
+
+`host.session.backend` lets a plugin supply terminal sessions to the host's
+terminal runtime, so a remote session appears in the same list and uses the same
+attach, input and capture paths as a local one. A backend is identified by a
+stable `ID()`, which the host stores on the tab and routes by; `local` names the
+built-in tmux backend and is the only id the host assumes. `List` is what the
+host reconciles against after a restart, so a session it omits is gone and its
+tab is closed rather than re-created.
+
+This point is in-process only. `Attach` returns a live PTY byte stream, which no
+command envelope carries, so it has no wire schema, no classification tags and
+no generated TypeScript. A spawned plugin can implement it once the host can
+grant byte streams. See agent-fabric ADR 0002.
+
 ## Versioning
 
 This module’s SemVer (`VERSION`) is independent of the Gateway SDK and Vault
