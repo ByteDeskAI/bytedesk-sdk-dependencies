@@ -1,0 +1,8 @@
+{
+  "diagnostics": [],
+  "options": {
+    "coreVersion": "3.0.0",
+    "host": "gateway",
+    "minPluginVersion": "1.0.0"
+  }
+}

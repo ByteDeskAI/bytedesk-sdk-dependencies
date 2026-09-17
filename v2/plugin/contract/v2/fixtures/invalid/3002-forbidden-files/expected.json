@@ -1,0 +1,29 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP3002",
+      "severity": "error",
+      "path": ".env"
+    },
+    {
+      "code": "BDP3002",
+      "severity": "error",
+      "path": "id_rsa"
+    },
+    {
+      "code": "BDP3002",
+      "severity": "error",
+      "path": "node_modules/x.js"
+    },
+    {
+      "code": "BDP3002",
+      "severity": "error",
+      "path": "state/x.db"
+    },
+    {
+      "code": "BDP3002",
+      "severity": "error",
+      "path": "sub/dir/app.log"
+    }
+  ]
+}

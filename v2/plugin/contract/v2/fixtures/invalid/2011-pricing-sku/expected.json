@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2011",
+      "severity": "error",
+      "path": "pricing.sku"
+    }
+  ]
+}

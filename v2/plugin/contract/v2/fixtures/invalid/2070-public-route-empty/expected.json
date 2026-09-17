@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2070",
+      "severity": "error",
+      "path": "publicRoutes[1]"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2140",
+      "severity": "error",
+      "path": "objects[0].maxBytes"
+    }
+  ]
+}

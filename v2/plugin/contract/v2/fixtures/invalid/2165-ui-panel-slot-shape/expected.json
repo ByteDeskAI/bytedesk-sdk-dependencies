@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2165",
+      "severity": "error",
+      "path": "ui[0].panelId"
+    }
+  ]
+}

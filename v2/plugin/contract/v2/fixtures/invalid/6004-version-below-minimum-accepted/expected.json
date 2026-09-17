@@ -1,0 +1,12 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP6004",
+      "severity": "error",
+      "path": "version"
+    }
+  ],
+  "options": {
+    "minPluginVersion": "3.0.0"
+  }
+}

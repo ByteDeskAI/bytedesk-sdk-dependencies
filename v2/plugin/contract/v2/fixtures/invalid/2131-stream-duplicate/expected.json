@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2131",
+      "severity": "error",
+      "path": "streams[1].name"
+    }
+  ]
+}

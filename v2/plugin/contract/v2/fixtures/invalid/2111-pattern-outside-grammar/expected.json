@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2111",
+      "severity": "error",
+      "path": "permissions.publish[0]"
+    }
+  ]
+}

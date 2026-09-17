@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2139",
+      "severity": "error",
+      "path": "objects[1].name"
+    }
+  ]
+}

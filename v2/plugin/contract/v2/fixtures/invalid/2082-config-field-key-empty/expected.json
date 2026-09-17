@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2082",
+      "severity": "error",
+      "path": "config.sections[0].fields[0].key"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2051",
+      "severity": "error",
+      "path": "implements[0].point"
+    }
+  ]
+}

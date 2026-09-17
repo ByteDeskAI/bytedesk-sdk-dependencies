@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2121",
+      "severity": "error",
+      "path": "serves[1].name"
+    }
+  ]
+}

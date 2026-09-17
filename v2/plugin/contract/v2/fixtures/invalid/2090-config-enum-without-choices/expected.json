@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2090",
+      "severity": "error",
+      "path": "config.sections[0].fields[0].choices"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP5001",
+      "severity": "warning",
+      "path": "publisher"
+    }
+  ]
+}

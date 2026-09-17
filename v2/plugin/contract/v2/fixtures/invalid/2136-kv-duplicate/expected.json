@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2136",
+      "severity": "error",
+      "path": "kv[1].name"
+    }
+  ]
+}

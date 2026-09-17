@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP3005",
+      "severity": "error",
+      "path": "images/icon.gif"
+    }
+  ]
+}

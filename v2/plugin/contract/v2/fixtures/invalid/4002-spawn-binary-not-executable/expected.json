@@ -1,0 +1,12 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP4002",
+      "severity": "error",
+      "path": "binary"
+    }
+  ],
+  "skipOn": [
+    "windows"
+  ]
+}

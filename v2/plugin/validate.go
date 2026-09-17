@@ -20,7 +20,11 @@ import (
 // because a plugin that asked for a family and silently received a slice of it
 // has no way to notice, and the operator who approved the manifest approved the
 // text they read, not the host's improvement on it.
-func Validate(m Manifest) error { return validate(m, true) }
+//
+// The error returned is the first error-severity Diagnostic, in the order the
+// rules run, so a caller that only ever read the error sees what it always
+// saw. Diagnostics returns the whole list.
+func Validate(m Manifest) error { return FirstError(Diagnostics(m, true)) }
 
 // ValidateDiscover is Validate with the version requirement lifted, for reading
 // a manifest off disk before a version has been assigned.
@@ -33,97 +37,87 @@ func Validate(m Manifest) error { return validate(m, true) }
 // over a field nothing had yet filled in. The version check is the ONLY
 // difference; every authority rule below applies identically, because a
 // manifest read off disk is exactly the one that gets enabled.
-func ValidateDiscover(m Manifest) error { return validate(m, false) }
+func ValidateDiscover(m Manifest) error { return FirstError(Diagnostics(m, false)) }
 
-func validate(m Manifest, requireVersion bool) error {
+// Diagnostics runs every semantic rule (the BDP2xxx band) and returns all of
+// its findings, in rule order. It is a function over a Manifest for the same
+// reason Validate is: a validator that is a method invites a caller to believe
+// the manifest validated itself. Ordering is the rules' own; callers that need
+// a stable wire order call SortDiagnostics.
+func Diagnostics(m Manifest, requireVersion bool) []Diagnostic {
+	var c collector
 	id := strings.TrimSpace(m.ID)
 	if id == "" {
-		return fmt.Errorf("plugin id required")
-	}
-	if err := validateIDSegment("plugin id", id); err != nil {
-		return err
+		c.add("BDP2001", "id")
+	} else if msg, ok := idSegment("plugin id", id); !ok {
+		c.add("BDP2002", "id", msg)
 	}
 	if requireVersion && strings.TrimSpace(m.Version) == "" {
-		return fmt.Errorf("plugin version required")
+		c.add("BDP2003", "version")
 	}
 	if m.Pricing != nil {
 		model := strings.ToLower(strings.TrimSpace(m.Pricing.Model))
 		if model != "free" && model != "trial" && model != "paid" {
-			return fmt.Errorf("pricing.model must be free, trial, or paid")
+			c.add("BDP2010", "pricing.model")
 		}
 		if (model == "paid" || model == "trial") && strings.TrimSpace(m.Pricing.SKU) == "" {
-			return fmt.Errorf("pricing.sku required for %s plugins", model)
+			c.add("BDP2011", "pricing.sku", model)
 		}
 		if model == "trial" && m.Pricing.TrialDays < 0 {
-			return fmt.Errorf("pricing.trialDays must be >= 0")
+			c.add("BDP2012", "pricing.trialDays")
 		}
 	}
 	if role := strings.ToLower(strings.TrimSpace(m.Role)); role != "" && role != RoleSystem && role != RoleExtension {
-		return fmt.Errorf("role must be system or extension")
+		c.add("BDP2020", "role")
 	}
-	for _, req := range m.Requires {
+	for i, req := range m.Requires {
+		path := fmt.Sprintf("requires[%d].id", i)
 		rid := strings.TrimSpace(req.ID)
 		if rid == "" {
-			return fmt.Errorf("requires.id required")
+			c.add("BDP2030", path)
+			continue
 		}
-		if err := validateIDSegment("requires.id", rid); err != nil {
-			return err
+		if _, ok := idSegment("requires.id", rid); !ok {
+			c.add("BDP2031", path)
 		}
 		if rid == id {
-			return fmt.Errorf("requires.id cannot be self")
+			c.add("BDP2032", path)
 		}
 	}
 	if m.Spawn {
 		bin := strings.TrimSpace(m.Binary)
 		if bin == "" || strings.ContainsAny(bin, `/\`) || strings.Contains(bin, "..") {
-			return fmt.Errorf("spawn binary must be a relative basename")
+			c.add("BDP2040", "binary")
 		}
 	}
 	if sock := strings.TrimSpace(m.Socket); sock != "" {
 		if strings.ContainsAny(sock, `/\`) || strings.Contains(sock, "..") {
-			return fmt.Errorf("socket must be a relative basename")
+			c.add("BDP2041", "socket")
 		}
 	}
-	for _, t := range m.Targets {
+	for i, t := range m.Targets {
 		if t = strings.ToLower(strings.TrimSpace(t)); t != TargetGateway && t != TargetVault {
-			return fmt.Errorf("targets: unknown %q (gateway|vault)", t)
+			c.add("BDP2021", fmt.Sprintf("targets[%d]", i), t)
 		}
 	}
-	for _, point := range m.Extends {
+	for i, point := range m.Extends {
 		if err := ValidateExtendsName(m.Publisher, strings.TrimSpace(point.Name)); err != nil {
-			return err
+			c.add("BDP2050", fmt.Sprintf("extends[%d].name", i), err.Error())
 		}
 	}
-	for _, impl := range m.Implements {
-		if err := validatePointName("implements", m.Publisher, impl.Point); err != nil {
-			return err
-		}
+	for i, impl := range m.Implements {
+		validatePointName(&c, fmt.Sprintf("implements[%d].point", i), "implements", m.Publisher, impl.Point)
 	}
-	if err := validateDocumentPaths(m); err != nil {
-		return err
-	}
-	if err := validatePublicRoutes(m); err != nil {
-		return err
-	}
-	if err := validateConfig(m.Config); err != nil {
-		return err
-	}
-	if err := validateProtocol(m.Protocol); err != nil {
-		return err
-	}
-	if err := validateSubjectPatterns(m); err != nil {
-		return err
-	}
-	if err := validateServes(m); err != nil {
-		return err
-	}
-	if err := validateAssets(m); err != nil {
-		return err
-	}
-	if err := validateNeeds(m); err != nil {
-		return err
-	}
-	return validateUI(m)
+	validateDocumentPaths(&c, m)
+	validatePublicRoutes(&c, m)
+	validateConfig(&c, m.Config)
+	validateProtocol(&c, m.Protocol)
+	validateSubjectPatterns(&c, m)
+	validateServes(&c, m)
+	validateAssets(&c, m)
+	validateNeeds(&c, m)
+	validateUI(&c, m)
+	return c.list
 }
 
 // validateSubjectPatterns is the v2 rule v1 could not express. v1's Permissions
@@ -141,7 +135,7 @@ func validate(m Manifest, requireVersion bool) error {
 //  4. It must not overlap a permanently ineligible family. Overlap, not
 //     containment: "cmd.>" reaches "cmd.auth.>" and is refused whole rather
 //     than quietly reduced to the rest of "cmd.".
-func validateSubjectPatterns(m Manifest) error {
+func validateSubjectPatterns(c *collector, m Manifest) {
 	own := ownNamespacePatterns(strings.TrimSpace(m.ID))
 	denied := PermanentlyIneligible()
 	// own is implicit and never appears in a declared Permissions list, so the
@@ -155,7 +149,8 @@ func validateSubjectPatterns(m Manifest) error {
 	for _, g := range own {
 		for _, d := range denied {
 			if patternsOverlap(d, g) {
-				return fmt.Errorf("plugin id %q implicitly Serves %q, which reaches the permanently ineligible family %q; choose a different id", m.ID, string(g), string(d))
+				c.add("BDP2004", "id", m.ID, string(g), string(d))
+				break
 			}
 		}
 	}
@@ -168,46 +163,52 @@ func validateSubjectPatterns(m Manifest) error {
 		{"permissions.request", m.Permissions.Request},
 	} {
 		seen := map[bus.Pattern]bool{}
-		for _, p := range list.patterns {
+		for i, p := range list.patterns {
+			path := fmt.Sprintf("%s[%d]", list.label, i)
 			if seen[p] {
-				return fmt.Errorf("%s contains duplicate %q", list.label, string(p))
+				c.add("BDP2110", path, list.label, string(p))
 			}
 			seen[p] = true
 			if _, err := bus.ParsePattern(string(p)); err != nil {
-				return fmt.Errorf("%s: %w", list.label, err)
+				c.add("BDP2111", path, list.label, err.Error())
+				continue
 			}
-			if err := refuseReservedTokens(list.label, p); err != nil {
-				return err
+			if refuseReservedTokens(c, path, list.label, p) {
+				continue
 			}
 			for _, g := range own {
 				if g.Covers(p) {
-					return fmt.Errorf("%s: %q is this plugin's own namespace, which is implicit and must not be listed", list.label, string(p))
+					c.add("BDP2114", path, list.label, string(p))
 				}
 			}
+			// One finding per pattern: the first family it reaches is the
+			// evidence, and "cmd.>" reaching all nine is not nine defects.
 			for _, d := range denied {
 				if patternsOverlap(d, p) {
-					return fmt.Errorf("%s: %q reaches the permanently ineligible family %q; it is refused rather than narrowed", list.label, string(p), string(d))
+					c.add("BDP2115", path, list.label, string(p), string(d))
+					break
 				}
 			}
 		}
 	}
-	return nil
 }
 
 // refuseReservedTokens refuses what the grammar lets through on purpose.
 // bus.IsReservedToken covers the substrate's own "$"-prefixed names and the
 // inbox root; the inter-gateway mesh prefix is this package's, because the bus
-// does not know gateways exist.
-func refuseReservedTokens(label string, p bus.Pattern) error {
+// does not know gateways exist. It reports whether anything was refused.
+func refuseReservedTokens(c *collector, path, label string, p bus.Pattern) bool {
 	for i, tok := range p.Tokens() {
 		if bus.IsReservedToken(tok) {
-			return fmt.Errorf("%s: %q uses the reserved token %q", label, string(p), tok)
+			c.add("BDP2112", path, label, string(p), tok)
+			return true
 		}
 		if i == 0 && tok == MeshPrefix {
-			return fmt.Errorf("%s: %q starts with the reserved mesh prefix %q", label, string(p), MeshPrefix+".")
+			c.add("BDP2113", path, label, string(p), MeshPrefix+".")
+			return true
 		}
 	}
-	return nil
+	return false
 }
 
 // patternsOverlap reports whether any concrete subject matches both patterns.
@@ -241,55 +242,53 @@ func patternsOverlap(a, b bus.Pattern) bool {
 // "svc.<id>." / "cmd.<id>." trees is the one that matters: mounting elsewhere is
 // a plugin answering calls addressed to somebody it is not, and the caller has
 // no way to tell.
-func validateServes(m Manifest) error {
+func validateServes(c *collector, m Manifest) {
 	id := strings.TrimSpace(m.ID)
 	prefixes := []string{"svc." + id + ".", "cmd." + id + "."}
 	services := map[string]bool{}
-	for _, svc := range m.Serves {
+	for si, svc := range m.Serves {
 		name := strings.TrimSpace(svc.Name)
 		if name == "" {
-			return fmt.Errorf("serves.name required")
+			c.add("BDP2120", fmt.Sprintf("serves[%d].name", si))
+			continue
 		}
 		if services[name] {
-			return fmt.Errorf("serves: duplicate service name %q", name)
+			c.add("BDP2121", fmt.Sprintf("serves[%d].name", si), name)
 		}
 		services[name] = true
 		endpoints := map[string]bool{}
-		for _, ep := range svc.Endpoints {
+		for ei, ep := range svc.Endpoints {
+			epPath := fmt.Sprintf("serves[%d].endpoints[%d]", si, ei)
 			epName := strings.TrimSpace(ep.Name)
 			if epName == "" {
-				return fmt.Errorf("serves %s: endpoint name required", name)
+				c.add("BDP2122", epPath+".name", name)
+				continue
 			}
 			if endpoints[epName] {
-				return fmt.Errorf("serves %s: duplicate endpoint name %q", name, epName)
+				c.add("BDP2123", epPath+".name", name, epName)
 			}
 			endpoints[epName] = true
+			label := "serves " + name + "." + epName
 			if _, err := bus.ParseSubject(string(ep.Subject)); err != nil {
-				return fmt.Errorf("serves %s.%s: %w", name, epName, err)
-			}
-			if err := refuseReservedTokens("serves "+name+"."+epName, bus.Pattern(ep.Subject)); err != nil {
-				return err
-			}
-			inOwn := false
-			for _, prefix := range prefixes {
-				if strings.HasPrefix(string(ep.Subject), prefix) {
-					inOwn = true
-					break
+				c.add("BDP2111", epPath+".subject", label, err.Error())
+			} else if !refuseReservedTokens(c, epPath+".subject", label, bus.Pattern(ep.Subject)) {
+				inOwn := false
+				for _, prefix := range prefixes {
+					if strings.HasPrefix(string(ep.Subject), prefix) {
+						inOwn = true
+						break
+					}
 				}
-			}
-			if !inOwn {
-				return fmt.Errorf("serves %s.%s: subject %q is outside this plugin's own namespace (%s or %s)",
-					name, epName, string(ep.Subject), prefixes[0], prefixes[1])
+				if !inOwn {
+					c.add("BDP2124", epPath+".subject", name, epName, string(ep.Subject), prefixes[0], prefixes[1])
+				}
 			}
 			if strings.TrimSpace(ep.Point) == "" {
 				continue
 			}
-			if err := validatePointName("serves "+name+"."+epName, m.Publisher, ep.Point); err != nil {
-				return err
-			}
+			validatePointName(c, epPath+".point", label, m.Publisher, ep.Point)
 		}
 	}
-	return nil
 }
 
 // validatePointName resolves one extension point name a manifest registers
@@ -302,25 +301,26 @@ func validateServes(m Manifest) error {
 // enumerable, so a name that is not among them is not one — "host.auth.method"
 // is a command, not a seam. A well formed name in the publisher's own namespace
 // is allowed through, since a peer plugin's point cannot be enumerated here.
-func validatePointName(label string, publisher *Publisher, name string) error {
+func validatePointName(c *collector, path, label string, publisher *Publisher, name string) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return fmt.Errorf("%s: extension point required", label)
+		c.add("BDP2051", path, label)
+		return
 	}
 	if IsKnownPoint(name) {
-		return nil
+		return
 	}
 	if suggestion, ok := SuggestPoint(name); ok {
-		return fmt.Errorf("%s: unknown extension point %q — did you mean %q?", label, name, string(suggestion))
+		c.add("BDP2052", path, label, name, string(suggestion))
+		return
 	}
 	if err := ValidateExtendsName(publisher, name); err != nil {
-		return fmt.Errorf("%s: %w", label, err)
+		c.add("BDP2053", path, label, err.Error())
+		return
 	}
 	if strings.HasPrefix(name, HostPointNamespace) {
-		return fmt.Errorf("%s: %q is not a host extension point; the host's points are %s",
-			label, name, strings.Join(knownPointNames(), ", "))
+		c.add("BDP2054", path, label, name, strings.Join(knownPointNames(), ", "))
 	}
-	return nil
 }
 
 func knownPointNames() []string {
@@ -337,112 +337,117 @@ func knownPointNames() []string {
 // create. A stream without both limits is refused: an unbounded stream is how a
 // gateway fills a disk quietly, and the first symptom is the whole host out of
 // space rather than one plugin failing.
-func validateAssets(m Manifest) error {
+func validateAssets(c *collector, m Manifest) {
 	streams := map[string]bool{}
-	for _, s := range m.Streams {
+	for i, s := range m.Streams {
+		path := fmt.Sprintf("streams[%d]", i)
 		name := strings.TrimSpace(s.Name)
 		if name == "" {
-			return fmt.Errorf("streams.name required")
+			c.add("BDP2130", path+".name")
+			continue
 		}
 		if streams[name] {
-			return fmt.Errorf("streams: duplicate stream name %q", name)
+			c.add("BDP2131", path+".name", name)
 		}
 		streams[name] = true
 		if s.MaxBytes <= 0 {
-			return fmt.Errorf("streams %s: maxBytes is required and must be positive", name)
+			c.add("BDP2132", path+".maxBytes", name)
 		}
 		if s.MaxAgeSeconds <= 0 {
-			return fmt.Errorf("streams %s: maxAgeSeconds is required and must be positive", name)
+			c.add("BDP2133", path+".maxAgeSeconds", name)
 		}
 		if s.MaxMsgs < 0 {
-			return fmt.Errorf("streams %s: maxMsgs must be >= 0", name)
+			c.add("BDP2134", path+".maxMsgs", name)
 		}
-		for _, subject := range s.Subjects {
+		for j, subject := range s.Subjects {
+			sp := fmt.Sprintf("%s.subjects[%d]", path, j)
 			if _, err := bus.ParsePattern(string(subject)); err != nil {
-				return fmt.Errorf("streams %s: %w", name, err)
+				c.add("BDP2111", sp, "streams "+name, err.Error())
+				continue
 			}
-			if err := refuseReservedTokens("streams "+name, subject); err != nil {
-				return err
-			}
+			refuseReservedTokens(c, sp, "streams "+name, subject)
 		}
 	}
 	kv := map[string]bool{}
-	for _, b := range m.KV {
+	for i, b := range m.KV {
+		path := fmt.Sprintf("kv[%d]", i)
 		name := strings.TrimSpace(b.Name)
 		if name == "" {
-			return fmt.Errorf("kv.name required")
+			c.add("BDP2135", path+".name")
+			continue
 		}
 		if kv[name] {
-			return fmt.Errorf("kv: duplicate bucket name %q", name)
+			c.add("BDP2136", path+".name", name)
 		}
 		kv[name] = true
 		if b.MaxBytes < 0 || b.History < 0 {
-			return fmt.Errorf("kv %s: maxBytes and history must be >= 0", name)
+			c.add("BDP2137", path, name)
 		}
 	}
 	objects := map[string]bool{}
-	for _, b := range m.Objects {
+	for i, b := range m.Objects {
+		path := fmt.Sprintf("objects[%d]", i)
 		name := strings.TrimSpace(b.Name)
 		if name == "" {
-			return fmt.Errorf("objects.name required")
+			c.add("BDP2138", path+".name")
+			continue
 		}
 		if objects[name] {
-			return fmt.Errorf("objects: duplicate bucket name %q", name)
+			c.add("BDP2139", path+".name", name)
 		}
 		objects[name] = true
 		if b.MaxBytes < 0 {
-			return fmt.Errorf("objects %s: maxBytes must be >= 0", name)
+			c.add("BDP2140", path+".maxBytes", name)
 		}
 	}
-	return nil
 }
 
-func validateNeeds(m Manifest) error {
+func validateNeeds(c *collector, m Manifest) {
 	vocabulary := bus.CapabilityNames()
 	seen := map[string]bool{}
-	for _, need := range m.Needs {
+	for i, need := range m.Needs {
+		path := fmt.Sprintf("needs[%d]", i)
 		need = strings.TrimSpace(need)
 		if need == "" {
-			return fmt.Errorf("needs: empty capability")
+			c.add("BDP2150", path)
+			continue
 		}
 		if seen[need] {
-			return fmt.Errorf("needs: duplicate capability %q", need)
+			c.add("BDP2151", path, need)
 		}
 		seen[need] = true
 		if !slices.Contains(vocabulary, need) {
-			return fmt.Errorf("needs: unknown capability %q (known: %s)", need, strings.Join(vocabulary, " "))
+			c.add("BDP2152", path, need, strings.Join(vocabulary, " "))
 		}
 	}
-	return nil
 }
 
 // validateProtocol keeps v1's exact-name rules for the fields that are still
 // exact names. Feature and hook identifiers are not subjects and never were.
-func validateProtocol(p *ProtocolRequirements) error {
+func validateProtocol(c *collector, p *ProtocolRequirements) {
 	if p == nil {
-		return nil
+		return
 	}
 	if p.Major != 0 && p.Major != ProtocolMajor {
-		return fmt.Errorf("protocol.major %d is not this manifest schema (%d)", p.Major, ProtocolMajor)
+		c.add("BDP2100", "protocol.major", p.Major, ProtocolMajor)
 	}
 	if p.Major == 0 && len(p.Required) != 0 {
-		return fmt.Errorf("protocol.required needs an explicit major version")
+		c.add("BDP2101", "protocol.required")
 	}
-	if err := validateExactNames("protocol.required", p.Required); err != nil {
-		return err
+	if msg, ok := exactNames("protocol.required", p.Required); !ok {
+		c.add("BDP2102", "protocol.required", msg)
 	}
 	if p.Major == 0 && len(p.Hooks) != 0 {
-		return fmt.Errorf("protocol.hooks needs an explicit major version")
+		c.add("BDP2103", "protocol.hooks")
 	}
-	if err := validateExactNames("protocol.hooks", p.Hooks); err != nil {
-		return err
+	if msg, ok := exactNames("protocol.hooks", p.Hooks); !ok {
+		c.add("BDP2104", "protocol.hooks", msg)
 	}
-	for _, hook := range p.Hooks {
+	for i, hook := range p.Hooks {
 		if !slices.Contains(lifecycleHookVocabulary, hook) {
-			return fmt.Errorf("protocol.hooks: unknown lifecycle hook %q", hook)
+			c.add("BDP2105", fmt.Sprintf("protocol.hooks[%d]", i), hook)
 		}
 	}
-	return nil
 }
 
 // lifecycleHookVocabulary is the closed set of hooks a manifest may advertise.
@@ -450,31 +455,34 @@ func validateProtocol(p *ProtocolRequirements) error {
 // hook, so a plugin cannot declare an exit veto.
 var lifecycleHookVocabulary = []string{"activation.check", "ready", "health"}
 
-func validateUI(m Manifest) error {
+func validateUI(c *collector, m Manifest) {
 	seen := map[string]bool{}
-	for _, item := range m.UI {
-		if err := validateIDSegment("ui.id", item.ID); err != nil {
-			return err
+	for i, item := range m.UI {
+		path := fmt.Sprintf("ui[%d]", i)
+		if msg, ok := idSegment("ui.id", item.ID); !ok {
+			c.add("BDP2160", path+".id", msg)
+			continue
 		}
 		if seen[item.ID] {
-			return fmt.Errorf("duplicate ui.id %q", item.ID)
+			c.add("BDP2161", path+".id", item.ID)
 		}
 		seen[item.ID] = true
 		// A vocabulary addition without its eligibility policy is not valid.
 		if _, ok := ContributionRoleFor(item.Slot); !ok {
-			return fmt.Errorf("unknown ui slot %q", item.Slot)
+			c.add("BDP2162", path+".slot", item.Slot)
+			continue
 		}
 		switch item.Slot {
 		case SlotCommand:
 			if item.Command == "" || item.PanelID != "" {
-				return fmt.Errorf("ui command requires only command")
-			}
-			if err := validateExactNames("ui.command", []string{item.Command}); err != nil {
-				return err
+				c.add("BDP2163", path+".command")
+			} else if msg, ok := exactNames("ui.command", []string{item.Command}); !ok {
+				c.add("BDP2164", path+".command", msg)
 			}
 		default:
 			if item.PanelID == "" || item.Command != "" {
-				return fmt.Errorf("ui slot %q requires only panelId", item.Slot)
+				c.add("BDP2165", path+".panelId", item.Slot)
+				break
 			}
 			owned := false
 			for _, panel := range m.Panels {
@@ -484,47 +492,44 @@ func validateUI(m Manifest) error {
 				}
 			}
 			if !owned {
-				return fmt.Errorf("ui panelId %q is not owned by this manifest", item.PanelID)
+				c.add("BDP2166", path+".panelId", item.PanelID)
 			}
 		}
-		if err := validateBindings(item.ID, item.Bindings); err != nil {
-			return err
-		}
+		validateBindings(c, path, item.ID, item.Bindings)
 	}
-	return nil
 }
 
 // validateBindings checks the shape only. Whether the plugin may subscribe to
 // the event it names is the host's question, asked at registration, and no
 // manifest can answer it for itself.
-func validateBindings(contributionID string, bindings []UIBinding) error {
+func validateBindings(c *collector, itemPath, contributionID string, bindings []UIBinding) {
 	seen := map[string]bool{}
-	for _, bind := range bindings {
+	for i, bind := range bindings {
+		path := fmt.Sprintf("%s.bindings[%d]", itemPath, i)
 		switch bind.Kind {
 		case BindCount, BindBadge, BindLiveness, BindToggle:
 		default:
-			return fmt.Errorf("ui %q: unknown binding kind %q", contributionID, bind.Kind)
+			c.add("BDP2167", path+".kind", contributionID, bind.Kind)
+			continue
 		}
 		if seen[bind.Kind] {
-			return fmt.Errorf("ui %q: duplicate binding kind %q", contributionID, bind.Kind)
+			c.add("BDP2168", path+".kind", contributionID, bind.Kind)
 		}
 		seen[bind.Kind] = true
-		if err := validateExactNames("ui.bindings.event", []string{bind.Event}); err != nil {
-			return err
+		if msg, ok := exactNames("ui.bindings.event", []string{bind.Event}); !ok {
+			c.add("BDP2169", path+".event", msg)
 		}
 		// A field selects one value out of the payload, so it is one JSON key,
 		// not a path. A path would be a query language nobody asked for, and the
 		// host would have to evaluate it against a payload a plugin controls.
 		if bind.Field != "" {
-			if err := validateIDSegment("ui.bindings.field", bind.Field); err != nil {
-				return err
-			}
-			if strings.ContainsAny(bind.Field, ".[]") {
-				return fmt.Errorf("ui %q: binding field %q must be one JSON key, not a path", contributionID, bind.Field)
+			if msg, ok := idSegment("ui.bindings.field", bind.Field); !ok {
+				c.add("BDP2170", path+".field", msg)
+			} else if strings.ContainsAny(bind.Field, ".[]") {
+				c.add("BDP2171", path+".field", contributionID, bind.Field)
 			}
 		}
 	}
-	return nil
 }
 
 // validatePublicRoutes holds the one rule that makes the field safe to trust:
@@ -532,29 +537,30 @@ func validateBindings(contributionID string, bindings []UIBinding) error {
 //
 // Without it, a manifest could name another plugin's route, or a host route, as
 // public and open a hole in a surface it does not own.
-func validatePublicRoutes(m Manifest) error {
+func validatePublicRoutes(c *collector, m Manifest) {
 	if len(m.PublicRoutes) == 0 {
-		return nil
+		return
 	}
 	declared := make(map[string]bool, len(m.Routes))
 	for _, route := range m.Routes {
 		declared[strings.TrimSpace(route)] = true
 	}
 	seen := map[string]bool{}
-	for _, route := range m.PublicRoutes {
+	for i, route := range m.PublicRoutes {
+		path := fmt.Sprintf("publicRoutes[%d]", i)
 		route = strings.TrimSpace(route)
 		if route == "" {
-			return fmt.Errorf("publicRoutes entry is empty")
+			c.add("BDP2070", path)
+			continue
 		}
 		if seen[route] {
-			return fmt.Errorf("duplicate publicRoutes entry %q", route)
+			c.add("BDP2071", path, route)
 		}
 		seen[route] = true
 		if !declared[route] {
-			return fmt.Errorf("publicRoutes %q is not one of this manifest's routes", route)
+			c.add("BDP2072", path, route)
 		}
 	}
-	return nil
 }
 
 // ValidateDocumentPath checks a shell document pattern. Patterns contain literal
@@ -678,151 +684,164 @@ func DocumentPathsOverlap(a, b string) (bool, error) {
 	return true, nil
 }
 
-func validateDocumentPaths(m Manifest) error {
+func validateDocumentPaths(c *collector, m Manifest) {
 	var claimed []string
 	panelIDs := map[string]int{}
 	for _, panel := range m.Panels {
 		panelIDs[panel.ID]++
 	}
-	for _, panel := range m.Panels {
+	for i, panel := range m.Panels {
 		if len(panel.DocumentPaths) == 0 {
 			continue
 		}
+		path := fmt.Sprintf("panels[%d]", i)
 		if m.Protocol == nil || m.Protocol.Major == 0 || !slices.Contains(m.Protocol.Required, FeatureDocumentPaths) {
-			return fmt.Errorf("document paths require explicit protocol negotiation for %s", FeatureDocumentPaths)
+			c.add("BDP2060", path+".documentPaths", FeatureDocumentPaths)
+			// Without the negotiated feature nothing below is reachable at
+			// runtime; one finding per manifest says it.
+			return
 		}
-		if err := validateIDSegment("panel.id", panel.ID); err != nil {
-			return err
+		if msg, ok := idSegment("panel.id", panel.ID); !ok {
+			c.add("BDP2061", path+".id", msg)
+			continue
 		}
 		if panel.ID != strings.TrimSpace(panel.ID) || panelIDs[panel.ID] != 1 || strings.TrimSpace(panel.URL) == "" {
-			return fmt.Errorf("document paths require a unique panel id and document URL")
+			c.add("BDP2062", path)
+			continue
 		}
-		for _, pattern := range panel.DocumentPaths {
+		for j, pattern := range panel.DocumentPaths {
+			pp := fmt.Sprintf("%s.documentPaths[%d]", path, j)
 			if err := ValidateDocumentPath(pattern); err != nil {
-				return err
+				c.add("BDP2063", pp, pattern)
+				continue
 			}
 			for _, previous := range claimed {
 				if overlap, _ := DocumentPathsOverlap(previous, pattern); overlap {
-					return fmt.Errorf("overlapping document paths %q and %q", previous, pattern)
+					c.add("BDP2064", pp, previous, pattern)
 				}
 			}
 			claimed = append(claimed, pattern)
 		}
 	}
-	return nil
 }
 
 // validateConfig checks the declared sections: ids present and unique, and every
 // field well formed with a key unique within its section.
-func validateConfig(c *Config) error {
-	if c == nil {
-		return nil
+func validateConfig(c *collector, cfg *Config) {
+	if cfg == nil {
+		return
 	}
 	sections := map[string]bool{}
-	for _, s := range c.Sections {
+	for i, s := range cfg.Sections {
+		path := fmt.Sprintf("config.sections[%d]", i)
 		id := strings.TrimSpace(s.ID)
 		if id == "" || sections[id] {
-			return fmt.Errorf("config.sections: id %q is empty or repeated", s.ID)
+			c.add("BDP2080", path+".id", s.ID)
+			continue
 		}
 		sections[id] = true
 		keys := map[string]bool{}
-		for _, f := range s.Fields {
-			if err := validateConfigField(f); err != nil {
-				return fmt.Errorf("config.sections %s: %w", id, err)
-			}
+		for j, f := range s.Fields {
+			fp := fmt.Sprintf("%s.fields[%d]", path, j)
+			validateConfigField(c, fp, id, f)
 			if keys[f.Key] {
-				return fmt.Errorf("config.sections %s: field key %q repeated", id, f.Key)
+				c.add("BDP2081", fp+".key", id, f.Key)
 			}
 			keys[f.Key] = true
 		}
 	}
-	return nil
 }
 
-func validateConfigField(f ConfigField) error {
+func validateConfigField(c *collector, path, section string, f ConfigField) {
 	if strings.TrimSpace(f.Key) == "" {
-		return fmt.Errorf("config field key required")
+		c.add("BDP2082", path+".key", section)
+		return
 	}
 	kinds := []string{ConfigKindBool, ConfigKindInt, ConfigKindString, ConfigKindStringList, ConfigKindEnum, ConfigKindSecret, ConfigKindProvider}
 	if !slices.Contains(kinds, f.Kind) {
-		return fmt.Errorf("config field %s: unknown kind %q", f.Key, f.Kind)
+		c.add("BDP2083", path+".kind", section, f.Key, f.Kind)
+		return
 	}
 	if f.Kind == ConfigKindProvider {
 		parts := strings.Split(f.Point, ".")
 		if len(parts) < 2 || (strings.HasPrefix(f.Point, HostPointNamespace) && len(parts) < 3) {
-			return fmt.Errorf("config field %s: provider needs an exact extension point", f.Key)
-		}
-		for _, part := range parts {
-			if part == "" || strings.Trim(part, "abcdefghijklmnopqrstuvwxyz0123456789-") != "" {
-				return fmt.Errorf("config field %s: invalid provider point %q", f.Key, f.Point)
+			c.add("BDP2084", path+".point", section, f.Key)
+		} else {
+			for _, part := range parts {
+				if part == "" || strings.Trim(part, "abcdefghijklmnopqrstuvwxyz0123456789-") != "" {
+					c.add("BDP2085", path+".point", section, f.Key, f.Point)
+					break
+				}
 			}
 		}
-		if err := validateExactNames("config provider requires", f.Requires); err != nil {
-			return err
+		if msg, ok := exactNames("config provider requires", f.Requires); !ok {
+			c.add("BDP2086", path+".requires", section, msg)
 		}
 		if f.Default != "" {
-			if err := validateExactNames("config provider default", []string{f.Default}); err != nil {
-				return err
+			if msg, ok := exactNames("config provider default", []string{f.Default}); !ok {
+				c.add("BDP2086", path+".default", section, msg)
 			}
 		}
 	} else if f.Point != "" || len(f.Requires) != 0 {
-		return fmt.Errorf("config field %s: point/requires apply only to provider", f.Key)
+		c.add("BDP2087", path, section, f.Key)
 	}
 	if (f.Min != nil || f.Max != nil) && f.Kind != ConfigKindInt {
-		return fmt.Errorf("config field %s: min/max apply only to int", f.Key)
+		c.add("BDP2088", path, section, f.Key)
 	}
 	if f.Min != nil && f.Max != nil && *f.Min > *f.Max {
-		return fmt.Errorf("config field %s: min %d exceeds max %d", f.Key, *f.Min, *f.Max)
+		c.add("BDP2089", path, section, f.Key, *f.Min, *f.Max)
 	}
 	if (len(f.Choices) > 0) != (f.Kind == ConfigKindEnum) || slices.Contains(f.Choices, "") {
-		return fmt.Errorf("config field %s: an enum needs non-empty choices, and only an enum has them", f.Key)
+		c.add("BDP2090", path+".choices", section, f.Key)
 	}
 	if f.Default == "" {
-		return nil
+		return
 	}
 	switch f.Kind {
 	case ConfigKindBool:
 		if _, err := strconv.ParseBool(f.Default); err != nil {
-			return fmt.Errorf("config field %s: default %q is not a bool", f.Key, f.Default)
+			c.add("BDP2091", path+".default", section, f.Key, fmt.Sprintf("default %q is not a bool", f.Default))
 		}
 	case ConfigKindInt:
 		n, err := strconv.Atoi(f.Default)
 		if err != nil || (f.Min != nil && n < *f.Min) || (f.Max != nil && n > *f.Max) {
-			return fmt.Errorf("config field %s: default %q is not an int within bounds", f.Key, f.Default)
+			c.add("BDP2091", path+".default", section, f.Key, fmt.Sprintf("default %q is not an int within bounds", f.Default))
 		}
 	case ConfigKindEnum:
 		if !slices.Contains(f.Choices, f.Default) {
-			return fmt.Errorf("config field %s: default %q is not one of its choices", f.Key, f.Default)
+			c.add("BDP2091", path+".default", section, f.Key, fmt.Sprintf("default %q is not one of its choices", f.Default))
 		}
 	case ConfigKindStringList, ConfigKindSecret:
-		return fmt.Errorf("config field %s: a %s field takes no default", f.Key, f.Kind)
+		c.add("BDP2091", path+".default", section, f.Key, fmt.Sprintf("a %s field takes no default", f.Kind))
 	}
-	return nil
 }
 
-func validateIDSegment(what, s string) error {
+// idSegment reports whether s is one non-empty path segment. The message is the
+// pre-diagnostic wording, returned rather than formatted so each caller keeps
+// its own code.
+func idSegment(what, s string) (string, bool) {
 	if s = strings.TrimSpace(s); s == "" {
-		return fmt.Errorf("%s required", what)
+		return what + " required", false
 	}
 	if strings.ContainsAny(s, `/\ `) || strings.Contains(s, "..") {
-		return fmt.Errorf("%s must be a single path segment", what)
+		return what + " must be a single path segment", false
 	}
-	return nil
+	return "", true
 }
 
-// validateExactNames guards the fields that are still exact names rather than
+// exactNames guards the fields that are still exact names rather than
 // subjects: negotiated protocol features, lifecycle hooks, the command a UI
 // contribution invokes and the event a binding follows.
-func validateExactNames(label string, values []string) error {
+func exactNames(label string, values []string) (string, bool) {
 	seen := map[string]bool{}
 	for _, value := range values {
 		if value == "" || strings.TrimSpace(value) != value || strings.ContainsAny(value, "*?\r\n\t ") {
-			return fmt.Errorf("%s must contain nonempty exact names", label)
+			return label + " must contain nonempty exact names", false
 		}
 		if seen[value] {
-			return fmt.Errorf("%s contains duplicate %q", label, value)
+			return fmt.Sprintf("%s contains duplicate %q", label, value), false
 		}
 		seen[value] = true
 	}
-	return nil
+	return "", true
 }

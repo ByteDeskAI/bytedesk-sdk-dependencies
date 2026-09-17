@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2160",
+      "severity": "error",
+      "path": "ui[0].id"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP1005",
+      "severity": "error",
+      "path": "publisher"
+    }
+  ]
+}

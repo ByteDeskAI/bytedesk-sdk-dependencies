@@ -404,7 +404,9 @@ func TestValidateSubjectPatternsOwnNamespaceAgainstIneligible(t *testing.T) {
 		{"widgets", ""},
 		{"tmux-manager", ""},
 	} {
-		err := validateSubjectPatterns(Manifest{ID: tc.id})
+		var c collector
+		validateSubjectPatterns(&c, Manifest{ID: tc.id})
+		err := FirstError(c.list)
 		switch {
 		case tc.wantErr == "" && err != nil:
 			t.Errorf("id %q: want valid, got %v", tc.id, err)

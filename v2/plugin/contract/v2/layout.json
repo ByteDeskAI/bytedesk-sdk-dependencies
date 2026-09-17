@@ -1,0 +1,64 @@
+{
+  "contract": 2,
+  "manifest": "plugin.json",
+  "modes": {
+    "source": "an in-tree or checked-out plugin directory: the manifest is verified and every symlink must resolve inside the root; nothing else in the tree is judged, so a source tree with node_modules or tests passes and a spawn plugin whose binary is not yet staged passes",
+    "package": "an extracted package: every file must belong to a class the kind allows, forbidden globs refuse, ignored files warn, limits apply, required files must exist and the spawn binary must be present and executable"
+  },
+  "kindInference": {
+    "note": "TEMPORARY. The manifest has no kind field until TM-395; the verifier infers it in this order and stops at the first match.",
+    "order": [
+      "family is declared -> family",
+      "spawn is true -> process",
+      "ui/index.html exists -> ui",
+      "otherwise -> builtin"
+    ]
+  },
+  "kinds": {
+    "builtin": {"classes": ["manifest", "docs", "images"]},
+    "process": {"classes": ["manifest", "docs", "images", "binary", "ui", "resources", "data", "scripts", "services", "notices"]},
+    "ui": {"classes": ["manifest", "docs", "images", "ui", "resources", "data", "scripts", "services", "notices"], "required": ["ui/index.html"]},
+    "family": {"classes": ["manifest", "docs", "images"]}
+  },
+  "classes": {
+    "manifest": {"globs": ["plugin.json"]},
+    "docs": {"globs": ["README.md", "CHANGELOG.md", "LICENSE", "docs/**"]},
+    "images": {"globs": ["images/**"], "extensions": [".svg", ".png", ".webp"]},
+    "binary": {"globs": ["${binary}", "bin/**"], "note": "${binary} is the basename of the manifest's binary and is present only when spawn is true"},
+    "ui": {"globs": ["ui/**"]},
+    "resources": {"globs": ["resources/**", "downloads/**"]},
+    "data": {"globs": ["data/**"]},
+    "scripts": {"globs": ["scripts/**"], "consent": true},
+    "services": {"globs": ["services/**"], "consent": true},
+    "notices": {"globs": ["notices/**"]}
+  },
+  "forbidden": {
+    "match": "any depth: a glob is tried against the path and against every suffix of its segments",
+    "globs": [
+      "testdata/**", "*_test.go", "node_modules/**", ".git/**", ".env*",
+      "*.pem", "*.key", "*.p12", "*.pfx", "id_rsa*", "*.sock",
+      "state/**", "*.db", "*.sqlite*", "**/*.log", ".DS_Store"
+    ]
+  },
+  "ignored": {
+    "match": "package root only",
+    "globs": ["SHA256SUMS", ".unsigned", "bundle.json"],
+    "note": "superseded by the attestation and the extraction digest; warned as BDP5002"
+  },
+  "limits": {
+    "maxFiles": 5000,
+    "maxBytes": 268435456,
+    "maxImageBytes": 2097152
+  },
+  "refs": {
+    "binary": "the value is a file at the package root, checked when spawn is true: it must exist (BDP4001) and be executable (BDP4002; not judged on Windows)",
+    "route": "the value is a path the plugin serves; recorded for tooling, not checked against the tree"
+  },
+  "host": {
+    "note": "where a host keeps plugin trees, relative to its home; unified across products by the .bdx lifecycle",
+    "packages": "plugins/packages",
+    "internal": "plugins/internal",
+    "external": "plugins/external",
+    "dev": "plugins/dev"
+  }
+}

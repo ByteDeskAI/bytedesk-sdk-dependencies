@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2103",
+      "severity": "error",
+      "path": "protocol.hooks"
+    }
+  ]
+}

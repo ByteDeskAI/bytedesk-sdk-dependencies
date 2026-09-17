@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2112",
+      "severity": "error",
+      "path": "permissions.subscribe[0]"
+    }
+  ]
+}

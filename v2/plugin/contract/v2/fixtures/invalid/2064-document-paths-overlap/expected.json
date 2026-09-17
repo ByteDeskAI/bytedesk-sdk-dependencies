@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2064",
+      "severity": "error",
+      "path": "panels[0].documentPaths[1]"
+    }
+  ]
+}

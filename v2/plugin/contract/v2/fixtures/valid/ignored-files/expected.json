@@ -1,0 +1,19 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP5002",
+      "severity": "warning",
+      "path": ".unsigned"
+    },
+    {
+      "code": "BDP5002",
+      "severity": "warning",
+      "path": "SHA256SUMS"
+    },
+    {
+      "code": "BDP5002",
+      "severity": "warning",
+      "path": "bundle.json"
+    }
+  ]
+}

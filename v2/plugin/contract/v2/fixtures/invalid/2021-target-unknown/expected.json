@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2021",
+      "severity": "error",
+      "path": "targets[1]"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2020",
+      "severity": "error",
+      "path": "role"
+    }
+  ]
+}

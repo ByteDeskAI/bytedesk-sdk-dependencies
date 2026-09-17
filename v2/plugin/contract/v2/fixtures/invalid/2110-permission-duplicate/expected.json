@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2110",
+      "severity": "error",
+      "path": "permissions.request[1]"
+    }
+  ]
+}
