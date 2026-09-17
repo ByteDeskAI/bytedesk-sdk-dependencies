@@ -160,6 +160,20 @@ func TestValidate(t *testing.T) {
 		{"an unknown lifecycle hook", func(m *Manifest) {
 			m.Protocol.Hooks = []string{"stop"}
 		}, `unknown lifecycle hook "stop"`},
+
+		// A plugin's OWN NAMESPACE is implicit -- OwnNamespace(id) grants
+		// Serves cmd.<id>.>/svc.<id>.> and Publish/Subscribe on event./tick.
+		// <id>.> without a single declared permission. An id that collides
+		// with a permanently ineligible family therefore reaches that family
+		// through no permission a reviewer would ever see in the manifest.
+		// This must be refused by the id itself, not left to whatever grant
+		// compiler the manifest never touches.
+		{"plugin id collides with an ineligible family (Serves cmd.auth.>)", func(m *Manifest) {
+			m.ID = "auth"
+		}, "permanently ineligible"},
+		{"plugin id collides with an ineligible family (cmd.secrets.>)", func(m *Manifest) {
+			m.ID = "secrets"
+		}, "permanently ineligible"},
 	}
 
 	for _, c := range cases {
@@ -364,5 +378,41 @@ func TestValidateDiscoverLiftsOnlyTheVersionRequirement(t *testing.T) {
 				t.Fatalf("error %q does not carry %q", err, c.wantErr)
 			}
 		})
+	}
+}
+
+// TestValidateSubjectPatternsOwnNamespaceAgainstIneligible is the isolated
+// positive control for the id-collision refusal above, exercising
+// validateSubjectPatterns directly rather than through fullManifest() -- that
+// fixture's Serves/Streams subjects are all hand-written against ID
+// "tmux-manager", so mutating just m.ID there also trips unrelated
+// own-namespace-vs-declared-subject checks that have nothing to do with this
+// rule. This isolates exactly the one thing changed: OwnNamespace(id)
+// checked against PermanentlyIneligible() before any declared permission is
+// examined.
+func TestValidateSubjectPatternsOwnNamespaceAgainstIneligible(t *testing.T) {
+	for _, tc := range []struct {
+		id      string
+		wantErr string
+	}{
+		{"auth", "permanently ineligible"},
+		{"session", "permanently ineligible"},
+		{"identity", "permanently ineligible"},
+		{"secrets", "permanently ineligible"},
+		{"cutover", "permanently ineligible"},
+		{"statedir", "permanently ineligible"},
+		{"widgets", ""},
+		{"tmux-manager", ""},
+	} {
+		err := validateSubjectPatterns(Manifest{ID: tc.id})
+		switch {
+		case tc.wantErr == "" && err != nil:
+			t.Errorf("id %q: want valid, got %v", tc.id, err)
+		case tc.wantErr == "":
+		case err == nil:
+			t.Errorf("id %q: want an error containing %q, got none", tc.id, tc.wantErr)
+		case !strings.Contains(err.Error(), tc.wantErr):
+			t.Errorf("id %q: error %q does not carry %q", tc.id, err, tc.wantErr)
+		}
 	}
 }

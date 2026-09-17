@@ -11,6 +11,7 @@ import (
 
 	v1bus "github.com/ByteDeskAI/bytedesk-sdk-dependencies/bus"
 	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/bus"
+	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/bus/memory"
 	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/plugin"
 )
 
@@ -778,5 +779,139 @@ func TestUnboundBaseRefusesEverythingWithoutPanicking(t *testing.T) {
 func TestHostImplementsCloser(t *testing.T) {
 	if _, ok := Host(nil).(Closer); !ok {
 		t.Fatal("the returned Host does not implement Closer")
+	}
+}
+
+// ---------------------------------------------------- end-to-end over the real substrate
+
+// TestV1PluginCannotReachAPermanentlyIneligibleSubjectEndToEnd is the gap the
+// review of this PR named as the highest-priority fix: every other test in
+// this file uses fakeBus, which returns whatever error a test configures --
+// proving the adapter forwards a refusal correctly, never that a refusal
+// actually HAPPENS for a v1 plugin sitting on the real, policy-configured
+// substrate.
+//
+// This binds a v1 Host over bus/memory.Store, wired with
+// plugin.PermanentlyIneligible() exactly as a production host must, and drives
+// Publish, Subscribe and Request at cmd.auth.> -- one of the ineligible
+// families -- through the v1 adapter. All three must refuse. A grant that DOES
+// cover the family (Publish/Subscribe/Request: [">"], the widest a manifest
+// could ever declare) is attached to the identity specifically so the
+// assertion is about deny winning over an allow, not merely about nothing
+// being granted.
+func TestV1PluginCannotReachAPermanentlyIneligibleSubjectEndToEnd(t *testing.T) {
+	store := memory.NewStore(memory.WithDeny(plugin.PermanentlyIneligible()...))
+	t.Cleanup(store.Close)
+
+	wideOpen := bus.Grants{
+		Publish:   []bus.Pattern{">"},
+		Subscribe: []bus.Pattern{">"},
+		Request:   []bus.Pattern{">"},
+	}
+	realBus := store.Connect(bus.Identity{
+		PluginID: "attacker", Generation: "g1", Role: bus.RolePlugin, Grants: wideOpen,
+	})
+
+	f := &fixture{}
+	if err := plugin.Bind(f, plugin.Binding{
+		Bus:      realBus,
+		Logger:   &recordLogger{},
+		StateDir: t.TempDir(),
+		Identity: bus.Identity{PluginID: "attacker", Generation: "g1", Role: bus.RolePlugin, Grants: wideOpen},
+		Caps:     realBus.Capabilities(),
+	}); err != nil {
+		t.Fatalf("Bind: %v", err)
+	}
+	host := Host(&f.Base)
+	t.Cleanup(func() { _ = host.(Closer).Close(context.Background()) })
+
+	const ineligible = "cmd.auth.mint-session"
+
+	t.Run("Publish", func(t *testing.T) {
+		err := host.Publish(v1bus.Envelope{Type: ineligible, Payload: []byte(`{}`)})
+		if err == nil {
+			t.Fatal("Publish to cmd.auth.mint-session succeeded through v1compat over a Deny-configured store; a wide-open grant should not have reached an ineligible family")
+		}
+	})
+
+	t.Run("Subscribe", func(t *testing.T) {
+		delivered := make(chan struct{}, 1)
+		unsub := host.Subscribe(ineligible, func(v1bus.Envelope) {
+			select {
+			case delivered <- struct{}{}:
+			default:
+			}
+		})
+		defer unsub()
+		// Publish from a SECOND, independently-admitted principal that also
+		// holds the same wide-open grant, so a delivery -- if the subscribe had
+		// wrongly succeeded -- has a real publisher to arrive from.
+		other := store.Connect(bus.Identity{
+			PluginID: "attacker-2", Generation: "g1", Role: bus.RolePlugin, Grants: wideOpen,
+		})
+		_ = other.Publish(context.Background(), bus.Subject(ineligible), []byte(`{}`))
+		select {
+		case <-delivered:
+			t.Fatal("a message was delivered to a subscription on cmd.auth.mint-session; the subscribe should have been refused before anything could arrive")
+		case <-time.After(100 * time.Millisecond):
+		}
+	})
+
+	t.Run("Request", func(t *testing.T) {
+		// bus.Bus.Request fails fast with FaultNoResponders when nothing is
+		// listening, regardless of deny, which raises a fair question: does
+		// this sub-test distinguish "deny refused the request" from "nobody
+		// was ever going to answer this anyway"? Tried and answered by
+		// attempting to mount a real responder first, from a third,
+		// separately-admitted principal holding the identical wide-open
+		// grant: Subscribe on cmd.auth.mint-session is ITSELF refused with
+		// the same "reaches a permanently ineligible subject family" fault.
+		// So the ambiguity cannot arise in a correctly deny-wired store --
+		// nothing can ever legitimately serve inside a denied family, because
+		// Serve/Subscribe is denied there exactly as Publish/Request are.
+		// There is no scenario where "no responder" and "deny" diverge for an
+		// ineligible subject, which is the stronger property, not a gap this
+		// test papers over.
+		responder := store.Connect(bus.Identity{
+			PluginID: "attacker-3", Generation: "g1", Role: bus.RolePlugin, Grants: wideOpen,
+		})
+		if _, err := responder.Subscribe(context.Background(), bus.Pattern(ineligible), func(context.Context, *bus.Msg) {}); err == nil {
+			t.Fatal("a wide-open grant was able to Subscribe/Serve on cmd.auth.mint-session; deny should refuse serving an ineligible family exactly as it refuses reaching one")
+		}
+
+		_, err := host.Request(context.Background(), v1bus.Envelope{Type: ineligible, Payload: []byte(`{}`)})
+		if err == nil {
+			t.Fatal("Request to cmd.auth.mint-session succeeded through v1compat over a Deny-configured store")
+		}
+	})
+}
+
+// TestV1PluginReachesAnOrdinaryGrantedSubjectEndToEnd is the positive control
+// for the test above: without it, an adapter that refused EVERYTHING would
+// pass the deny test too, and the deny test would be proving nothing about
+// deny specifically.
+func TestV1PluginReachesAnOrdinaryGrantedSubjectEndToEnd(t *testing.T) {
+	store := memory.NewStore(memory.WithDeny(plugin.PermanentlyIneligible()...))
+	t.Cleanup(store.Close)
+
+	grants := bus.Grants{
+		Publish:   []bus.Pattern{"event.files.>"},
+		Subscribe: []bus.Pattern{"event.files.>"},
+		Request:   []bus.Pattern{"cmd.files.v1.list"},
+	}
+	realBus := store.Connect(bus.Identity{PluginID: "files", Generation: "g1", Role: bus.RolePlugin, Grants: grants})
+	f := &fixture{}
+	if err := plugin.Bind(f, plugin.Binding{
+		Bus: realBus, Logger: &recordLogger{}, StateDir: t.TempDir(),
+		Identity: bus.Identity{PluginID: "files", Generation: "g1", Role: bus.RolePlugin, Grants: grants},
+		Caps:     realBus.Capabilities(),
+	}); err != nil {
+		t.Fatalf("Bind: %v", err)
+	}
+	host := Host(&f.Base)
+	t.Cleanup(func() { _ = host.(Closer).Close(context.Background()) })
+
+	if err := host.Publish(v1bus.Envelope{Type: "event.files.changed", Payload: []byte(`{}`)}); err != nil {
+		t.Fatalf("an ordinary granted publish was refused: %v", err)
 	}
 }

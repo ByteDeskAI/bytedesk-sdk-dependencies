@@ -122,6 +122,71 @@ func TestCapabilityVocabularyIsExactlyWhatTheSuiteProves(t *testing.T) {
 	t.Logf("vocabulary of %d: %d proved by properties, %d deferred with a reason", len(vocabulary), len(covered), len(deferred))
 }
 
+// TestRunRefusesAnEmptyDenyRatherThanSilentlyProvingNothing pins the guard
+// found missing during review of TM-362: Run's own precondition that
+// Harness.Deny must be non-empty (conformance.go, "PermanentDenyWins has
+// nothing to publish into") had no test anywhere in this module. A substrate
+// integrator who forgets to wire deny would previously get a suite that
+// either panicked confusingly deep inside PermanentDenyWins or, worse, ran
+// every OTHER property to a clean PASS while silently proving nothing about
+// deny at all -- indistinguishable from a substrate that correctly enforces
+// it.
+//
+// Fatal on this session's own `t` cannot be observed in-process (Fatal calls
+// runtime.Goexit, which would fail THIS test rather than let it inspect the
+// outcome), so this follows the same child-process pattern as
+// TestVacuityDetectsBrokenSubstrate: a fresh process runs Run with an empty
+// Deny and must exit non-zero having printed the exact refusal, before it
+// gets anywhere near a property.
+func TestRunRefusesAnEmptyDenyRatherThanSilentlyProvingNothing(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestEmptyDenyChild$", "-test.v", "-test.timeout=20s")
+	cmd.Env = append(os.Environ(), emptyDenyEnv+"=1")
+	out, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("Run with an empty Harness.Deny exited 0; it must refuse before any property runs:\n%s", out)
+	}
+	if ctx.Err() != nil {
+		t.Fatalf("the empty-deny child never finished: %v\n%s", ctx.Err(), out)
+	}
+	if !strings.Contains(string(out), "Harness.Deny is empty") {
+		t.Fatalf("child failed for a different reason than the empty-deny guard:\n%s", out)
+	}
+	// And the guard must fire BEFORE any property subtest starts -- not one
+	// property, however early, may have run and produced a verdict. A
+	// subtest's verdict line names "Parent/Child"; the top-level
+	// "--- FAIL: TestEmptyDenyChild" line above is the guard itself and is
+	// expected, so this checks specifically for a "/" child under it.
+	if verdicts := parseSubtestVerdicts(string(out), "TestEmptyDenyChild/"); len(verdicts) > 0 {
+		t.Fatalf("%d property subtest(s) ran before the empty-Deny guard refused; the guard is meant to gate the whole suite, not race it: %v\n%s", len(verdicts), verdicts, out)
+	}
+}
+
+const emptyDenyEnv = "BUS_CONFORMANCE_EMPTY_DENY_CHILD"
+
+// TestEmptyDenyChild is started by
+// TestRunRefusesAnEmptyDenyRatherThanSilentlyProvingNothing and skips
+// otherwise. Every other Harness field is otherwise-valid so the ONLY thing
+// that can make this fail is the empty Deny.
+func TestEmptyDenyChild(t *testing.T) {
+	if os.Getenv(emptyDenyEnv) != "1" {
+		t.Skip("child process only: run TestRunRefusesAnEmptyDenyRatherThanSilentlyProvingNothing")
+	}
+	Run(t, Harness{
+		New:     func(*testing.T, bus.Identity) bus.Bus { return brokenBus{} },
+		Restart: func(*testing.T) {},
+		Revoke:  func(*testing.T, string) {},
+		Caps: bus.Capabilities{
+			Durable: true, KV: true, Objects: true, Services: true,
+			Schedule: true, Counters: true, Batch: true,
+			MaxPayload: 1024,
+		},
+		Deny:   nil,
+		Budget: 250 * time.Millisecond,
+	})
+}
+
 // TestVacuityChild runs the suite against the broken substrate. It is started
 // by TestVacuityDetectsBrokenSubstrate and skips otherwise.
 func TestVacuityChild(t *testing.T) {

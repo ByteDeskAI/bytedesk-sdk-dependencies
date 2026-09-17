@@ -144,6 +144,21 @@ func validate(m Manifest, requireVersion bool) error {
 func validateSubjectPatterns(m Manifest) error {
 	own := ownNamespacePatterns(strings.TrimSpace(m.ID))
 	denied := PermanentlyIneligible()
+	// own is implicit and never appears in a declared Permissions list, so the
+	// loop below -- which walks Publish/Subscribe/Request -- cannot see it and
+	// cannot catch an id whose OWN NAMESPACE reaches an ineligible family. A
+	// plugin id of "auth" implicitly Serves cmd.auth.>, exactly a permanently
+	// ineligible family, entirely without declaring any permission at all.
+	// Checked here, before the declared-permission loop, so the manifest is
+	// refused by the id that caused it rather than passing validation on the
+	// technicality that nothing was written down.
+	for _, g := range own {
+		for _, d := range denied {
+			if patternsOverlap(d, g) {
+				return fmt.Errorf("plugin id %q implicitly Serves %q, which reaches the permanently ineligible family %q; choose a different id", m.ID, string(g), string(d))
+			}
+		}
+	}
 	for _, list := range []struct {
 		label    string
 		patterns []bus.Pattern
