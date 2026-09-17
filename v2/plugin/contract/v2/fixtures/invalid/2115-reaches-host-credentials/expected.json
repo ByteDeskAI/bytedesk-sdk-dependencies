@@ -1,0 +1,14 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2115",
+      "severity": "error",
+      "path": "permissions.request[0]"
+    },
+    {
+      "code": "BDP2115",
+      "severity": "error",
+      "path": "permissions.request[1]"
+    }
+  ]
+}
