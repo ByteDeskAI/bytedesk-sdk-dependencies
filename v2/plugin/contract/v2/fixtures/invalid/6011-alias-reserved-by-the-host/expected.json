@@ -1,0 +1,17 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP6011",
+      "path": "aliases[0]",
+      "severity": "error"
+    }
+  ],
+  "options": {
+    "host": "gateway",
+    "hostReservations": [
+      "/setup",
+      "/metrics",
+      "/x/"
+    ]
+  }
+}

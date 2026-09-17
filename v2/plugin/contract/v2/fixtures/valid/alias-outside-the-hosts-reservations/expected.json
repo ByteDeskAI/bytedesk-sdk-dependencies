@@ -1,0 +1,10 @@
+{
+  "diagnostics": [],
+  "options": {
+    "host": "gateway",
+    "hostReservations": [
+      "/setup",
+      "/metrics"
+    ]
+  }
+}

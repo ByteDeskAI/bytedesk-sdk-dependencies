@@ -136,6 +136,7 @@
     "BDP6001": {"severity": "error", "message": "plugin %s does not target %s"},
     "BDP6002": {"severity": "error", "message": "minCoreVersion %s exceeds the host core version %s"},
     "BDP6003": {"severity": "error", "message": "%s %q is not a semantic version"},
-    "BDP6004": {"severity": "error", "message": "version %s is below the minimum the host accepts (%s)"}
+    "BDP6004": {"severity": "error", "message": "version %s is below the minimum the host accepts (%s)"},
+    "BDP6011": {"severity": "error", "message": "alias %q is reserved by the %s host (%s); a host's own routes are not a plugin's to claim"}
   }
 }

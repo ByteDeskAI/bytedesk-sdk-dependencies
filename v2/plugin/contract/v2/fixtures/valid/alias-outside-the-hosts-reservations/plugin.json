@@ -1,6 +1,9 @@
 {
   "aliases": [
-    "/p/capture"
+    "/v1/capture",
+    "/assets/capture",
+    "/static/capture",
+    "/.well-knownish"
   ],
   "contract": 2,
   "id": "fixture",

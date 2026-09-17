@@ -375,3 +375,42 @@ func TestTheContractFloorIsOneFlip(t *testing.T) {
 		t.Fatalf("the corpus proved only one side of the floor: %d refused, %d accepted", refused, accepted)
 	}
 }
+
+// TestAliasReservationsComeFromTheHost pins the layering TM-421 corrected. The
+// same manifest, claiming /setup, is fine for a host that does not serve /setup
+// and refused by one that does — and no static list inside this package decides
+// which. Before TM-421 the SDK carried a guessed list that missed /setup
+// entirely, so this manifest passed everywhere; the first assertion is what
+// that mistake looked like, and the second is the fix.
+func TestAliasReservationsComeFromTheHost(t *testing.T) {
+	dir := materialise(t, filepath.Join(fixturesRoot, "invalid", "6011-alias-reserved-by-the-host"))
+
+	unreserved, err := VerifyDir(dir, Options{Host: plugin.TargetGateway})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !unreserved.OK {
+		t.Fatalf("a host that reserves nothing must accept /setup: %s", describe(unreserved))
+	}
+
+	reserved, err := VerifyDir(dir, Options{Host: plugin.TargetGateway, HostReservations: []string{"/setup"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reserved.Diagnostics) != 1 || reserved.Diagnostics[0].Code != "BDP6011" {
+		t.Fatalf("want exactly BDP6011: %s", describe(reserved))
+	}
+	if !strings.Contains(reserved.Diagnostics[0].Message, plugin.TargetGateway) {
+		t.Errorf("the refusal does not name the host that reserved the route: %q", reserved.Diagnostics[0].Message)
+	}
+
+	// The prefix is a prefix: /setup reserves /setup/advanced too, and nothing
+	// else. A reservation that matched on substring would refuse /setupwizard.
+	for alias, want := range map[string]bool{"/setup/advanced": true, "/setupwizard": false} {
+		raw := []byte(`{"contract":2,"kind":"ui","id":"x","version":"1.0.0","identity":{"displayName":"X","description":"A plugin."},"publisher":{"id":"acme","name":"Acme"},"targets":["gateway"],"aliases":["` + alias + `"]}`)
+		got := Verify(raw, Options{Host: plugin.TargetGateway, HostReservations: []string{"/setup"}})
+		if refused := !got.OK; refused != want {
+			t.Errorf("alias %q refused=%v, want %v: %s", alias, refused, want, describe(got))
+		}
+	}
+}
