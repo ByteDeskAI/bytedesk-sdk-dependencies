@@ -2,6 +2,67 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`v2/`: the substrate-neutral SDK generation** (module
+  `github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2`, released independently of
+  v1, which keeps building beside it).
+  - `v2/bus` — the whole messaging surface as SDK-owned types: `Subject`/`Pattern`
+    with one shared matcher (`ParseSubject`, `ParsePattern`, `Matches`, `Covers`),
+    `Headers`, `Msg`, `Bus`, `Subscription`, `Capabilities`, `Fault`, and
+    `Streams`/`KV`/`Objects`/`Services`/`Scheduler`/`Trace`. `Identity` and
+    `Grants` live here too, so a substrate can tell who is calling without
+    importing the plugin package. `Seq` and `Revision` marshal as decimal
+    strings; `Cursor` is opaque and substrate-minted.
+  - `v2/bus/memory` — the in-memory substrate, shipped as the plugin author's
+    test double so a full test suite runs with no broker.
+  - `v2/bus/conformance` — the 24 properties every substrate must satisfy, with a
+    `requiredForDefault` subset that fails hard rather than skipping. One list,
+    several runners.
+  - `v2/plugin` — `Base`, embedded and accessor-only (`Bus`, `Logger`,
+    `Profiling`, `StateDir`, `Identity`), bound once per generation by `Bind`;
+    manifest v2 with `serves`/`streams`/`kv`/`objects`/`needs`;
+    `validateSubjectPatterns`; `PermanentlyIneligible`; `GrantsDigest`; the typed
+    layer over `bus.Bus`; the extension-point registry.
+  - `v2/plugin/v1compat` — a v1 `plugin.Host` over the v2 bus, so v1 plugins run
+    unchanged and the host converts one at a time rather than on a flag day.
+  - `v2/cmd/contractgen` — v1's `plugin-typescript`, with five operation kinds
+    (`command|event|stream|bucket|service`) instead of two, the operation's
+    ADDRESS inside the schema digest, and two more emitters (`descriptors_gen.go`,
+    `descriptors.js`). The digest algorithm is bumped to `bd.schema-id.v2`
+    because the canonical form changed.
+  - `v2/messaging` and `v2/pack` carried forward; `pack.Result` now reports the
+    manifest's `GrantsDigest`.
+  - Module gates: no `github.com/nats-io/*` import or require anywhere, and a
+    reflect walk over every exported `v2/bus` and `v2/plugin` type. Each gate
+    ships with a companion test that breaks it on purpose.
+
+### Notes for implementers
+
+- **`bd-schema` is stamped with `bus.WithSchema`, not `bus.WithHeaders`.**
+  `StripReserved` strips only the IDENTITY triple — `bd-caller`,
+  `bd-generation`, `bd-subject` — and not the whole `bd-` namespace. Stripping
+  everything also removed the typed layer's schema stamp, so the receive-side
+  check could never fire; a check that cannot fire is worse than no check.
+  Forging `bd-schema` or `bd-corr` buys a caller nothing. Forging identity buys
+  authority, which is why only those three are unforgeable.
+- **A reserved FIRST token opens a substrate-owned namespace.** `$SYS.ACCOUNT.x`
+  and `_INBOX.<id>.<random>` parse, because the permanently-ineligible set has
+  to be able to name the family it denies and the broker spells those subjects
+  in its own case convention. Structure still applies inside them; a manifest
+  naming one is still refused.
+- **The digest covers the address.** Two operations with identical payloads on
+  different subjects now get different hashes, so a descriptor cannot be
+  re-pointed without the schema check noticing.
+- `contractgen` has no `plugin` target yet. v1's carried the host-exposed
+  command contracts (terminal presentation, desktop applications, tmux); those
+  become bus services in wave 2, and porting them now only to re-address them
+  then would be work done twice.
+
+### Changed
+
+- Nothing in v1. v1 continues on `0.4.x` for fixes; `v2/plugin/v1compat` imports it.
+
 ## [0.4.0-rc.17] - 2026-09-16
 
 ### Added
