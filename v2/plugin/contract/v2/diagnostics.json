@@ -16,6 +16,7 @@
     "BDP1004": {"severity": "error", "message": "wrong type: got %s, want %s"},
     "BDP1005": {"severity": "error", "message": "schema: %s"},
     "BDP1006": {"severity": "warning", "message": "unknown property %q is ignored by hosts"},
+    "BDP1007": {"severity": "error", "message": "manifest contract %d is below the %d this gate accepts; migrate it with `bytedesk plugin migrate`"},
 
     "BDP2001": {"severity": "error", "message": "plugin id required"},
     "BDP2002": {"severity": "error", "message": "plugin id must be a single path segment"},

@@ -320,3 +320,58 @@ func describe(r Report) string {
 }
 
 func itoa(i int) string { return strconv.Itoa(i) }
+
+// TestTheContractFloorIsOneFlip: raising Options.MinAccepted to ContractV2 is
+// the single change that closes the v1 dual-loading window, so it is tested
+// over the whole corpus rather than one fixture. Every valid manifest that
+// does not declare contract 2 — which is most of them, because the field is
+// optional — is then refused on BDP1007 ALONE, and the one that declares it is
+// untouched. A floor of 0 changes nothing, which is what keeps the window open.
+func TestTheContractFloorIsOneFlip(t *testing.T) {
+	entries, err := os.ReadDir(filepath.Join(fixturesRoot, "valid"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	refused, accepted := 0, 0
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		src := filepath.Join(fixturesRoot, "valid", entry.Name())
+		exp := readExpected(t, src)
+		if slices.Contains(exp.SkipOn, runtime.GOOS) {
+			continue
+		}
+		raw, err := os.ReadFile(filepath.Join(src, "plugin.json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var declared struct {
+			Contract int `json:"contract"`
+		}
+		if err := json.Unmarshal(raw, &declared); err != nil {
+			t.Fatal(err)
+		}
+		opts := exp.Options
+		opts.MinAccepted = ContractV2
+		report, err := VerifyDir(materialise(t, src), opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+		switch {
+		case declared.Contract >= ContractV2:
+			accepted++
+			if !report.OK {
+				t.Errorf("%s declares contract %d and must still pass: %s", entry.Name(), declared.Contract, describe(report))
+			}
+		default:
+			refused++
+			if len(report.Diagnostics) != 1 || report.Diagnostics[0].Code != "BDP1007" || report.Diagnostics[0].Path != "contract" {
+				t.Errorf("%s is a v1 document and must be refused on BDP1007 alone: %s", entry.Name(), describe(report))
+			}
+		}
+	}
+	if refused == 0 || accepted == 0 {
+		t.Fatalf("the corpus proved only one side of the floor: %d refused, %d accepted", refused, accepted)
+	}
+}

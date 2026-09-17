@@ -57,14 +57,49 @@ type Options struct {
 	CoreVersion string `json:"coreVersion,omitempty"`
 	// MinPluginVersion is the lowest manifest version the host accepts for
 	// this plugin, for a host that must not load an older release than the
-	// one it already has (BDP6004). Empty accepts any.
-	//
-	// The name MinAccepted is RESERVED for the contract-major floor TM-396
-	// adds as an int: a manifest whose contract field is below it is refused
-	// with BDP1007, and raising that floor from 1 to 2 in one SDK release is
-	// what closes the v1 dual-loading window. It is a different rule from
-	// this per-plugin version floor and must not share its name.
+	// one it already has (BDP6004). Empty accepts any. It is a per-plugin
+	// release floor and must not be confused with MinAccepted below, which
+	// is a floor over the contract itself.
 	MinPluginVersion string `json:"minPluginVersion,omitempty"`
+	// MinAccepted is the lowest manifest contract this gate accepts. A
+	// manifest below it is refused with BDP1007 and nothing else about it is
+	// judged, because a document written against an older contract read with
+	// this one's meanings is the failure the whole 1xxx band exists to
+	// prevent. 0 accepts any contract, which is what keeps the dual-loading
+	// window open: the host migrates a v1 document in memory and verifies the
+	// result, while the Store publish gate sets 2 from day one. Raising this
+	// to ContractV2 at the host is the single flip that closes the window.
+	MinAccepted int `json:"minAccepted,omitempty"`
+}
+
+// The contract numbers a manifest may carry. A manifest with no contract field
+// is a v1 document — v1 predates the field, so its absence IS the version.
+const (
+	ContractV1 = 1
+	ContractV2 = plugin.ProtocolMajor
+)
+
+// documentContract reads the contract a raw document declares, defaulting an
+// absent, zero or unreadable field to v1. It works off the document rather
+// than the decoded Manifest because the floor is judged BEFORE the schema: a
+// v1 document carries v1 fields, and running the v2 schema over it first would
+// bury the one finding that matters under a page of them.
+func documentContract(doc any) int {
+	obj, ok := doc.(map[string]any)
+	if !ok {
+		return ContractV1
+	}
+	switch n := obj["contract"].(type) {
+	case json.Number:
+		if i, err := n.Int64(); err == nil && i > 0 {
+			return int(i)
+		}
+	case float64:
+		if n > 0 {
+			return int(n)
+		}
+	}
+	return ContractV1
 }
 
 // Report is the wire shape. `bytedesk plugin verify --json` prints it and a
@@ -164,6 +199,15 @@ func verifyManifest(r *Report, raw []byte, opts Options) (plugin.Manifest, any, 
 	if err != nil {
 		r.add("BDP1001", "", err.Error())
 		return plugin.Manifest{}, nil, false
+	}
+	// The contract floor comes before every other judgement: the rest of this
+	// verifier reads the document with THIS contract's meanings, and applying
+	// them to an older document is exactly the misreading the band prevents.
+	// So a document below the floor is refused on that alone, with no second
+	// page of findings that only describe the version mismatch.
+	if opts.MinAccepted > 0 && documentContract(doc) < opts.MinAccepted {
+		r.add("BDP1007", "contract", documentContract(doc), opts.MinAccepted)
+		return plugin.Manifest{}, doc, false
 	}
 	schemaDiagnostics(r, doc)
 	var m plugin.Manifest
