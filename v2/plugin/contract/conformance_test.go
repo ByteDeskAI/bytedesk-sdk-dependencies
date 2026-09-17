@@ -414,3 +414,46 @@ func TestAliasReservationsComeFromTheHost(t *testing.T) {
 		}
 	}
 }
+
+// TestNoDiagnosticRendersAFormattingArtifact catches a whole class of message
+// bug at once: a template whose verbs and arguments disagree renders Go's
+// "%!" marker straight into the text an author reads. BDP2002 shipped exactly
+// that — its template takes no verb and the call site passed a message that
+// duplicated the template — and nothing failed, because the corpus compares
+// (code, severity, path) and only checks message text where a fixture pins it.
+//
+// Found by the Toolbox binding (TM-404), which could not reproduce the
+// artifact and had to report it rather than imitate it.
+func TestNoDiagnosticRendersAFormattingArtifact(t *testing.T) {
+	checked := 0
+	for _, group := range []string{"valid", "invalid"} {
+		entries, err := os.ReadDir(filepath.Join(fixturesRoot, group))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+			src := filepath.Join(fixturesRoot, group, entry.Name())
+			exp := readExpected(t, src)
+			if slices.Contains(exp.SkipOn, runtime.GOOS) {
+				continue
+			}
+			report, err := VerifyDir(materialise(t, src), exp.Options)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, d := range report.Diagnostics {
+				checked++
+				if strings.Contains(d.Message, "%!") {
+					t.Errorf("%s/%s: %s renders a formatting artifact: %q",
+						group, entry.Name(), d.Code, d.Message)
+				}
+			}
+		}
+	}
+	if checked == 0 {
+		t.Fatal("no diagnostic messages were examined; this test would pass vacuously")
+	}
+}
