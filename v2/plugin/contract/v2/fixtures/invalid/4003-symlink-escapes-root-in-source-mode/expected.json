@@ -1,0 +1,12 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP4003",
+      "severity": "error",
+      "path": "docs"
+    }
+  ],
+  "options": {
+    "mode": "source"
+  }
+}

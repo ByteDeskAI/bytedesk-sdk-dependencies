@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP4003",
+      "severity": "error",
+      "path": "escape"
+    }
+  ]
+}

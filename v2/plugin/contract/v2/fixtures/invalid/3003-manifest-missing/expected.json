@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP3003",
+      "severity": "error",
+      "path": "plugin.json"
+    }
+  ]
+}

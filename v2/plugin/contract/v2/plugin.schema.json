@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bytedesk.ai/schemas/plugin/v2/plugin.schema.json",
+  "title": "ByteDesk plugin manifest v2",
+  "description": "The structural half of the plugin contract: property names, types and presence, mirroring plugin.Manifest in bytedesk-sdk-dependencies/v2 field for field. Semantic rules (BDP2xxx) live in the verifier, not here. The schema is OPEN — unknown properties are ignored by hosts and warned (BDP1006) by the CLI — so a newer manifest loads on an older host. x-bd-ref marks a string as a reference: \"binary\" is a file at the package root the verifier checks on disk; \"route\" is a path the plugin serves, recorded for tooling and not checked here.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id"],
+  "properties": {
+    "id": {"type": "string"},
+    "version": {"type": "string"},
+    "nav": {"type": "array", "items": {"$ref": "#/$defs/NavItem"}},
+    "panels": {"type": "array", "items": {"$ref": "#/$defs/PanelSpec"}},
+    "launchers": {"type": "array", "items": {"$ref": "#/$defs/LauncherSpec"}},
+    "scopes": {"type": "array", "items": {"type": "string"}},
+    "routes": {"type": "array", "items": {"type": "string", "x-bd-ref": "route"}},
+    "publicRoutes": {"type": "array", "items": {"type": "string", "x-bd-ref": "route"}},
+    "spawn": {"type": "boolean"},
+    "binary": {"type": "string", "x-bd-ref": "binary"},
+    "socket": {"type": "string"},
+    "minCoreVersion": {"type": "string"},
+    "targets": {"type": "array", "items": {"type": "string"}},
+    "role": {"type": "string"},
+    "requires": {"type": "array", "items": {"$ref": "#/$defs/Requirement"}},
+    "pricing": {"$ref": "#/$defs/Pricing"},
+    "publisher": {
+      "oneOf": [
+        {"type": "string", "deprecated": true, "description": "Legacy form: the publisher id alone. Warned as BDP5001."},
+        {"$ref": "#/$defs/Publisher"}
+      ]
+    },
+    "family": {"$ref": "#/$defs/Family"},
+    "when": {"$ref": "#/$defs/When"},
+    "extends": {"type": "array", "items": {"$ref": "#/$defs/ExtensionPoint"}},
+    "implements": {"type": "array", "items": {"$ref": "#/$defs/Provider"}},
+    "critical": {"type": "boolean"},
+    "protocol": {"$ref": "#/$defs/ProtocolRequirements"},
+    "permissions": {"$ref": "#/$defs/Permissions"},
+    "ui": {"type": "array", "items": {"$ref": "#/$defs/UIContribution"}},
+    "serves": {"type": "array", "items": {"$ref": "#/$defs/ServiceDecl"}},
+    "streams": {"type": "array", "items": {"$ref": "#/$defs/StreamDecl"}},
+    "kv": {"type": "array", "items": {"$ref": "#/$defs/KVDecl"}},
+    "objects": {"type": "array", "items": {"$ref": "#/$defs/ObjectDecl"}},
+    "needs": {"type": "array", "items": {"type": "string"}},
+    "config": {"$ref": "#/$defs/Config"}
+  },
+  "$defs": {
+    "NavItem": {
+      "type": "object", "additionalProperties": true,
+      "required": ["id", "label", "href"],
+      "properties": {
+        "id": {"type": "string"},
+        "label": {"type": "string"},
+        "icon": {"type": "string"},
+        "href": {"type": "string", "x-bd-ref": "route"},
+        "order": {"type": "integer"}
+      }
+    },
+    "PanelSpec": {
+      "type": "object", "additionalProperties": true,
+      "required": ["id", "kind", "url"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"type": "string"},
+        "url": {"type": "string", "x-bd-ref": "route"},
+        "module": {"type": "string", "x-bd-ref": "route"},
+        "documentPaths": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "LauncherSpec": {
+      "type": "object", "additionalProperties": true,
+      "required": ["kind", "title"],
+      "properties": {
+        "kind": {"type": "string"},
+        "title": {"type": "string"},
+        "description": {"type": "string"},
+        "group": {"type": "string"}
+      }
+    },
+    "Requirement": {
+      "type": "object", "additionalProperties": true,
+      "required": ["id"],
+      "properties": {
+        "id": {"type": "string"},
+        "version": {"type": "string"}
+      }
+    },
+    "Pricing": {
+      "type": "object", "additionalProperties": true,
+      "required": ["model"],
+      "properties": {
+        "model": {"type": "string"},
+        "sku": {"type": "string"},
+        "trialDays": {"type": "integer"}
+      }
+    },
+    "Publisher": {
+      "type": "object", "additionalProperties": true,
+      "required": ["id", "name"],
+      "properties": {
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "url": {"type": "string"}
+      }
+    },
+    "Family": {
+      "type": "object", "additionalProperties": true,
+      "properties": {
+        "selector": {"type": "string"},
+        "members": {"type": "array", "items": {"$ref": "#/$defs/FamilyMember"}}
+      }
+    },
+    "FamilyMember": {
+      "type": "object", "additionalProperties": true,
+      "required": ["id"],
+      "properties": {
+        "id": {"type": "string"},
+        "when": {"$ref": "#/$defs/When"}
+      }
+    },
+    "When": {
+      "type": "object", "additionalProperties": true,
+      "properties": {
+        "os": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "ExtensionPoint": {
+      "type": "object", "additionalProperties": true,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string"},
+        "interface": {"type": "string"},
+        "description": {"type": "string"}
+      }
+    },
+    "Provider": {
+      "type": "object", "additionalProperties": true,
+      "required": ["point", "id"],
+      "properties": {
+        "point": {"type": "string"},
+        "id": {"type": "string"},
+        "priority": {"type": "integer"}
+      }
+    },
+    "ProtocolRequirements": {
+      "type": "object", "additionalProperties": true,
+      "required": ["major"],
+      "properties": {
+        "major": {"type": "integer", "minimum": 0},
+        "required": {"type": "array", "items": {"type": "string"}},
+        "hooks": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "Permissions": {
+      "type": "object", "additionalProperties": true,
+      "properties": {
+        "publish": {"type": "array", "items": {"type": "string"}},
+        "subscribe": {"type": "array", "items": {"type": "string"}},
+        "request": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "UIContribution": {
+      "type": "object", "additionalProperties": true,
+      "required": ["id", "slot"],
+      "properties": {
+        "id": {"type": "string"},
+        "slot": {"type": "string"},
+        "panelId": {"type": "string"},
+        "command": {"type": "string"},
+        "label": {"type": "string"},
+        "icon": {"type": "string"},
+        "priority": {"type": "integer"},
+        "bindings": {"type": "array", "items": {"$ref": "#/$defs/UIBinding"}}
+      }
+    },
+    "UIBinding": {
+      "type": "object", "additionalProperties": true,
+      "required": ["kind", "event"],
+      "properties": {
+        "kind": {"type": "string"},
+        "event": {"type": "string"},
+        "field": {"type": "string"}
+      }
+    },
+    "ServiceDecl": {
+      "type": "object", "additionalProperties": true,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "queueGroup": {"type": "string"},
+        "endpoints": {"type": "array", "items": {"$ref": "#/$defs/EndpointDecl"}}
+      }
+    },
+    "EndpointDecl": {
+      "type": "object", "additionalProperties": true,
+      "required": ["name", "subject"],
+      "properties": {
+        "name": {"type": "string"},
+        "subject": {"type": "string"},
+        "point": {"type": "string"}
+      }
+    },
+    "StreamDecl": {
+      "type": "object", "additionalProperties": true,
+      "required": ["name", "maxBytes", "maxAgeSeconds"],
+      "properties": {
+        "name": {"type": "string"},
+        "subjects": {"type": "array", "items": {"type": "string"}},
+        "maxBytes": {"type": "integer"},
+        "maxAgeSeconds": {"type": "integer"},
+        "maxMsgs": {"type": "integer"}
+      }
+    },
+    "KVDecl": {
+      "type": "object", "additionalProperties": true,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string"},
+        "maxBytes": {"type": "integer"},
+        "ttlSeconds": {"type": "integer"},
+        "history": {"type": "integer"}
+      }
+    },
+    "ObjectDecl": {
+      "type": "object", "additionalProperties": true,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string"},
+        "maxBytes": {"type": "integer"},
+        "ttlSeconds": {"type": "integer"}
+      }
+    },
+    "Config": {
+      "type": "object", "additionalProperties": true,
+      "properties": {
+        "sections": {"type": "array", "items": {"$ref": "#/$defs/ConfigSection"}}
+      }
+    },
+    "ConfigSection": {
+      "type": "object", "additionalProperties": true,
+      "required": ["id"],
+      "properties": {
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "description": {"type": "string"},
+        "fields": {"type": "array", "items": {"$ref": "#/$defs/ConfigField"}}
+      }
+    },
+    "ConfigField": {
+      "type": "object", "additionalProperties": true,
+      "required": ["key", "kind"],
+      "properties": {
+        "key": {"type": "string"},
+        "kind": {"type": "string"},
+        "label": {"type": "string"},
+        "description": {"type": "string"},
+        "default": {"type": "string"},
+        "min": {"type": "integer"},
+        "max": {"type": "integer"},
+        "nullable": {"type": "boolean"},
+        "choices": {"type": "array", "items": {"type": "string"}},
+        "point": {"type": "string"},
+        "requires": {"type": "array", "items": {"type": "string"}},
+        "readOnly": {"type": "boolean"},
+        "requiresRestart": {"type": "boolean"}
+      }
+    }
+  }
+}

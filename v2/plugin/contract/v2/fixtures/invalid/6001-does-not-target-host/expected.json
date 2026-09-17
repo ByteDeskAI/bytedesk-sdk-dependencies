@@ -1,0 +1,12 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP6001",
+      "severity": "error",
+      "path": "targets"
+    }
+  ],
+  "options": {
+    "host": "vault"
+  }
+}

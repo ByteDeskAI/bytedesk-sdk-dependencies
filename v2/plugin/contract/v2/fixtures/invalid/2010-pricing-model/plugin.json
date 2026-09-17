@@ -1,0 +1,162 @@
+{
+  "config": {
+    "sections": [
+      {
+        "fields": [
+          {
+            "default": "5000",
+            "key": "prefs.scrollback",
+            "kind": "int"
+          }
+        ],
+        "id": "tmux-manager",
+        "title": "Terminals"
+      }
+    ]
+  },
+  "id": "tmux-manager",
+  "implements": [
+    {
+      "id": "tmux-manager",
+      "point": "host.settings.section",
+      "priority": 10
+    }
+  ],
+  "kv": [
+    {
+      "history": 3,
+      "maxBytes": 65536,
+      "name": "tmux-prefs",
+      "ttlSeconds": 3600
+    }
+  ],
+  "launchers": [
+    {
+      "kind": "tmux",
+      "title": "New session"
+    }
+  ],
+  "nav": [
+    {
+      "href": "/p/tmux-manager/",
+      "id": "tmux",
+      "label": "Terminals"
+    }
+  ],
+  "needs": [
+    "durable",
+    "kv"
+  ],
+  "objects": [
+    {
+      "maxBytes": 16777216,
+      "name": "tmux-captures",
+      "ttlSeconds": 604800
+    }
+  ],
+  "panels": [
+    {
+      "id": "sessions",
+      "kind": "iframe",
+      "url": "/p/tmux-manager/panel"
+    }
+  ],
+  "permissions": {
+    "publish": [
+      "event.terminal.*"
+    ],
+    "request": [
+      "cmd.files.v1.list"
+    ],
+    "subscribe": [
+      "event.session.\u003e"
+    ]
+  },
+  "pricing": {
+    "model": "gift"
+  },
+  "protocol": {
+    "hooks": [
+      "ready",
+      "health"
+    ],
+    "major": 2,
+    "required": [
+      "ui.document-paths.v1"
+    ]
+  },
+  "publicRoutes": [
+    "/p/tmux-manager/login"
+  ],
+  "publisher": {
+    "id": "bytedesk",
+    "name": "ByteDesk"
+  },
+  "requires": [
+    {
+      "id": "terminal-core",
+      "version": "^2.0.0"
+    }
+  ],
+  "role": "extension",
+  "routes": [
+    "/p/tmux-manager/",
+    "/p/tmux-manager/login"
+  ],
+  "scopes": [
+    "terminal"
+  ],
+  "serves": [
+    {
+      "endpoints": [
+        {
+          "name": "list",
+          "point": "host.settings.section",
+          "subject": "svc.tmux-manager.list"
+        },
+        {
+          "name": "attach",
+          "subject": "cmd.tmux-manager.v1.attach"
+        }
+      ],
+      "name": "tmux",
+      "queueGroup": "tmux",
+      "version": "1.0.0"
+    }
+  ],
+  "streams": [
+    {
+      "maxAgeSeconds": 86400,
+      "maxBytes": 1048576,
+      "maxMsgs": 1000,
+      "name": "tmux-events",
+      "subjects": [
+        "event.tmux-manager.\u003e"
+      ]
+    }
+  ],
+  "targets": [
+    "gateway"
+  ],
+  "ui": [
+    {
+      "bindings": [
+        {
+          "event": "event.tmux-manager.sessions",
+          "field": "count",
+          "kind": "count"
+        }
+      ],
+      "id": "sessions",
+      "panelId": "sessions",
+      "slot": "default-view"
+    }
+  ],
+  "version": "2.0.0",
+  "when": {
+    "os": [
+      "linux",
+      "darwin"
+    ]
+  }
+}

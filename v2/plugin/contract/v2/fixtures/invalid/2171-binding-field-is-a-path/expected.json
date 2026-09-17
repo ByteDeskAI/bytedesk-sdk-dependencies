@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2171",
+      "severity": "error",
+      "path": "ui[0].bindings[0].field"
+    }
+  ]
+}

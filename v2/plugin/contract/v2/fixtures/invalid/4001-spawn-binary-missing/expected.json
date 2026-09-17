@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP4001",
+      "severity": "error",
+      "path": "binary"
+    }
+  ]
+}

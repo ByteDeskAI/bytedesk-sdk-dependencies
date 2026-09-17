@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP1004",
+      "severity": "error",
+      "path": "spawn"
+    }
+  ]
+}

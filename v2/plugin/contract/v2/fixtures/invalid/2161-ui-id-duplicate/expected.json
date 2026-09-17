@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2161",
+      "severity": "error",
+      "path": "ui[1].id"
+    }
+  ]
+}

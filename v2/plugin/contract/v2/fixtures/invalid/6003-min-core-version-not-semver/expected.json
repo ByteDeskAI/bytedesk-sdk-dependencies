@@ -1,0 +1,12 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP6003",
+      "severity": "error",
+      "path": "minCoreVersion"
+    }
+  ],
+  "options": {
+    "coreVersion": "1.0.0"
+  }
+}

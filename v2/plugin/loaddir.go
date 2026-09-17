@@ -28,6 +28,12 @@ func LoadDir(dir string) (Manifest, error) {
 // it with TargetGateway or TargetVault: a plugin that does not target this
 // host is refused here rather than failing later with a confusing error from
 // something it tried to use.
+//
+// The full gate is contract.VerifyDir(dir, contract.Options{Host: host}),
+// which adds the schema, layout and reference bands and returns every
+// finding; this function cannot wrap it because contract imports plugin.
+// The two agree on what they both check: the spawn-binary rule here is
+// BDP4001 there, and the host refusal is BDP6001 with the same wording.
 func LoadDirForHost(dir, host string) (Manifest, error) {
 	m, err := LoadDir(dir)
 	if err != nil {

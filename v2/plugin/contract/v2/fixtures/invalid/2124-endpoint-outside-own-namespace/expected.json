@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2124",
+      "severity": "error",
+      "path": "serves[0].endpoints[0].subject"
+    }
+  ]
+}

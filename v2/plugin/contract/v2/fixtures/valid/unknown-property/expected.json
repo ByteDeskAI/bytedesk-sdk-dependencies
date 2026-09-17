@@ -1,0 +1,14 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP1006",
+      "severity": "warning",
+      "path": "futureField"
+    },
+    {
+      "code": "BDP1006",
+      "severity": "warning",
+      "path": "nav[0].badge"
+    }
+  ]
+}

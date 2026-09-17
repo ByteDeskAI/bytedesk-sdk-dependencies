@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2101",
+      "severity": "error",
+      "path": "protocol.required"
+    }
+  ]
+}

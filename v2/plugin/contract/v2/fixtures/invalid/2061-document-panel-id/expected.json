@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2061",
+      "severity": "error",
+      "path": "panels[0].id"
+    }
+  ]
+}

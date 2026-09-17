@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2050",
+      "severity": "error",
+      "path": "extends[0].name"
+    }
+  ]
+}

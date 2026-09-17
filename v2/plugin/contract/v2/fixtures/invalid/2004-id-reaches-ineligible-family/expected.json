@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2004",
+      "severity": "error",
+      "path": "id"
+    }
+  ]
+}

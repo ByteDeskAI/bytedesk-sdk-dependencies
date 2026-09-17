@@ -1,0 +1,12 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2040",
+      "severity": "error",
+      "path": "binary"
+    }
+  ],
+  "options": {
+    "mode": "source"
+  }
+}

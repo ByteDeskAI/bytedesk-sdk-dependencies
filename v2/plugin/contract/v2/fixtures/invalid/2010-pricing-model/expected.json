@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2010",
+      "severity": "error",
+      "path": "pricing.model"
+    }
+  ]
+}

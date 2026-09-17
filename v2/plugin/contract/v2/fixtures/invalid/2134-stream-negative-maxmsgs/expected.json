@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2134",
+      "severity": "error",
+      "path": "streams[0].maxMsgs"
+    }
+  ]
+}

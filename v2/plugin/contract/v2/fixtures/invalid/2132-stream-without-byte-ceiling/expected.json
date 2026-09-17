@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2132",
+      "severity": "error",
+      "path": "streams[0].maxBytes"
+    }
+  ]
+}

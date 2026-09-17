@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2031",
+      "severity": "error",
+      "path": "requires[0].id"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2100",
+      "severity": "error",
+      "path": "protocol.major"
+    }
+  ]
+}

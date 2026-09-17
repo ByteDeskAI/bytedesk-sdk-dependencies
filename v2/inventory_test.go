@@ -141,6 +141,9 @@ func publicTypes() []reflect.Type {
 		reflect.TypeOf(plugin.UIBinding{}),
 		reflect.TypeOf(plugin.ContributionEligibility("")),
 		reflect.TypeOf(plugin.ContributionRole{}),
+		// plugin — diagnostics (the contract package's wire shape)
+		reflect.TypeOf(plugin.Diagnostic{}),
+		reflect.TypeOf(plugin.Severity("")),
 		// plugin — the typed layer. Generics are registered at a concrete
 		// instantiation; typeKey drops the type arguments, because the
 		// contract is the generic type and not any one instantiation.
