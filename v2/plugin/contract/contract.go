@@ -61,6 +61,13 @@ type Options struct {
 	// release floor and must not be confused with MinAccepted below, which
 	// is a floor over the contract itself.
 	MinPluginVersion string `json:"minPluginVersion,omitempty"`
+	// HostReservations are the route prefixes THIS host serves itself, which
+	// a plugin's alias may not claim (BDP6011). A host passes its own routing
+	// table; the SDK holds no copy, because a list of one host's routes kept
+	// in a shared library is a guess that goes stale silently — see
+	// plugin.ReservedAliasPrefixes for the two prefixes that really are
+	// universal. Empty means no host-specific reservation is applied.
+	HostReservations []string `json:"hostReservations,omitempty"`
 	// MinAccepted is the lowest manifest contract this gate accepts. A
 	// manifest below it is refused with BDP1007 and nothing else about it is
 	// judged, because a document written against an older contract read with
@@ -258,6 +265,19 @@ func hostGate(r *Report, m plugin.Manifest, opts Options) {
 			r.add("BDP6002", "minCoreVersion", m.MinCoreVersion, core)
 		}
 	}
+	for i, raw := range m.Aliases {
+		alias := "/" + strings.Trim(strings.TrimSpace(raw), "/")
+		for _, reservation := range opts.HostReservations {
+			reservation = "/" + strings.Trim(strings.TrimSpace(reservation), "/")
+			if reservation == "/" {
+				continue
+			}
+			if alias == reservation || strings.HasPrefix(alias, reservation+"/") {
+				r.add("BDP6011", fmt.Sprintf("aliases[%d]", i), raw, hostName(opts.Host), reservation)
+				break
+			}
+		}
+	}
 	if floor := strings.TrimSpace(opts.MinPluginVersion); floor != "" && strings.TrimSpace(m.Version) != "" {
 		least, err := semver.NewVersion(floor)
 		if err != nil {
@@ -268,4 +288,14 @@ func hostGate(r *Report, m plugin.Manifest, opts Options) {
 			r.add("BDP6004", "version", m.Version, floor)
 		}
 	}
+}
+
+// hostName is what a host-gate diagnostic calls the host when the caller
+// supplied reservations but no name. "this host" is honest; inventing one
+// would put a product name in a refusal that nothing checked.
+func hostName(host string) string {
+	if h := strings.TrimSpace(host); h != "" {
+		return h
+	}
+	return "this host"
 }

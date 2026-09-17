@@ -177,16 +177,27 @@ const (
 // Kinds returns the closed set, in the order a human reads it.
 func Kinds() []string { return []string{KindBuiltin, KindProcess, KindUI, KindFamily} }
 
-// ReservedAliasPrefixes are the first path segments a manifest may not claim in
-// Aliases, because the host already serves them. An alias is a pretty path the
-// host's reverse proxy maps onto a plugin's static mount, so an alias that
-// shadowed /api would take the host's own surface away from it — and the host
-// would have no way to tell that from a plugin that simply started first.
+// ReservedAliasPrefixes are the path prefixes NO host may let a plugin claim,
+// whatever else that host serves. An alias is a pretty path a host's reverse
+// proxy maps onto a plugin's static mount, so an alias over one of these would
+// shadow something the contract itself defines.
 //
-// Collisions between two plugins' aliases are the HOST's refusal (BDP6010),
-// not this one: only the host can see both manifests at once.
+// The list is deliberately tiny, and the earlier, longer one was a mistake
+// worth naming: it guessed at one host's routes and imposed them on every
+// host. It forbade /v1, which is the shape Vault serves its own plugin API on,
+// while missing /setup, /metrics and /x/, which the gateway really does serve —
+// wrong in both directions at once. A host's routes are the host's to declare,
+// through contract.Options.HostReservations, and the refusal for those is a
+// host-gate diagnostic that names the host (BDP6011).
+//
+//   - /p is where every ByteDesk host addresses plugins (/p/<id>/...), so an
+//     alias there is either a collision or a no-op.
+//   - /.well-known is reserved by RFC 8615 rather than by any host.
+//
+// Collisions between two plugins' aliases are also the HOST's refusal
+// (BDP6010): only the host can see two manifests at once.
 func ReservedAliasPrefixes() []string {
-	return []string{"/api", "/p", "/v1", "/healthz", "/readyz", "/assets", "/static", "/.well-known"}
+	return []string{"/p", "/.well-known"}
 }
 
 // ManifestIdentity is the human half of a manifest: what a store row, a settings list
