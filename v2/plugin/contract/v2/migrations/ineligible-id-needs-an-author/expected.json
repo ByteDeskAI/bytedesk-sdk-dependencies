@@ -1,5 +1,5 @@
 {
-  "note": "BDP2004. The id implicitly Serves cmd.cutover.>, a permanently ineligible family. The fix is a different plugin id, which renames its routes, its storage and every subject it serves, so migrate reports it instead of choosing one.",
+  "note": "BDP2004. The id implicitly Serves cmd.host.>, which reaches every permanently ineligible cmd.host.<family>.> at once. The fix is a different plugin id, which renames its routes, its storage and every subject it serves, so migrate reports it instead of choosing one.",
   "notes": [
     {
       "code": "BDP2004",

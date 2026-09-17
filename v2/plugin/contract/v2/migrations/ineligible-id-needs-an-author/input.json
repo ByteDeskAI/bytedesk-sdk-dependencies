@@ -1,5 +1,5 @@
 {
   "kind": "builtin",
-  "displayName": "Cutover",
-  "description": "Stages and restarts the gateway safely."
+  "displayName": "Host Tools",
+  "description": "A fixture whose id reaches a host-internal family."
 }
