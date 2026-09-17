@@ -1,0 +1,4 @@
+{
+  "note": "BDP2100 and BDP2054. host.files.s3 loses the prefix because files.s3 is the v2 name; host.settings.section keeps it because that IS the v2 name, which is why the rule asks the point registry instead of stripping the prefix.",
+  "notes": []
+}

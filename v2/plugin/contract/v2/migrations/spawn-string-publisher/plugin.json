@@ -1,0 +1,11 @@
+{
+  "id": "tmux-manager",
+  "version": "1",
+  "spawn": true,
+  "binary": "tmux-manager",
+  "homepage": "https://example.com/tmux-manager",
+  "publisher": "acme",
+  "targets": [
+    "gateway"
+  ]
+}

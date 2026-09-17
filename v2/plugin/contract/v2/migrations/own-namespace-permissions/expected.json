@@ -1,0 +1,4 @@
+{
+  "note": "BDP2114. Own-namespace entries are dropped from every verb, a verb left empty is dropped, and a permission outside the namespace survives.",
+  "notes": []
+}

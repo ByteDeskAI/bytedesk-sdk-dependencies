@@ -1,0 +1,19 @@
+{
+  "contract": 2,
+  "kind": "builtin",
+  "id": "settings",
+  "version": "1.0.0",
+  "identity": {
+    "displayName": "Settings",
+    "description": "Serves the operator settings surface."
+  },
+  "publisher": {
+    "id": "bytedesk",
+    "name": "ByteDesk"
+  },
+  "permissions": {
+    "subscribe": [
+      "event.terminal.started"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "contract": 2,
+  "kind": "builtin",
+  "id": "cutover",
+  "version": "1.0.0",
+  "identity": {
+    "displayName": "Cutover",
+    "description": "Stages and restarts the gateway safely."
+  },
+  "publisher": {
+    "id": "bytedesk",
+    "name": "ByteDesk"
+  }
+}

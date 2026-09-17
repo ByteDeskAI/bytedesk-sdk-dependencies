@@ -1,0 +1,17 @@
+{
+  "id": "settings",
+  "version": "1",
+  "publisher": {
+    "id": "bytedesk",
+    "name": "ByteDesk"
+  },
+  "permissions": {
+    "publish": [
+      "event.settings.changed"
+    ],
+    "subscribe": [
+      "event.terminal.started",
+      "tick.settings.sweep"
+    ]
+  }
+}

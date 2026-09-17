@@ -1,0 +1,4 @@
+{
+  "note": "No spawn, no binary, no family, no ui/index.html and no plugin.go: migrate refuses rather than guessing, because a wrong kind changes which files the package may ship.",
+  "error": "cannot tell what kind of package this is"
+}

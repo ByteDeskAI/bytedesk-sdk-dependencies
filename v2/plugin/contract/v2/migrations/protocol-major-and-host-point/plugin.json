@@ -1,0 +1,25 @@
+{
+  "id": "s3-backend",
+  "version": "0.1.0",
+  "binary": "s3-backend",
+  "publisher": {
+    "id": "bytedesk",
+    "name": "ByteDesk"
+  },
+  "implements": [
+    {
+      "point": "host.files.s3",
+      "id": "s3-backend"
+    },
+    {
+      "point": "host.settings.section",
+      "id": "s3-backend"
+    }
+  ],
+  "protocol": {
+    "major": 1,
+    "required": [
+      "host.scoped.v1"
+    ]
+  }
+}

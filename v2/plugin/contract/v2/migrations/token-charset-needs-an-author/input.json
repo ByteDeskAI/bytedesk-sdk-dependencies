@@ -1,0 +1,5 @@
+{
+  "kind": "builtin",
+  "displayName": "Terminal Runtime",
+  "description": "Runs terminal sessions for the shell."
+}

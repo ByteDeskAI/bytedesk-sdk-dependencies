@@ -1,0 +1,39 @@
+{
+  "contract": 2,
+  "kind": "family",
+  "id": "mission-control",
+  "version": "1.4.0",
+  "identity": {
+    "displayName": "Dashboard",
+    "description": "Projects the fleet's health onto one page, so an operator sees a failing host before a user reports it.",
+    "readme": "README.md",
+    "changelog": "CHANGELOG.md",
+    "images": {
+      "icon": "images/icon.svg"
+    }
+  },
+  "nav": [
+    {
+      "id": "mission-control",
+      "label": "Dashboard",
+      "href": "/dashboard"
+    }
+  ],
+  "family": {
+    "selector": "runtime.os",
+    "members": [
+      {
+        "id": "mission-control-linux",
+        "when": {
+          "os": [
+            "linux"
+          ]
+        }
+      }
+    ]
+  },
+  "publisher": {
+    "id": "bytedesk",
+    "name": "ByteDesk"
+  }
+}

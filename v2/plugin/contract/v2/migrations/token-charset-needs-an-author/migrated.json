@@ -1,0 +1,19 @@
+{
+  "contract": 2,
+  "kind": "builtin",
+  "id": "terminal-runtime",
+  "version": "1.0.0",
+  "identity": {
+    "displayName": "Terminal Runtime",
+    "description": "Runs terminal sessions for the shell."
+  },
+  "publisher": {
+    "id": "bytedesk",
+    "name": "ByteDesk"
+  },
+  "permissions": {
+    "publish": [
+      "event.terminal.openLink"
+    ]
+  }
+}

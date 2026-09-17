@@ -1,0 +1,4 @@
+{
+  "displayName": "Tmux Manager",
+  "description": "Runs and lists tmux sessions for the operator."
+}

@@ -1,0 +1,31 @@
+{
+  "contract": 2,
+  "kind": "process",
+  "id": "s3-backend",
+  "version": "0.1.0",
+  "identity": {
+    "displayName": "S3 Backend",
+    "description": "Stores files in an S3-compatible bucket."
+  },
+  "binary": "s3-backend",
+  "publisher": {
+    "id": "bytedesk",
+    "name": "ByteDesk"
+  },
+  "implements": [
+    {
+      "point": "files.s3",
+      "id": "s3-backend"
+    },
+    {
+      "point": "host.settings.section",
+      "id": "s3-backend"
+    }
+  ],
+  "protocol": {
+    "major": 2,
+    "required": [
+      "host.scoped.v1"
+    ]
+  }
+}
