@@ -15,6 +15,27 @@ import "github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/bus"
 // the addressing grammar or it only covers the names somebody remembered to
 // register.
 //
+// Host-internal families live under "cmd.host." rather than "cmd.<name>.", and
+// the prefix is load-bearing rather than tidy. A plugin implicitly serves
+// "cmd.<id>.>", so while these families sat at "cmd.identity.>" and
+// "cmd.cutover.>" the two shipped plugins named identity and cutover were
+// refused by their NAMES alone, before declaring a single permission — nothing
+// about either manifest was wrong and no migration could fix it (TM-422). A
+// bare "cmd.<word>." reservation is a collision waiting for anyone who names a
+// plugin after what it does. "cmd.host." cannot collide, because no plugin id
+// is "host": the host's own extension points already own that word.
+//
+// The move is safe to make because none of these families has a registered
+// operation yet — they are reservations, denied by absence and named here so a
+// future declaration cannot reach for them. A host surface added under one of
+// these names must therefore be spelled "cmd.host.<family>.v1.<verb>"; spelling
+// it "cmd.<family>.v1.<verb>" puts it in a namespace a plugin may legitimately
+// own. The gateway pins that in TestHostInternalFamiliesStayUnderCmdHost.
+//
+// Two entries that look like families deliberately are not, and stay put:
+// cmd.plugin.v1.disable / cmd.plugin.v1.announce (see below) and
+// cmd.terminal.v1.write.
+//
 // Two families that look like they belong here deliberately do not:
 //
 //   - "_INBOX.>" is not denied, because every principal has its own inbox under
@@ -30,15 +51,15 @@ func PermanentlyIneligible() []bus.Pattern {
 		// Substrate internals: monitoring, accounts, JetStream API.
 		"$SYS.>",
 		// Session minting and isAuthed itself.
-		"cmd.auth.>",
+		"cmd.host.auth.>",
 		// Session cookie signing keys.
-		"cmd.session.>",
+		"cmd.host.session.>",
 		// Store and Vault credentials, TLS pins.
-		"cmd.identity.>",
+		"cmd.host.identity.>",
 		// SETUP_TOKEN, control.env, config.json.
-		"cmd.secrets.>",
+		"cmd.host.secrets.>",
 		// The cutover whitelist runner is arbitrary command execution.
-		"cmd.cutover.>",
+		"cmd.host.cutover.>",
 		// Lifecycle MUTATION is Control Bus, operator-only. These are the two
 		// operations the gateway actually has under cmd.plugin.: the operator's
 		// disable verb (src/kernel_host_grants_test.go:459,
@@ -66,7 +87,7 @@ func PermanentlyIneligible() []bus.Pattern {
 		"cmd.plugin.v1.disable",
 		"cmd.plugin.v1.announce",
 		// Another plugin's StateDir.
-		"cmd.statedir.>",
+		"cmd.host.statedir.>",
 		// Raw PTY write to a terminal the caller does not own.
 		"cmd.terminal.v1.write",
 	}

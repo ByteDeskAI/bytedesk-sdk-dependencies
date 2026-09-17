@@ -64,7 +64,7 @@ func TestValidate(t *testing.T) {
 
 		// Permanently ineligible families. Refused whole, never narrowed.
 		{"an ineligible subject", func(m *Manifest) {
-			m.Permissions.Request = []bus.Pattern{"cmd.auth.v1.mint"}
+			m.Permissions.Request = []bus.Pattern{"cmd.host.auth.v1.mint"}
 		}, "permanently ineligible"},
 		{"a pattern that merely reaches one", func(m *Manifest) {
 			m.Permissions.Request = []bus.Pattern{"cmd.>"}
@@ -87,7 +87,7 @@ func TestValidate(t *testing.T) {
 			m.Serves[0].Endpoints[0].Subject = "svc.files.v1.list"
 		}, `"svc.files.v1.list"`},
 		{"endpoint under another plugin's command tree", func(m *Manifest) {
-			m.Serves[0].Endpoints[0].Subject = "cmd.identity.v1.enroll"
+			m.Serves[0].Endpoints[0].Subject = "cmd.host.identity.v1.enroll"
 		}, "outside this plugin's own namespace"},
 		{"duplicate service name", func(m *Manifest) {
 			m.Serves = append(m.Serves, ServiceDecl{Name: "tmux"})
@@ -168,11 +168,14 @@ func TestValidate(t *testing.T) {
 		// through no permission a reviewer would ever see in the manifest.
 		// This must be refused by the id itself, not left to whatever grant
 		// compiler the manifest never touches.
-		{"plugin id collides with an ineligible family (Serves cmd.auth.>)", func(m *Manifest) {
-			m.ID = "auth"
-		}, "permanently ineligible"},
-		{"plugin id collides with an ineligible family (cmd.secrets.>)", func(m *Manifest) {
-			m.ID = "secrets"
+		// After TM-422 the host-internal families live under cmd.host., so the
+		// id that collides is "host" — it implicitly Serves cmd.host.> and
+		// reaches every one of them at once. "auth" and "secrets" no longer
+		// collide, which is the whole point: a plugin named after what it does
+		// is not a security problem, and two shipped plugins (identity,
+		// cutover) were refused by their names alone before the move.
+		{"plugin id collides with an ineligible family (Serves cmd.host.>)", func(m *Manifest) {
+			m.ID = "host"
 		}, "permanently ineligible"},
 	}
 
@@ -218,10 +221,10 @@ func TestPermanentlyIneligibleIsARealFence(t *testing.T) {
 	// dropped a rule while looking healthy.
 	for _, name := range []string{
 		"$SYS.account.info",
-		"cmd.auth.v1.mint", "cmd.session.v1.sign", "cmd.identity.v1.enroll",
-		"cmd.secrets.v1.read", "cmd.cutover.v1.run",
+		"cmd.host.auth.v1.mint", "cmd.host.session.v1.sign", "cmd.host.identity.v1.enroll",
+		"cmd.host.secrets.v1.read", "cmd.host.cutover.v1.run",
 		"cmd.plugin.v1.disable", "cmd.plugin.v1.announce",
-		"cmd.statedir.v1.read", "cmd.terminal.v1.write",
+		"cmd.host.statedir.v1.read", "cmd.terminal.v1.write",
 	} {
 		if !bus.MatchedByAny(set, bus.Subject(name)) {
 			t.Errorf("%q is no longer permanently ineligible", name)
@@ -364,7 +367,7 @@ func TestValidateDiscoverLiftsOnlyTheVersionRequirement(t *testing.T) {
 			m.Permissions.Publish = []bus.Pattern{"event.tmux-manager.>"}
 		}, "implicit"},
 		{"an ineligible family", func(m *Manifest) {
-			m.Permissions.Request = []bus.Pattern{"cmd.auth.v1.mint"}
+			m.Permissions.Request = []bus.Pattern{"cmd.host.auth.v1.mint"}
 		}, "permanently ineligible"},
 		{"an unbounded stream", func(m *Manifest) { m.Streams[0].MaxBytes = 0 }, "maxBytes is required"},
 		{"an unknown capability", func(m *Manifest) { m.Needs = []string{"postgres"} }, "unknown capability"},
@@ -399,12 +402,22 @@ func TestValidateSubjectPatternsOwnNamespaceAgainstIneligible(t *testing.T) {
 		id      string
 		wantErr string
 	}{
-		{"auth", "permanently ineligible"},
-		{"session", "permanently ineligible"},
-		{"identity", "permanently ineligible"},
-		{"secrets", "permanently ineligible"},
-		{"cutover", "permanently ineligible"},
-		{"statedir", "permanently ineligible"},
+		// "host" is the one id that reaches a host-internal family through its
+		// own namespace alone: it implicitly Serves cmd.host.>, which reaches
+		// every cmd.host.<family>.> at once.
+		{"host", "permanently ineligible"},
+		// TM-422's fix, stated as a test rather than as a comment: these six
+		// were refused by their NAMES while the families sat at cmd.<name>.>,
+		// and two of them (identity, cutover) are shipped in-tree plugins that
+		// no migration could have repaired. A refusal case with no matching
+		// acceptance case would let a later widening of the fence pass here
+		// unnoticed.
+		{"auth", ""},
+		{"session", ""},
+		{"identity", ""},
+		{"secrets", ""},
+		{"cutover", ""},
+		{"statedir", ""},
 		{"widgets", ""},
 		{"tmux-manager", ""},
 	} {

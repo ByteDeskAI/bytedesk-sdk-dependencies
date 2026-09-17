@@ -1,11 +1,11 @@
 {
   "contract": 2,
   "kind": "builtin",
-  "id": "cutover",
+  "id": "host",
   "version": "1.0.0",
   "identity": {
-    "displayName": "Cutover",
-    "description": "Stages and restarts the gateway safely."
+    "displayName": "Host Tools",
+    "description": "A fixture whose id reaches a host-internal family."
   },
   "publisher": {
     "id": "bytedesk",

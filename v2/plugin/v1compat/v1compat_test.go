@@ -793,7 +793,7 @@ func TestHostImplementsCloser(t *testing.T) {
 //
 // This binds a v1 Host over bus/memory.Store, wired with
 // plugin.PermanentlyIneligible() exactly as a production host must, and drives
-// Publish, Subscribe and Request at cmd.auth.> -- one of the ineligible
+// Publish, Subscribe and Request at cmd.host.auth.> -- one of the ineligible
 // families -- through the v1 adapter. All three must refuse. A grant that DOES
 // cover the family (Publish/Subscribe/Request: [">"], the widest a manifest
 // could ever declare) is attached to the identity specifically so the
@@ -825,12 +825,12 @@ func TestV1PluginCannotReachAPermanentlyIneligibleSubjectEndToEnd(t *testing.T) 
 	host := Host(&f.Base)
 	t.Cleanup(func() { _ = host.(Closer).Close(context.Background()) })
 
-	const ineligible = "cmd.auth.mint-session"
+	const ineligible = "cmd.host.auth.mint-session"
 
 	t.Run("Publish", func(t *testing.T) {
 		err := host.Publish(v1bus.Envelope{Type: ineligible, Payload: []byte(`{}`)})
 		if err == nil {
-			t.Fatal("Publish to cmd.auth.mint-session succeeded through v1compat over a Deny-configured store; a wide-open grant should not have reached an ineligible family")
+			t.Fatal("Publish to cmd.host.auth.mint-session succeeded through v1compat over a Deny-configured store; a wide-open grant should not have reached an ineligible family")
 		}
 	})
 
@@ -852,7 +852,7 @@ func TestV1PluginCannotReachAPermanentlyIneligibleSubjectEndToEnd(t *testing.T) 
 		_ = other.Publish(context.Background(), bus.Subject(ineligible), []byte(`{}`))
 		select {
 		case <-delivered:
-			t.Fatal("a message was delivered to a subscription on cmd.auth.mint-session; the subscribe should have been refused before anything could arrive")
+			t.Fatal("a message was delivered to a subscription on cmd.host.auth.mint-session; the subscribe should have been refused before anything could arrive")
 		case <-time.After(100 * time.Millisecond):
 		}
 	})
@@ -864,7 +864,7 @@ func TestV1PluginCannotReachAPermanentlyIneligibleSubjectEndToEnd(t *testing.T) 
 		// was ever going to answer this anyway"? Tried and answered by
 		// attempting to mount a real responder first, from a third,
 		// separately-admitted principal holding the identical wide-open
-		// grant: Subscribe on cmd.auth.mint-session is ITSELF refused with
+		// grant: Subscribe on cmd.host.auth.mint-session is ITSELF refused with
 		// the same "reaches a permanently ineligible subject family" fault.
 		// So the ambiguity cannot arise in a correctly deny-wired store --
 		// nothing can ever legitimately serve inside a denied family, because
@@ -876,12 +876,12 @@ func TestV1PluginCannotReachAPermanentlyIneligibleSubjectEndToEnd(t *testing.T) 
 			PluginID: "attacker-3", Generation: "g1", Role: bus.RolePlugin, Grants: wideOpen,
 		})
 		if _, err := responder.Subscribe(context.Background(), bus.Pattern(ineligible), func(context.Context, *bus.Msg) {}); err == nil {
-			t.Fatal("a wide-open grant was able to Subscribe/Serve on cmd.auth.mint-session; deny should refuse serving an ineligible family exactly as it refuses reaching one")
+			t.Fatal("a wide-open grant was able to Subscribe/Serve on cmd.host.auth.mint-session; deny should refuse serving an ineligible family exactly as it refuses reaching one")
 		}
 
 		_, err := host.Request(context.Background(), v1bus.Envelope{Type: ineligible, Payload: []byte(`{}`)})
 		if err == nil {
-			t.Fatal("Request to cmd.auth.mint-session succeeded through v1compat over a Deny-configured store")
+			t.Fatal("Request to cmd.host.auth.mint-session succeeded through v1compat over a Deny-configured store")
 		}
 	})
 }
