@@ -14,7 +14,6 @@
       }
     ]
   },
-  "contract": 2,
   "id": "tmux-manager",
   "identity": {
     "description": "A fixture for the plugin contract corpus.",

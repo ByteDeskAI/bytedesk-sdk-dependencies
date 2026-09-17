@@ -3,6 +3,7 @@
   "options": {
     "coreVersion": "3.0.0",
     "host": "gateway",
+    "minAccepted": 2,
     "minPluginVersion": "1.0.0"
   }
 }

@@ -27,8 +27,9 @@ type Manifest struct {
 	// (ProtocolMajor). It is the field a host reads BEFORE deciding how to
 	// read the rest, which is why it is a number and not inferred: a v1
 	// document read with v2 meanings is the failure the whole band exists to
-	// prevent. A per-host floor over it is TM-396's (Options.MinAccepted,
-	// BDP1007); nothing here refuses an older number yet.
+	// prevent. The per-gate floor over it is contract.Options.MinAccepted,
+	// which refuses a lower number with BDP1007; this package itself judges
+	// one document and has no host to refuse it on behalf of.
 	Contract int `json:"contract,omitempty" bd:"public"`
 
 	// Kind is what this package IS, from the closed set below. Until it

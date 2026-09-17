@@ -1,0 +1,13 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP1007",
+      "severity": "error",
+      "path": "contract"
+    }
+  ],
+  "options": {
+    "host": "gateway",
+    "minAccepted": 2
+  }
+}
