@@ -184,9 +184,20 @@ func verifyManifest(r *Report, raw []byte, opts Options) (plugin.Manifest, any, 
 	}
 	r.Manifest = &m
 	r.Diagnostics = append(r.Diagnostics, plugin.Diagnostics(m, true)...)
+	// The deprecations only the raw document can still see. Both of these are
+	// decoded away by the time a Manifest exists: a string publisher becomes
+	// a Publisher, and a top-level homepage becomes nothing at all, because
+	// the field moved into identity and no Go field claims the old name.
+	//
+	// ponytail: a top-level homepage therefore draws BDP1006 (unknown
+	// property) as well as BDP5004. Both are true and the pair is cheaper
+	// than teaching the schema walk about names it must not warn on.
 	if obj, isObj := doc.(map[string]any); isObj {
 		if _, isString := obj["publisher"].(string); isString {
 			r.add("BDP5001", "publisher")
+		}
+		if _, present := obj["homepage"]; present {
+			r.add("BDP5004", "homepage")
 		}
 	}
 	hostGate(r, m, opts)

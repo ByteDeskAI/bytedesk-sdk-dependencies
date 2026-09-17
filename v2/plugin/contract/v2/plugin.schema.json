@@ -2,22 +2,31 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://bytedesk.ai/schemas/plugin/v2/plugin.schema.json",
   "title": "ByteDesk plugin manifest v2",
-  "description": "The structural half of the plugin contract: property names, types and presence, mirroring plugin.Manifest in bytedesk-sdk-dependencies/v2 field for field. Semantic rules (BDP2xxx) live in the verifier, not here. The schema is OPEN — unknown properties are ignored by hosts and warned (BDP1006) by the CLI — so a newer manifest loads on an older host. x-bd-ref marks a string as a reference: \"binary\" is a file at the package root the verifier checks on disk; \"route\" is a path the plugin serves, recorded for tooling and not checked here.",
+  "description": "The structural half of the plugin contract: property names, types and presence, mirroring plugin.Manifest in bytedesk-sdk-dependencies/v2 field for field. Semantic rules (BDP2xxx) live in the verifier, not here. The schema is OPEN — unknown properties are ignored by hosts and warned (BDP1006) by the CLI — so a newer manifest loads on an older host. x-bd-ref marks a string as a reference: \"binary\" is a file at the package root the verifier checks on disk; \"route\" is a path the plugin serves and \"file\" is a package-relative file the package ships, both recorded for tooling and not checked here.",
   "type": "object",
   "additionalProperties": true,
   "required": ["id"],
   "properties": {
+    "contract": {"type": "integer", "minimum": 0, "description": "The manifest contract this document is written against; 2 for this schema."},
+    "kind": {"type": "string", "description": "builtin | process | ui | family. The closed set is enforced semantically (BDP2200), not here, so one rule owns it."},
     "id": {"type": "string"},
     "version": {"type": "string"},
+    "identity": {"$ref": "#/$defs/ManifestIdentity"},
     "nav": {"type": "array", "items": {"$ref": "#/$defs/NavItem"}},
     "panels": {"type": "array", "items": {"$ref": "#/$defs/PanelSpec"}},
     "launchers": {"type": "array", "items": {"$ref": "#/$defs/LauncherSpec"}},
     "scopes": {"type": "array", "items": {"type": "string"}},
     "routes": {"type": "array", "items": {"type": "string", "x-bd-ref": "route"}},
     "publicRoutes": {"type": "array", "items": {"type": "string", "x-bd-ref": "route"}},
-    "spawn": {"type": "boolean"},
+    "spawn": {"type": "boolean", "deprecated": true, "description": "Legacy spelling of \"kind\": \"process\". Warned as BDP5003; refused only when it disagrees with kind."},
     "binary": {"type": "string", "x-bd-ref": "binary"},
     "socket": {"type": "string"},
+    "helpers": {"type": "array", "items": {"type": "string", "x-bd-ref": "file"}},
+    "scripts": {"type": "array", "items": {"type": "string", "x-bd-ref": "file"}},
+    "services": {"type": "array", "items": {"type": "string", "x-bd-ref": "file"}},
+    "static": {"type": "array", "items": {"$ref": "#/$defs/StaticMount"}},
+    "aliases": {"type": "array", "items": {"type": "string"}},
+    "trust": {"description": "Reserved for the package attestation. Opaque: the verifier neither reads nor judges it."},
     "minCoreVersion": {"type": "string"},
     "targets": {"type": "array", "items": {"type": "string"}},
     "role": {"type": "string"},
@@ -45,6 +54,48 @@
     "config": {"$ref": "#/$defs/Config"}
   },
   "$defs": {
+    "ManifestIdentity": {
+      "type": "object", "additionalProperties": true,
+      "description": "The human half of the manifest. Required for every kind and never host-defaulted.",
+      "required": ["displayName", "description"],
+      "properties": {
+        "displayName": {"type": "string"},
+        "description": {"type": "string"},
+        "categories": {"type": "array", "items": {"type": "string"}},
+        "keywords": {"type": "array", "items": {"type": "string"}},
+        "images": {"$ref": "#/$defs/Images"},
+        "homepage": {"type": "string"},
+        "license": {"type": "string"},
+        "readme": {"type": "string", "x-bd-ref": "file"},
+        "changelog": {"type": "string", "x-bd-ref": "file"},
+        "support": {"$ref": "#/$defs/Support"},
+        "thirdPartyNotices": {"type": "string", "x-bd-ref": "file"}
+      }
+    },
+    "Images": {
+      "type": "object", "additionalProperties": true,
+      "properties": {
+        "icon": {"type": "string", "x-bd-ref": "file"},
+        "logo": {"type": "string", "x-bd-ref": "file"},
+        "banner": {"type": "string", "x-bd-ref": "file"},
+        "screenshots": {"type": "array", "items": {"type": "string", "x-bd-ref": "file"}}
+      }
+    },
+    "Support": {
+      "type": "object", "additionalProperties": true,
+      "properties": {
+        "email": {"type": "string"},
+        "url": {"type": "string"}
+      }
+    },
+    "StaticMount": {
+      "type": "object", "additionalProperties": true,
+      "required": ["dir", "mount"],
+      "properties": {
+        "dir": {"type": "string"},
+        "mount": {"type": "string"}
+      }
+    },
     "NavItem": {
       "type": "object", "additionalProperties": true,
       "required": ["id", "label", "href"],
@@ -100,7 +151,10 @@
       "properties": {
         "id": {"type": "string"},
         "name": {"type": "string"},
-        "url": {"type": "string"}
+        "legalName": {"type": "string"},
+        "url": {"type": "string"},
+        "supportEmail": {"type": "string"},
+        "kid": {"type": "string", "description": "Hex sha256 of the raw ed25519 publisher public key: 64 lowercase hex characters. An identifier, never a grant."}
       }
     },
     "Family": {

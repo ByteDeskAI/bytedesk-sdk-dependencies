@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2202",
+      "path": "kind",
+      "severity": "error"
+    }
+  ]
+}

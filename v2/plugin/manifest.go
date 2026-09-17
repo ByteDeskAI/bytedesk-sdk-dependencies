@@ -23,8 +23,30 @@ import (
 // Implements; keeping both meant two answers to "who resolves this", and only
 // one of them was host-mediated.
 type Manifest struct {
-	ID        string         `json:"id" bd:"public"`
-	Version   string         `json:"version,omitempty" bd:"public"`
+	// Contract is the manifest contract this document is written against
+	// (ProtocolMajor). It is the field a host reads BEFORE deciding how to
+	// read the rest, which is why it is a number and not inferred: a v1
+	// document read with v2 meanings is the failure the whole band exists to
+	// prevent. A per-host floor over it is TM-396's (Options.MinAccepted,
+	// BDP1007); nothing here refuses an older number yet.
+	Contract int `json:"contract,omitempty" bd:"public"`
+
+	// Kind is what this package IS, from the closed set below. Until it
+	// existed the verifier inferred a kind from the tree, which meant a
+	// package's rules depended on which files happened to be in it. The
+	// explicit field is preferred everywhere; inference survives only as the
+	// fallback for a manifest written before this field.
+	Kind string `json:"kind,omitempty" bd:"public"`
+
+	ID      string `json:"id" bd:"public"`
+	Version string `json:"version,omitempty" bd:"public"`
+
+	// Identity is who this plugin is to a human: the name and description a
+	// store row, a settings list and an operator prompt all render. It is
+	// REQUIRED for every kind and is never host-defaulted — a default would
+	// make the gate that checks it pass without anyone writing anything.
+	Identity *ManifestIdentity `json:"identity,omitempty" bd:"public"`
+
 	Nav       []NavItem      `json:"nav,omitempty" bd:"public"`
 	Panels    []PanelSpec    `json:"panels,omitempty" bd:"public"`
 	Launchers []LauncherSpec `json:"launchers,omitempty" bd:"public"`
@@ -44,10 +66,37 @@ type Manifest struct {
 	//
 	// Every entry must also appear in Routes. Declaring a public route this
 	// manifest does not own would let a plugin open a hole in another's surface.
-	PublicRoutes   []string      `json:"publicRoutes,omitempty" bd:"public"`
-	Spawn          bool          `json:"spawn,omitempty" bd:"public"`
-	Binary         string        `json:"binary,omitempty" bd:"public"`
-	Socket         string        `json:"socket,omitempty" bd:"public"`
+	PublicRoutes []string `json:"publicRoutes,omitempty" bd:"public"`
+	// Spawn is DEPRECATED by Kind: "spawn": true is "kind": "process" said
+	// twice. It is still read through the migration window (BDP5003 warns),
+	// and a manifest whose two answers disagree is refused rather than having
+	// one of them picked for it.
+	Spawn  bool   `json:"spawn,omitempty" bd:"public"`
+	Binary string `json:"binary,omitempty" bd:"public"`
+	Socket string `json:"socket,omitempty" bd:"public"`
+
+	// Helpers, Scripts and Services name the other executables and templates
+	// this package ships beside Binary: helpers under bin/, shell shims under
+	// scripts/, unit templates under services/. Scripts and services are
+	// consent-gated at install; declaring one is how a package ships them
+	// honestly instead of a host owning them on its behalf.
+	Helpers  []string `json:"helpers,omitempty" bd:"public"`
+	Scripts  []string `json:"scripts,omitempty" bd:"public"`
+	Services []string `json:"services,omitempty" bd:"public"`
+
+	// Static are directories in the extracted package the host serves at
+	// /p/<id>/<mount>/. Aliases are pretty paths the host's reverse proxy maps
+	// onto them at start. Both are declarations the HOST acts on: a plugin
+	// never mounts its own files into the shell's URL space.
+	Static  []StaticMount `json:"static,omitempty" bd:"public"`
+	Aliases []string      `json:"aliases,omitempty" bd:"public"`
+
+	// Trust is reserved for the package attestation (publisher signature,
+	// Store countersignature, key id). It is OPAQUE here on purpose: the
+	// verifier never reads it, so a manifest cannot talk its way into a trust
+	// tier, and the shape stays free until the attestation format is released.
+	Trust json.RawMessage `json:"trust,omitempty" bd:"public"`
+
 	MinCoreVersion string        `json:"minCoreVersion,omitempty" bd:"public"`
 	Targets        []string      `json:"targets,omitempty" bd:"public"` // gateway, vault
 	Role           string        `json:"role,omitempty" bd:"public"`    // system | extension
@@ -107,6 +156,96 @@ type Manifest struct {
 	// Implements; this field is what lets the host list and label a section
 	// before the plugin is asked for anything.
 	Config *Config `json:"config,omitempty" bd:"public"`
+}
+
+// Manifest.Kind values. The set is CLOSED: a host that meets a kind it does
+// not know refuses the package rather than guessing which rules apply to it,
+// the same way an unknown config field kind refuses a section.
+//
+//   - builtin — compiled into the host binary; ships a manifest, docs and images.
+//   - process — the host spawns Binary; may ship every deliverable class.
+//   - ui      — static front end only, ui/index.html required, no executable.
+//   - family  — a platform selector with Family members and no payload of its own.
+const (
+	KindBuiltin = "builtin"
+	KindProcess = "process"
+	KindUI      = "ui"
+	KindFamily  = "family"
+)
+
+// Kinds returns the closed set, in the order a human reads it.
+func Kinds() []string { return []string{KindBuiltin, KindProcess, KindUI, KindFamily} }
+
+// ReservedAliasPrefixes are the first path segments a manifest may not claim in
+// Aliases, because the host already serves them. An alias is a pretty path the
+// host's reverse proxy maps onto a plugin's static mount, so an alias that
+// shadowed /api would take the host's own surface away from it — and the host
+// would have no way to tell that from a plugin that simply started first.
+//
+// Collisions between two plugins' aliases are the HOST's refusal (BDP6010),
+// not this one: only the host can see both manifests at once.
+func ReservedAliasPrefixes() []string {
+	return []string{"/api", "/p", "/v1", "/healthz", "/readyz", "/assets", "/static", "/.well-known"}
+}
+
+// ManifestIdentity is the human half of a manifest: what a store row, a settings list
+// and a consent prompt show. Everything here describes the plugin to a person;
+// nothing here grants it anything.
+//
+// It is required for every kind, and the host never fills it in. A defaulted
+// display name would read as an authored one, and the operator approving a
+// package would be approving text the host wrote.
+type ManifestIdentity struct {
+	// DisplayName is the human name. It must not merely repeat ID: an id is
+	// an address and a display name is a name, and a store listing that shows
+	// "tmux-manager" tells a reader nothing the URL did not.
+	DisplayName string `json:"displayName" bd:"public"`
+	// Description is one or two sentences: what this plugin does.
+	Description string   `json:"description" bd:"public"`
+	Categories  []string `json:"categories,omitempty" bd:"public"`
+	Keywords    []string `json:"keywords,omitempty" bd:"public"`
+	// Images are package-relative paths to files the package ships under
+	// images/. They are NOT the icon tokens NavItem and UIContribution carry:
+	// those are names the shell resolves from its own icon set.
+	Images *Images `json:"images,omitempty" bd:"public"`
+	// Homepage replaces the deprecated top-level "homepage" property.
+	Homepage string `json:"homepage,omitempty" bd:"public"`
+	License  string `json:"license,omitempty" bd:"public"`
+	// Readme and Changelog are package-relative paths to shipped documents.
+	Readme    string   `json:"readme,omitempty" bd:"public"`
+	Changelog string   `json:"changelog,omitempty" bd:"public"`
+	Support   *Support `json:"support,omitempty" bd:"public"`
+	// ThirdPartyNotices is a package-relative path under notices/.
+	ThirdPartyNotices string `json:"thirdPartyNotices,omitempty" bd:"public"`
+}
+
+// Images are the package-relative image paths a store listing renders.
+type Images struct {
+	Icon        string   `json:"icon,omitempty" bd:"public"`
+	Logo        string   `json:"logo,omitempty" bd:"public"`
+	Banner      string   `json:"banner,omitempty" bd:"public"`
+	Screenshots []string `json:"screenshots,omitempty" bd:"public"`
+}
+
+// Support is where a human takes a problem with this plugin. It is the
+// publisher's channel for THIS package; Publisher.SupportEmail is the
+// publisher's own, which outlives any one release.
+type Support struct {
+	Email string `json:"email,omitempty" bd:"public"`
+	URL   string `json:"url,omitempty" bd:"public"`
+}
+
+// StaticMount asks the host to serve one directory of the extracted package at
+// /p/<id>/<Mount>/.
+//
+// Both halves are a SINGLE safe path segment. Dir is a directory in the
+// package, so "../../etc" or an absolute path is an attempt to serve somewhere
+// the package does not own; Mount is a URL segment, so the same spelling would
+// escape the plugin's own prefix. Neither is normalised into something legal —
+// a mount that had to be corrected is not the one the author reviewed.
+type StaticMount struct {
+	Dir   string `json:"dir" bd:"public"`
+	Mount string `json:"mount" bd:"public"`
 }
 
 // ProtocolMajor is the protocol this manifest schema belongs to. A manifest
@@ -462,7 +601,76 @@ type Pricing struct {
 type Publisher struct {
 	ID   string `json:"id" bd:"public"`
 	Name string `json:"name" bd:"public"`
-	URL  string `json:"url,omitempty" bd:"public"`
+	// LegalName is the entity a contract or a licence names, when it differs
+	// from the trading name.
+	LegalName    string `json:"legalName,omitempty" bd:"public"`
+	URL          string `json:"url,omitempty" bd:"public"`
+	SupportEmail string `json:"supportEmail,omitempty" bd:"public"`
+	// KID identifies the publisher key a release is signed with: the hex
+	// sha256 of the raw ed25519 public key, 64 lowercase hex characters.
+	//
+	// It is an IDENTIFIER, never a grant. Writing a kid here proves nothing —
+	// the signature over the package and the key registry decide trust — so
+	// the only thing checked at this gate is that the value is the shape a
+	// verifier can look up.
+	KID string `json:"kid,omitempty" bd:"public"`
+}
+
+// publisherIDPattern is the charset a publisher id must match: a lowercase
+// alphanumeric first character, then lowercase alphanumerics and hyphens, at
+// most 64 characters. It is the same shape a DNS label and an R2 key prefix
+// both accept, because the id is used as both.
+func validPublisherID(id string) bool {
+	if id == "" || len(id) > 64 {
+		return false
+	}
+	for i := 0; i < len(id); i++ {
+		c := id[i]
+		switch {
+		case c >= 'a' && c <= 'z', c >= '0' && c <= '9':
+		case c == '-' && i > 0:
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// validKID reports whether s is exactly 64 lowercase hex characters.
+func validKID(s string) bool {
+	if len(s) != 64 {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if (c < '0' || c > '9') && (c < 'a' || c > 'f') {
+			return false
+		}
+	}
+	return true
+}
+
+// KindOrInferred returns the declared Kind, or the kind implied by the manifest
+// alone when the field is absent.
+//
+// Inference from the MANIFEST can only see two of the four: a family block
+// means family and spawn means process. It cannot tell a ui package from a
+// builtin, because that difference is in the tree (ui/index.html) and not in
+// the manifest — contract.VerifyDir completes the inference with the files it
+// walked. Callers that have no tree get "builtin", which is the conservative
+// answer: it allows the fewest deliverable classes.
+func (m Manifest) KindOrInferred() string {
+	if k := strings.ToLower(strings.TrimSpace(m.Kind)); k != "" {
+		return k
+	}
+	switch {
+	case m.Family != nil:
+		return KindFamily
+	case m.Spawn:
+		return KindProcess
+	default:
+		return KindBuiltin
+	}
 }
 
 // UnmarshalJSON accepts either a publisher object or a legacy string id

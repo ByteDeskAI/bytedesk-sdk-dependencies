@@ -6,8 +6,9 @@
     "package": "an extracted package: every file must belong to a class the kind allows, forbidden globs refuse, ignored files warn, limits apply, required files must exist and the spawn binary must be present and executable"
   },
   "kindInference": {
-    "note": "TEMPORARY. The manifest has no kind field until TM-395; the verifier infers it in this order and stops at the first match.",
+    "note": "FALLBACK ONLY. The manifest's own kind field is authoritative and the verifier prefers it whenever it is set; these rules run only for a manifest written before the field existed, and stop at the first match. They stay until the v1 window closes, because a package's rules must not depend on which files happen to be in it.",
     "order": [
+      "kind is declared -> that kind",
       "family is declared -> family",
       "spawn is true -> process",
       "ui/index.html exists -> ui",
@@ -21,16 +22,16 @@
     "family": {"classes": ["manifest", "docs", "images"]}
   },
   "classes": {
-    "manifest": {"globs": ["plugin.json"]},
-    "docs": {"globs": ["README.md", "CHANGELOG.md", "LICENSE", "docs/**"]},
-    "images": {"globs": ["images/**"], "extensions": [".svg", ".png", ".webp"]},
-    "binary": {"globs": ["${binary}", "bin/**"], "note": "${binary} is the basename of the manifest's binary and is present only when spawn is true"},
-    "ui": {"globs": ["ui/**"]},
-    "resources": {"globs": ["resources/**", "downloads/**"]},
-    "data": {"globs": ["data/**"]},
-    "scripts": {"globs": ["scripts/**"], "consent": true},
-    "services": {"globs": ["services/**"], "consent": true},
-    "notices": {"globs": ["notices/**"]}
+    "manifest": {"globs": ["plugin.json"], "declaredBy": [], "note": "verified at every gate"},
+    "docs": {"globs": ["README.md", "CHANGELOG.md", "LICENSE", "docs/**"], "declaredBy": ["identity.readme", "identity.changelog", "identity.license"], "note": "shipped; the Store renders them"},
+    "images": {"globs": ["images/**"], "extensions": [".svg", ".png", ".webp"], "declaredBy": ["identity.images.icon", "identity.images.logo", "identity.images.banner", "identity.images.screenshots[]"], "note": "Store listing; served at /p/<id>/images/. NOT the nav[].icon and ui[].icon tokens, which the shell resolves from its own icon set and which are never files"},
+    "binary": {"globs": ["${binary}", "bin/**"], "declaredBy": ["binary", "helpers[]"], "note": "${binary} is the basename of the manifest's binary and is present only when spawn is true; bin/** carries helpers in any language"},
+    "ui": {"globs": ["ui/**"], "declaredBy": ["static[{dir:ui,mount:ui}]"], "note": "built output; the host serves it from the extracted tree at /p/<id>/ui/, and compiled-in plugins keep go:embed behind the same route shape"},
+    "resources": {"globs": ["resources/**", "downloads/**"], "declaredBy": ["static[]"], "note": "served at /p/<id>/<mount>/; downloads/ with an attachment disposition"},
+    "data": {"globs": ["data/**"], "declaredBy": [], "note": "JSON catalogs the plugin reads; the host never interprets them"},
+    "scripts": {"globs": ["scripts/**"], "consent": true, "declaredBy": ["scripts[]"], "note": "installed into <HOME>/bin only with operator consent; never put on PATH silently"},
+    "services": {"globs": ["services/**"], "consent": true, "declaredBy": ["services[]"], "note": "unit and sysusers templates the host renders and installs with consent; never auto-enabled"},
+    "notices": {"globs": ["notices/**"], "declaredBy": ["identity.thirdPartyNotices"], "note": "shipped; the Store shows them"}
   },
   "forbidden": {
     "match": "any depth: a glob is tried against the path and against every suffix of its segments",
@@ -52,7 +53,8 @@
   },
   "refs": {
     "binary": "the value is a file at the package root, checked when spawn is true: it must exist (BDP4001) and be executable (BDP4002; not judged on Windows)",
-    "route": "the value is a path the plugin serves; recorded for tooling, not checked against the tree"
+    "route": "the value is a path the plugin serves; recorded for tooling, not checked against the tree",
+    "file": "the value is a package-relative file the package ships (identity.readme, identity.images.*, helpers[], scripts[], services[]); recorded for tooling, not checked against the tree — a source tree legitimately names files the package build stages later"
   },
   "host": {
     "note": "where a host keeps plugin trees, relative to its home; unified across products by the .bdx lifecycle",

@@ -1,0 +1,65 @@
+{
+  "aliases": [
+    "/fixture"
+  ],
+  "binary": "fixture-plugin",
+  "contract": 2,
+  "helpers": [
+    "bin/helper"
+  ],
+  "id": "fixture",
+  "identity": {
+    "categories": [
+      "media"
+    ],
+    "changelog": "CHANGELOG.md",
+    "description": "Everything TM-395 added, in one package that verifies.",
+    "displayName": "Fixture Plugin",
+    "homepage": "https://example.invalid",
+    "images": {
+      "icon": "images/icon.svg",
+      "screenshots": [
+        "images/shot-1.svg"
+      ]
+    },
+    "keywords": [
+      "fixture"
+    ],
+    "license": "LICENSE",
+    "readme": "README.md",
+    "support": {
+      "email": "support@example.invalid",
+      "url": "https://example.invalid/support"
+    },
+    "thirdPartyNotices": "notices/THIRD-PARTY.md"
+  },
+  "kind": "process",
+  "publisher": {
+    "id": "acme",
+    "kid": "0000000000000000000000000000000000000000000000000000000000000000",
+    "legalName": "Acme Corporation",
+    "name": "Acme",
+    "supportEmail": "support@example.invalid",
+    "url": "https://example.invalid"
+  },
+  "scripts": [
+    "scripts/bd-fixture.sh"
+  ],
+  "services": [
+    "services/fixture.service"
+  ],
+  "socket": "plugin.sock",
+  "spawn": true,
+  "static": [
+    {
+      "dir": "ui",
+      "mount": "ui"
+    },
+    {
+      "dir": "resources",
+      "mount": "resources"
+    }
+  ],
+  "trust": {},
+  "version": "1.0.0"
+}

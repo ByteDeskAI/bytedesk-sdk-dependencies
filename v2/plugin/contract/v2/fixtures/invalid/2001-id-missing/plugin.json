@@ -1,3 +1,7 @@
 {
+  "identity": {
+    "description": "A fixture for the plugin contract corpus.",
+    "displayName": "Fixture Plugin"
+  },
   "version": "1.0.0"
 }

@@ -18,8 +18,11 @@ func fixture(t *testing.T) (dir string, m plugin.Manifest) {
 	t.Helper()
 	dir = t.TempDir()
 	m = plugin.Manifest{
-		ID:      "files",
-		Version: "1.2.3",
+		Contract: plugin.ProtocolMajor,
+		Kind:     plugin.KindBuiltin,
+		ID:       "files",
+		Version:  "1.2.3",
+		Identity: &plugin.ManifestIdentity{DisplayName: "Files", Description: "Browse and share files."},
 		Permissions: plugin.Permissions{
 			Publish: []bus.Pattern{"event.other.>"},
 		},

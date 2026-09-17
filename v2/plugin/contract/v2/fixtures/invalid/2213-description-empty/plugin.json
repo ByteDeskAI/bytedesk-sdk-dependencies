@@ -1,0 +1,10 @@
+{
+  "contract": 2,
+  "id": "fixture",
+  "identity": {
+    "description": "",
+    "displayName": "Fixture"
+  },
+  "kind": "builtin",
+  "version": "1.0.0"
+}

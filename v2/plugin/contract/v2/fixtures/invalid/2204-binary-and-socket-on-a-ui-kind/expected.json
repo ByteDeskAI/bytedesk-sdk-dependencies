@@ -1,0 +1,14 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2204",
+      "path": "binary",
+      "severity": "error"
+    },
+    {
+      "code": "BDP2204",
+      "path": "socket",
+      "severity": "error"
+    }
+  ]
+}

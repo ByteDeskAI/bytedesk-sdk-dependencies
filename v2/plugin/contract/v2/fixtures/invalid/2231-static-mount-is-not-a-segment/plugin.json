@@ -1,0 +1,16 @@
+{
+  "contract": 2,
+  "id": "fixture",
+  "identity": {
+    "description": "A fixture for the plugin contract corpus.",
+    "displayName": "Fixture"
+  },
+  "kind": "builtin",
+  "static": [
+    {
+      "dir": "ui",
+      "mount": "/ui"
+    }
+  ],
+  "version": "1.0.0"
+}

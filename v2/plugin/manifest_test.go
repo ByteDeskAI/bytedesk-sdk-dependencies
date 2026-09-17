@@ -13,9 +13,18 @@ import (
 // rather than as a passing suite.
 func fullManifest() Manifest {
 	return Manifest{
-		ID:           "tmux-manager",
-		Version:      "2.0.0",
-		Publisher:    &Publisher{ID: "bytedesk", Name: "ByteDesk"},
+		Contract: ProtocolMajor,
+		Kind:     KindBuiltin,
+		ID:       "tmux-manager",
+		Version:  "2.0.0",
+		Identity: &ManifestIdentity{
+			DisplayName: "Tmux Manager",
+			Description: "Attach to and manage tmux sessions from the shell.",
+			Images:      &Images{Icon: "images/icon.svg"},
+			Readme:      "README.md",
+			Support:     &Support{Email: "support@bytedesk.ai"},
+		},
+		Publisher:    &Publisher{ID: "bytedesk", Name: "ByteDesk", LegalName: "ByteDesk AI Ltd", SupportEmail: "support@bytedesk.ai"},
 		Role:         RoleExtension,
 		Targets:      []string{TargetGateway},
 		Routes:       []string{"/p/tmux-manager/", "/p/tmux-manager/login"},
@@ -96,7 +105,9 @@ func TestOwnNamespaceIsImplicitAndComplete(t *testing.T) {
 // TestParseManifestValidates is the difference from v1, where ParseManifest
 // decoded and returned anything that was JSON.
 func TestParseManifestValidates(t *testing.T) {
-	good := `{"id":"example","version":"0.2.0","spawn":true,"binary":"example-plugin"}`
+	good := `{"id":"example","version":"0.2.0","kind":"process","binary":"example-plugin",` +
+		`"identity":{"displayName":"Example","description":"An example plugin."},` +
+		`"publisher":{"id":"acme","name":"Acme"}}`
 	m, err := ParseManifest([]byte(good))
 	if err != nil {
 		t.Fatal(err)
@@ -104,7 +115,8 @@ func TestParseManifestValidates(t *testing.T) {
 	if m.ID != "example" || m.Binary != "example-plugin" {
 		t.Fatalf("got %+v", m)
 	}
-	bad := `{"id":"example","version":"0.2.0","permissions":{"publish":["$SYS.>"]}}`
+	bad := `{"id":"example","version":"0.2.0","identity":{"displayName":"Example","description":"An example plugin."},` +
+		`"permissions":{"publish":["$SYS.>"]}}`
 	if _, err := ParseManifest([]byte(bad)); err == nil {
 		t.Fatal("ParseManifest accepted a manifest Validate refuses")
 	}
@@ -114,7 +126,9 @@ func TestParseManifestValidates(t *testing.T) {
 }
 
 func TestParseManifestStringPublisher(t *testing.T) {
-	m, err := ParseManifest([]byte(`{"id":"example","version":"0.2.0","publisher":"bytedesk"}`))
+	m, err := ParseManifest([]byte(`{"id":"example","version":"0.2.0",` +
+		`"identity":{"displayName":"Example","description":"An example plugin."},` +
+		`"publisher":"bytedesk"}`))
 	if err != nil {
 		t.Fatal(err)
 	}

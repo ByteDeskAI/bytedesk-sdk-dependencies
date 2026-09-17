@@ -21,6 +21,10 @@
     }
   ],
   "id": "tmux-manager",
+  "identity": {
+    "description": "A fixture for the plugin contract corpus.",
+    "displayName": "Tmux Manager"
+  },
   "implements": [
     {
       "id": "tmux-manager",
