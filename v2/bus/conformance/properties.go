@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -43,6 +44,9 @@ var properties = []struct {
 	{Property{Name: "ScheduledPublishFires", Requires: []string{"schedule"}}, scheduledPublishFires},
 	{Property{Name: "ScheduledPublishSurvivesRestart", Requires: []string{"schedule", "durable"}}, scheduledPublishSurvivesRestart},
 	{Property{Name: "RegisterDiscoverCall", Requires: []string{"services"}}, registerDiscoverCall},
+	{Property{Name: "ObjectPutGetList", Requires: []string{"objects"}}, objectPutGetList},
+	{Property{Name: "CounterAccumulatesAtomically", Requires: []string{"counters", "durable"}}, counterAccumulatesAtomically},
+	{Property{Name: "BatchPublishIsAllOrNothing", Requires: []string{"batch", "durable"}}, batchPublishIsAllOrNothing},
 }
 
 // fastFailBound and revokeBound are the two wall-clock ceilings the contract
@@ -1030,6 +1034,217 @@ func registerDiscoverCall(t *testing.T, s *suite) {
 	}
 	if reply == nil || string(reply.Data) != "pong" {
 		t.Fatalf("Services().Call returned %q, want %q", replyData(reply), "pong")
+	}
+}
+
+// 25. ObjectPutGetList: an object bucket stores bytes by name and reports
+// them faithfully — the same bytes back from Get, the same size and digest
+// from Put, Get and Info alike, and the name in List.
+//
+// The overwrite at the end is the part that is easy to leave out: without it
+// the property passes against a store that digests the NAME rather than the
+// content, which is exactly the shape a stub grows into.
+func objectPutGetList(t *testing.T, s *suite) {
+	const bucket = "p25"
+	b := s.bus(t, withObjects(ident("p25", "g1", "p25.>"), bucket))
+	ctx, cancel := s.deadline()
+	defer cancel()
+
+	if err := b.Objects().Declare(ctx, bus.BucketSpec{Name: bucket, MaxBytes: 1 << 20}); err != nil {
+		t.Fatalf("Objects().Declare(%q): %v", bucket, err)
+	}
+
+	// Larger than the core payload ceiling would comfortably carry, because
+	// "the bus carries the name, not the bytes" is the point of the surface.
+	payload := bytes.Repeat([]byte("object-bytes."), 1024)
+	put, err := b.Objects().Put(ctx, bus.ObjectMeta{Bucket: bucket, Name: "artifact", Description: "p25"}, bytes.NewReader(payload))
+	if err != nil {
+		t.Fatalf("Objects().Put: %v", err)
+	}
+	if put.Size != int64(len(payload)) {
+		t.Fatalf("Put reported size %d for a %d-byte object", put.Size, len(payload))
+	}
+	if put.Digest == "" {
+		t.Fatal("Put reported no digest; a blob store that does not identify its content gives a reader nothing to verify against")
+	}
+
+	rc, meta, err := b.Objects().Get(ctx, bucket, "artifact")
+	if err != nil {
+		t.Fatalf("Objects().Get: %v", err)
+	}
+	got, readErr := io.ReadAll(rc)
+	if err := rc.Close(); err != nil {
+		t.Fatalf("closing the object reader: %v", err)
+	}
+	if readErr != nil {
+		t.Fatalf("reading the object: %v", readErr)
+	}
+	if !bytes.Equal(got, payload) {
+		t.Fatalf("Get returned %d bytes, want the %d that were put", len(got), len(payload))
+	}
+	if meta.Size != put.Size || meta.Digest != put.Digest {
+		t.Fatalf("Get reports size %d digest %q; Put reported size %d digest %q", meta.Size, meta.Digest, put.Size, put.Digest)
+	}
+
+	info, err := b.Objects().Info(ctx, bucket, "artifact")
+	if err != nil {
+		t.Fatalf("Objects().Info: %v", err)
+	}
+	if info.Digest != put.Digest || info.Size != put.Size {
+		t.Fatalf("Info reports size %d digest %q, Put reported size %d digest %q; Info is metadata without the bytes, not different metadata", info.Size, info.Digest, put.Size, put.Digest)
+	}
+
+	listed, err := b.Objects().List(ctx, bucket)
+	if err != nil {
+		t.Fatalf("Objects().List: %v", err)
+	}
+	found := false
+	for _, m := range listed {
+		if m.Name == "artifact" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("Objects().List(%q) returned %d entries and none of them is the object just put", bucket, len(listed))
+	}
+
+	replacement := []byte("something else entirely")
+	put2, err := b.Objects().Put(ctx, bus.ObjectMeta{Bucket: bucket, Name: "artifact"}, bytes.NewReader(replacement))
+	if err != nil {
+		t.Fatalf("second Objects().Put: %v", err)
+	}
+	if put2.Digest == put.Digest {
+		t.Fatalf("overwriting %d bytes with %d left the digest at %q; the digest does not identify the content", len(payload), len(replacement), put2.Digest)
+	}
+	if put2.Size != int64(len(replacement)) {
+		t.Fatalf("after the overwrite Put reports size %d, want %d", put2.Size, len(replacement))
+	}
+}
+
+// 26. CounterAccumulatesAtomically: Counter adds to a per-subject total on a
+// stream and returns the new value, and concurrent adds all land.
+//
+// The concurrent half is the word "atomically" in bus.Capabilities. A
+// read-modify-write that is not atomic loses increments under contention and
+// nothing else in the suite would notice.
+func counterAccumulatesAtomically(t *testing.T, s *suite) {
+	const stream = "p26"
+	const subject bus.Subject = "p26.hits"
+	b := s.bus(t, withStream(ident("p26", "g1", "p26.>"), stream))
+	ctx, cancel := s.deadline()
+	defer cancel()
+	declare(t, b, stream, "p26.>")
+
+	first, err := b.Streams().Counter(ctx, subject, 3)
+	if err != nil {
+		t.Fatalf("Streams().Counter(+3): %v", err)
+	}
+	if first != 3 {
+		t.Fatalf("the first Counter(+3) returned %d, want 3; a counter that has never been touched is zero", first)
+	}
+	next, err := b.Streams().Counter(ctx, subject, 4)
+	if err != nil {
+		t.Fatalf("Streams().Counter(+4): %v", err)
+	}
+	if next != 7 {
+		t.Fatalf("Counter(+3) then Counter(+4) returned %d, want 7; the counter does not accumulate", next)
+	}
+
+	// A second subject on the same stream is a second counter: the capability
+	// is "the atomic per-subject counter on a stream", not one per stream.
+	other, err := b.Streams().Counter(ctx, "p26.other", 1)
+	if err != nil {
+		t.Fatalf("Streams().Counter on a second subject: %v", err)
+	}
+	if other != 1 {
+		t.Fatalf("a second subject's counter reads %d, want 1; the two subjects share one counter", other)
+	}
+
+	const workers, each = 8, 25
+	var wg sync.WaitGroup
+	errs := make(chan error, workers)
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < each; j++ {
+				if _, err := b.Streams().Counter(ctx, subject, 1); err != nil {
+					errs <- err
+					return
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	if err := <-errs; err != nil {
+		t.Fatalf("concurrent Streams().Counter: %v", err)
+	}
+
+	// Adding zero reads the total without changing it.
+	total, err := b.Streams().Counter(ctx, subject, 0)
+	if err != nil {
+		t.Fatalf("final Streams().Counter(+0): %v", err)
+	}
+	if want := int64(7 + workers*each); total != want {
+		t.Fatalf("after %d concurrent increments the counter reads %d, want %d; %d increments were lost", workers*each, total, want, want-total)
+	}
+}
+
+// 27. BatchPublishIsAllOrNothing: PublishBatch "appends every message or
+// none", so a batch that cannot be stored whole leaves the stream untouched.
+//
+// The message count before and after is the only observable that distinguishes
+// atomicity from a loop that appends until it hits the fault: both return an
+// error, and only one of them leaves the earlier messages behind.
+func batchPublishIsAllOrNothing(t *testing.T, s *suite) {
+	const stream = "p27"
+	b := s.bus(t, withStream(ident("p27", "g1", "p27.>"), stream))
+	ctx, cancel := s.deadline()
+	defer cancel()
+	declare(t, b, stream, "p27.>")
+
+	seqs, err := b.Streams().PublishBatch(ctx, []bus.BatchMsg{
+		{Subject: "p27.a", Data: []byte("1")},
+		{Subject: "p27.b", Data: []byte("2")},
+		{Subject: "p27.c", Data: []byte("3")},
+	})
+	if err != nil {
+		t.Fatalf("Streams().PublishBatch: %v", err)
+	}
+	if len(seqs) != 3 {
+		t.Fatalf("PublishBatch returned %d sequences for a batch of 3", len(seqs))
+	}
+	for i := 1; i < len(seqs); i++ {
+		if seqs[i] <= seqs[i-1] {
+			t.Fatalf("PublishBatch returned sequences %v; a batch is appended in the order it was given", seqs)
+		}
+	}
+	before, err := b.Streams().Info(ctx, stream)
+	if err != nil {
+		t.Fatalf("Streams().Info: %v", err)
+	}
+	if before.Msgs != 3 {
+		t.Fatalf("the stream holds %d messages after a batch of 3", before.Msgs)
+	}
+
+	// The second message's precondition is false on purpose, so the batch
+	// cannot be stored whole. The first message must not survive it.
+	_, err = b.Streams().PublishBatch(ctx, []bus.BatchMsg{
+		{Subject: "p27.a", Data: []byte("4")},
+		{Subject: "p27.b", Data: []byte("5"), Opts: []bus.PublishOpt{bus.ExpectLastSeq(99)}},
+	})
+	if err == nil {
+		t.Fatal("a batch whose second message expects sequence 99 was accepted; the precondition was never checked")
+	}
+	mustCode(t, "PublishBatch with a false precondition", err, bus.FaultConflict)
+
+	after, err := b.Streams().Info(ctx, stream)
+	if err != nil {
+		t.Fatalf("Streams().Info after the refused batch: %v", err)
+	}
+	if after.Msgs != before.Msgs {
+		t.Fatalf("the stream holds %d messages after a batch that was refused; it held %d before. PublishBatch stored part of a batch it did not accept", after.Msgs, before.Msgs)
 	}
 }
 

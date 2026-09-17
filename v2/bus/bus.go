@@ -6,10 +6,18 @@
 // broker's own types into every plugin's dependency graph and make the
 // substrate unswappable. "All the power" is therefore a completeness
 // obligation on this package — every capability the substrate has is reachable
-// through an SDK-owned type — and is enforced by an import-boundary test that
-// fails the build if github.com/nats-io/* appears in any exported signature
-// here, and by an inventory test that resolves every promised capability by
-// go/doc.
+// through an SDK-owned type — and two different tests hold two different
+// halves of it.
+//
+// The module's boundary_test.go fails the build if github.com/nats-io/*
+// reaches any exported signature here, and its inventory_test.go reads these
+// packages with go/doc and fails when an exported TYPE is declared and not
+// registered for that walk — so the boundary gate cannot go stale by omission.
+// Neither test looks at capabilities. That is bus/conformance's job: the
+// property list is what proves two substrates equivalent, and
+// TestCapabilityVocabularyIsExactlyWhatTheSuiteProves requires every name in
+// CapabilityNames to be proved by a property or carried in
+// conformance.Deferred with its reason.
 package bus
 
 import (
@@ -126,6 +134,12 @@ type Capabilities struct {
 // CapabilityNames is the closed vocabulary a manifest "needs" entry may use.
 // Adding a name here is an SDK release; a manifest naming anything else fails
 // validation rather than being ignored.
+//
+// A name added here must also be proved: bus/conformance requires every one of
+// these to be covered by a conformance property or listed in
+// conformance.Deferred with the reason it is not, so a capability cannot
+// become declarable without either a cross-implementation guarantee or a
+// visible debt.
 func CapabilityNames() []string {
 	return []string{"durable", "kv", "objects", "services", "schedule", "counters", "batch", "trace"}
 }

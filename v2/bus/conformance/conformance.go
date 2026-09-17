@@ -75,6 +75,30 @@ func Properties() []Property {
 	return out
 }
 
+// Deferred names the capabilities in bus.CapabilityNames() that no property
+// proves, each with the reason it is not yet worth a cross-implementation
+// guarantee.
+//
+// It exists so that a gap is VISIBLE rather than absent. A capability name a
+// manifest may declare in "needs", the host checks with Capabilities.Has, and
+// no property compares two implementations on, is a promise nobody keeps; the
+// only thing worse than deferring one is deferring it silently.
+// TestCapabilityVocabularyIsExactlyWhatTheSuiteProves holds this map and the
+// property list to the vocabulary between them, so a name can be covered or
+// deferred and nothing else.
+//
+// An entry here is a debt, not a decision. Delete it by writing the property.
+func Deferred() map[string]string {
+	return map[string]string{
+		"trace": "broker-side message tracing is not built in any substrate: " +
+			"bus.Capabilities documents Trace as false until it is, and the bus " +
+			"exposes no surface a property could exercise — Bus.Trace() is bd-corr " +
+			"and traceparent propagation, which works regardless of this flag and is " +
+			"deliberately not gated on it. A property written now could only assert " +
+			"that nothing happens.",
+	}
+}
+
 // Run executes every property as a subtest named exactly for the property.
 func Run(t *testing.T, h Harness) {
 	t.Helper()
@@ -201,6 +225,12 @@ func withStream(id bus.Identity, name string) bus.Identity {
 // withKV adds a provisioned KV bucket to an identity's grants.
 func withKV(id bus.Identity, name string) bus.Identity {
 	id.Grants.KV = append(id.Grants.KV, name)
+	return id
+}
+
+// withObjects adds a provisioned object bucket to an identity's grants.
+func withObjects(id bus.Identity, name string) bus.Identity {
+	id.Grants.Objects = append(id.Grants.Objects, name)
 	return id
 }
 

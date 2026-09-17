@@ -17,11 +17,11 @@ import (
 //
 // The substrate here is core-only on purpose — publish, subscribe, request,
 // queue groups, grants, the permanent deny set, caller stamping, the payload
-// ceiling, bounded overflow and revoke. It declares no durable, kv, schedule
-// or services capability, so properties 17-24 skip. It is NOT a second memory
-// substrate and nothing outside this file may use it: it exists so that the
-// sixteen core properties, where all the timing and assertion logic lives, are
-// known to be satisfiable before anyone wires a real substrate to them.
+// ceiling, bounded overflow and revoke. It declares no capability at all, so
+// every capability-gated property (17 onwards) skips. It is NOT a second
+// memory substrate and nothing outside this file may use it: it exists so that
+// the sixteen core properties, where all the timing and assertion logic lives,
+// are known to be satisfiable before anyone wires a real substrate to them.
 
 func TestCorePropertiesAreSatisfiable(t *testing.T) {
 	c := newCore(4096, []bus.Pattern{"deny.everything.>"})

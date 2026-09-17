@@ -48,8 +48,8 @@ func TestPropertyMetadataIsWellFormed(t *testing.T) {
 			}
 		}
 	}
-	if got := len(Properties()); got != 24 {
-		t.Errorf("the list holds %d properties, want 24; adding or removing one is a contract change", got)
+	if got := len(Properties()); got != 27 {
+		t.Errorf("the list holds %d properties, want 27; adding or removing one is a contract change", got)
 	}
 	wantRequired := []string{
 		"QueueGroupExclusivity", "NoRespondersFastFail", "LoudAttributedRefusal",
@@ -65,6 +65,61 @@ func TestPropertyMetadataIsWellFormed(t *testing.T) {
 	if !slices.Equal(gotRequired, wantRequired) {
 		t.Errorf("requiredForDefault set is %v, want %v", gotRequired, wantRequired)
 	}
+}
+
+// TestCapabilityVocabularyIsExactlyWhatTheSuiteProves is the direction
+// TestPropertyMetadataIsWellFormed does not ask.
+//
+// That test checks that every name a property REQUIRES is a known capability.
+// This one checks that every KNOWN capability is covered — by a property, or
+// by an explicit Deferred() entry saying why not. Only the second question
+// catches a capability the vocabulary offers, a manifest may declare in
+// "needs", the host checks with Capabilities.Has, and no property ever
+// compares two implementations on. A one-directional check passes just as
+// happily when the covered set shrinks to one name.
+//
+// The assertion is set EQUALITY in both directions: every vocabulary name is
+// covered or deferred and never both, and neither the property list nor
+// Deferred() may name a capability the vocabulary does not have.
+func TestCapabilityVocabularyIsExactlyWhatTheSuiteProves(t *testing.T) {
+	vocabulary := bus.CapabilityNames()
+
+	covered := map[string][]string{}
+	for _, p := range Properties() {
+		for _, req := range p.Requires {
+			covered[req] = append(covered[req], p.Name)
+		}
+	}
+	deferred := Deferred()
+
+	// Vocabulary -> suite. The direction the finding was about.
+	for _, name := range vocabulary {
+		by, isCovered := covered[name]
+		reason, isDeferred := deferred[name]
+		switch {
+		case isCovered && isDeferred:
+			t.Errorf("capability %q is both proved by %v and listed as deferred; a debt that is already paid is a misleading entry, remove it from Deferred()", name, by)
+		case !isCovered && !isDeferred:
+			t.Errorf("capability %q is in bus.CapabilityNames(), so a manifest may declare needs:[%q] and the host will check Capabilities.Has(%q) — but no conformance property requires it, so nothing compares two substrates on it. Add a property that Requires %q, or add it to Deferred() with the reason.", name, name, name, name)
+		case isDeferred && strings.TrimSpace(reason) == "":
+			t.Errorf("capability %q is deferred with an empty reason; the reason is the whole value of deferring out loud", name)
+		}
+	}
+
+	// Suite -> vocabulary, so neither list can name a capability that does not
+	// exist and quietly count as coverage.
+	for name := range covered {
+		if !slices.Contains(vocabulary, name) {
+			t.Errorf("properties %v require %q, which is not in bus.CapabilityNames()", covered[name], name)
+		}
+	}
+	for name := range deferred {
+		if !slices.Contains(vocabulary, name) {
+			t.Errorf("Deferred() names %q, which is not in bus.CapabilityNames(); it defers nothing", name)
+		}
+	}
+
+	t.Logf("vocabulary of %d: %d proved by properties, %d deferred with a reason", len(vocabulary), len(covered), len(deferred))
 }
 
 // TestVacuityChild runs the suite against the broken substrate. It is started
