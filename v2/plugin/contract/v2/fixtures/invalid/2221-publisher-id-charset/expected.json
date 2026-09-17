@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2221",
+      "path": "publisher.id",
+      "severity": "error"
+    }
+  ]
+}

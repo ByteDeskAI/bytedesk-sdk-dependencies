@@ -1,0 +1,15 @@
+{
+  "contract": 2,
+  "id": "fixture",
+  "identity": {
+    "description": "A fixture for the plugin contract corpus.",
+    "displayName": "Fixture"
+  },
+  "kind": "builtin",
+  "publisher": {
+    "id": "acme",
+    "kid": "not-a-sha256",
+    "name": "Acme"
+  },
+  "version": "1.0.0"
+}

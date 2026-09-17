@@ -2,8 +2,13 @@
   "diagnostics": [
     {
       "code": "BDP4002",
-      "severity": "error",
-      "path": "binary"
+      "path": "binary",
+      "severity": "error"
+    },
+    {
+      "code": "BDP5003",
+      "path": "spawn",
+      "severity": "warning"
     }
   ],
   "skipOn": [

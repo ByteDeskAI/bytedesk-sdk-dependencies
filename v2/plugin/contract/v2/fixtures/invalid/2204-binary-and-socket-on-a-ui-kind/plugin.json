@@ -1,0 +1,16 @@
+{
+  "binary": "runner",
+  "contract": 2,
+  "id": "fixture",
+  "identity": {
+    "description": "A fixture for the plugin contract corpus.",
+    "displayName": "Fixture"
+  },
+  "kind": "ui",
+  "publisher": {
+    "id": "acme",
+    "name": "Acme"
+  },
+  "socket": "plugin.sock",
+  "version": "1.0.0"
+}

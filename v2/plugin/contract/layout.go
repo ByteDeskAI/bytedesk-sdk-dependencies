@@ -179,18 +179,27 @@ func verifyRefs(r *Report, root string, m plugin.Manifest, doc any) {
 	}
 }
 
-// inferKind is TEMPORARY: the manifest carries no kind until TM-395, so the
-// tree's own evidence decides, in the order layout.json documents.
+// inferKind prefers the manifest's own kind field and falls back to the tree's
+// evidence, in the order layout.json documents.
+//
+// The fallback is for manifests written before the field existed. It stays
+// only until the v1 window closes: what a package IS should not depend on
+// which files happen to be in it, and the ui/builtin split below is exactly
+// that dependency — a ui package whose build has not run yet reads as a
+// builtin and is judged by builtin's rules.
 func inferKind(m plugin.Manifest, files []treeFile) string {
+	if k := strings.ToLower(strings.TrimSpace(m.Kind)); k != "" {
+		return k
+	}
 	switch {
 	case m.Family != nil:
-		return "family"
+		return plugin.KindFamily
 	case m.Spawn:
-		return "process"
+		return plugin.KindProcess
 	case hasFile(files, "ui/index.html"):
-		return "ui"
+		return plugin.KindUI
 	default:
-		return "builtin"
+		return plugin.KindBuiltin
 	}
 }
 

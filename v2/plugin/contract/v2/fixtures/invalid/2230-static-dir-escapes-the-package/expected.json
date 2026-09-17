@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2230",
+      "path": "static[0].dir",
+      "severity": "error"
+    }
+  ]
+}

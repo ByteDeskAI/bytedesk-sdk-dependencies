@@ -1,0 +1,11 @@
+{
+  "contract": 2,
+  "homepage": "https://example.invalid",
+  "id": "fixture",
+  "identity": {
+    "description": "A fixture for the plugin contract corpus.",
+    "displayName": "Fixture"
+  },
+  "kind": "builtin",
+  "version": "1.0.0"
+}

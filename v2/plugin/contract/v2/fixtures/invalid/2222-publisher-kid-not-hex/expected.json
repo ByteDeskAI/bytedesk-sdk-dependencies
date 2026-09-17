@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2222",
+      "path": "publisher.kid",
+      "severity": "error"
+    }
+  ]
+}

@@ -1,5 +1,11 @@
 {
-  "diagnostics": [],
+  "diagnostics": [
+    {
+      "code": "BDP5003",
+      "path": "spawn",
+      "severity": "warning"
+    }
+  ],
   "options": {
     "mode": "source"
   }

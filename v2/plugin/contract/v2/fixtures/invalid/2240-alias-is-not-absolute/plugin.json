@@ -1,0 +1,13 @@
+{
+  "aliases": [
+    "capture"
+  ],
+  "contract": 2,
+  "id": "fixture",
+  "identity": {
+    "description": "A fixture for the plugin contract corpus.",
+    "displayName": "Fixture"
+  },
+  "kind": "builtin",
+  "version": "1.0.0"
+}

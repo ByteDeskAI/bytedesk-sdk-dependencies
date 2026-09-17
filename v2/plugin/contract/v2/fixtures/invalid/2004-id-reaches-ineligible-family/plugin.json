@@ -1,4 +1,8 @@
 {
   "id": "auth",
+  "identity": {
+    "description": "A fixture for the plugin contract corpus.",
+    "displayName": "Auth"
+  },
   "version": "1.0.0"
 }

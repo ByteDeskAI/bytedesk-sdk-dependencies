@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2241",
+      "path": "aliases[0]",
+      "severity": "error"
+    }
+  ]
+}

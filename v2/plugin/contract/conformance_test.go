@@ -195,7 +195,7 @@ func TestVerifyBytesIsTheManifestHalfOfVerifyDir(t *testing.T) {
 // TestReportIsTheWireShape pins what a consumer parses: contract, root, ok and
 // a diagnostics ARRAY, empty rather than null when there is nothing to say.
 func TestReportIsTheWireShape(t *testing.T) {
-	b, err := json.Marshal(Verify([]byte(`{"id":"x","version":"1.0.0"}`), Options{}))
+	b, err := json.Marshal(Verify([]byte(`{"id":"x","version":"1.0.0","identity":{"displayName":"X","description":"A plugin."}}`), Options{}))
 	if err != nil {
 		t.Fatal(err)
 	}

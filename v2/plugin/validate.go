@@ -39,11 +39,16 @@ func Validate(m Manifest) error { return FirstError(Diagnostics(m, true)) }
 // manifest read off disk is exactly the one that gets enabled.
 func ValidateDiscover(m Manifest) error { return FirstError(Diagnostics(m, false)) }
 
-// Diagnostics runs every semantic rule (the BDP2xxx band) and returns all of
-// its findings, in rule order. It is a function over a Manifest for the same
-// reason Validate is: a validator that is a method invites a caller to believe
-// the manifest validated itself. Ordering is the rules' own; callers that need
-// a stable wire order call SortDiagnostics.
+// Diagnostics runs every semantic rule (the BDP2xxx band), plus the
+// deprecations a decoded manifest can see on its own (BDP5003), and returns
+// all of its findings, in rule order. The deprecations that need the raw
+// document — a string publisher, a top-level homepage — belong to the contract
+// package, because by the time a Manifest exists both have been decoded away.
+//
+// It is a function over a Manifest for the same reason Validate is: a
+// validator that is a method invites a caller to believe the manifest
+// validated itself. Ordering is the rules' own; callers that need a stable
+// wire order call SortDiagnostics.
 func Diagnostics(m Manifest, requireVersion bool) []Diagnostic {
 	var c collector
 	id := strings.TrimSpace(m.ID)
@@ -108,6 +113,11 @@ func Diagnostics(m Manifest, requireVersion bool) []Diagnostic {
 	for i, impl := range m.Implements {
 		validatePointName(&c, fmt.Sprintf("implements[%d].point", i), "implements", m.Publisher, impl.Point)
 	}
+	validateKind(&c, m)
+	validateIdentity(&c, m)
+	validatePublisher(&c, m)
+	validateStatic(&c, m)
+	validateAliases(&c, m)
 	validateDocumentPaths(&c, m)
 	validatePublicRoutes(&c, m)
 	validateConfig(&c, m.Config)
@@ -118,6 +128,189 @@ func Diagnostics(m Manifest, requireVersion bool) []Diagnostic {
 	validateNeeds(&c, m)
 	validateUI(&c, m)
 	return c.list
+}
+
+// validateKind checks the closed kind vocabulary and the two places where a
+// manifest can say the same thing twice and disagree with itself.
+//
+// Spawn is the deprecated spelling of "kind": "process" and Family is the
+// evidence for "kind": "family". Where both are written, they must agree: a
+// verifier that picked one would be choosing which half of the manifest the
+// operator actually approved. Where only the old spelling is written, the
+// manifest is accepted with a deprecation warning, which is what makes the
+// window a window.
+func validateKind(c *collector, m Manifest) {
+	kind := strings.ToLower(strings.TrimSpace(m.Kind))
+	if kind != "" && !slices.Contains(Kinds(), kind) {
+		c.add("BDP2200", "kind", m.Kind, strings.Join(Kinds(), ", "))
+		return
+	}
+	if m.Spawn {
+		c.add("BDP5003", "spawn")
+	}
+	if kind == "" {
+		return
+	}
+	if m.Spawn && kind != KindProcess {
+		c.add("BDP2201", "kind", m.Kind)
+	}
+	if kind == KindFamily && m.Family == nil {
+		c.add("BDP2202", "kind")
+	}
+	if kind != KindFamily && m.Family != nil {
+		c.add("BDP2203", "family", m.Kind)
+	}
+	// binary and socket describe a process the host spawns and talks to. On
+	// any other kind they are inert text that reads like a capability, which
+	// is the shape an operator approves by mistake.
+	//
+	// Skipped when spawn already disagreed with kind: the manifest has one
+	// problem, and repeating it per field buries the sentence that says which
+	// two declarations contradict each other.
+	if kind != KindProcess && !m.Spawn {
+		if strings.TrimSpace(m.Binary) != "" {
+			c.add("BDP2204", "binary", "binary", kind)
+		}
+		if strings.TrimSpace(m.Socket) != "" {
+			c.add("BDP2204", "socket", "socket", kind)
+		}
+	}
+}
+
+// validateIdentity requires the human half of every manifest, for every kind.
+//
+// Nothing here is host-defaultable. An identity the host filled in would make
+// the store row, the settings list and the consent prompt all render text
+// nobody wrote, and the gate that checks identity exists would pass for every
+// package whether or not its author ever described it.
+func validateIdentity(c *collector, m Manifest) {
+	if m.Identity == nil {
+		c.add("BDP2210", "identity")
+		return
+	}
+	name := strings.TrimSpace(m.Identity.DisplayName)
+	switch {
+	case name == "":
+		c.add("BDP2211", "identity.displayName")
+	case name == strings.TrimSpace(m.ID):
+		// A warning, not a refusal: it is honest, just useless to a reader.
+		c.add("BDP2212", "identity.displayName", name)
+	}
+	if strings.TrimSpace(m.Identity.Description) == "" {
+		c.add("BDP2213", "identity.description")
+	}
+}
+
+// validatePublisher requires a publisher for everything the host did not
+// compile in, and checks that the two identifiers a registry looks up are the
+// shape it can look up.
+//
+// Neither check is a trust decision. A publisher block proves nothing; the
+// signature over the package and the key registry do. What is refused here is
+// a package that could not be attributed even if it were signed.
+func validatePublisher(c *collector, m Manifest) {
+	kind := m.KindOrInferred()
+	if m.Publisher == nil {
+		// An unrecognised kind has already been refused by BDP2200; asking it
+		// for a publisher as well would report the same mistake twice.
+		if kind != KindBuiltin && slices.Contains(Kinds(), kind) {
+			c.add("BDP2220", "publisher", kind)
+		}
+		return
+	}
+	if id := strings.TrimSpace(m.Publisher.ID); !validPublisherID(id) {
+		c.add("BDP2221", "publisher.id", m.Publisher.ID)
+	}
+	if kid := strings.TrimSpace(m.Publisher.KID); kid != "" && !validKID(kid) {
+		c.add("BDP2222", "publisher.kid", m.Publisher.KID)
+	}
+}
+
+// validateStatic checks the directories a host is asked to serve.
+//
+// Both halves are one safe path segment. Dir addresses the extracted package
+// and Mount addresses the URL space under /p/<id>/, so ".." or a leading
+// slash in either is a request to serve somewhere the package does not own.
+// Refused, never normalised: a mount the verifier had to correct is not the
+// one the author read.
+func validateStatic(c *collector, m Manifest) {
+	seenDir, seenMount := map[string]bool{}, map[string]bool{}
+	for i, s := range m.Static {
+		dir, mount := strings.TrimSpace(s.Dir), strings.TrimSpace(s.Mount)
+		if !safeSegment(dir) {
+			c.add("BDP2230", fmt.Sprintf("static[%d].dir", i), s.Dir)
+		} else if seenDir[dir] {
+			c.add("BDP2232", fmt.Sprintf("static[%d].dir", i), "static[].dir", dir)
+		}
+		seenDir[dir] = true
+		if !safeSegment(mount) {
+			c.add("BDP2231", fmt.Sprintf("static[%d].mount", i), s.Mount)
+		} else if seenMount[mount] {
+			c.add("BDP2232", fmt.Sprintf("static[%d].mount", i), "static[].mount", mount)
+		}
+		seenMount[mount] = true
+	}
+}
+
+// safeSegment reports whether s is exactly one path segment that addresses
+// something inside the tree it is relative to.
+func safeSegment(s string) bool {
+	return s != "" && s != "." && s != ".." && !strings.ContainsAny(s, `/\`) && !strings.Contains(s, "..")
+}
+
+// validateAliases checks the pretty paths the host's reverse proxy maps.
+//
+// An alias is an absolute path of non-empty segments that the host does not
+// already serve itself. Collisions BETWEEN plugins are the host's refusal, not
+// this one: only the host sees two manifests at once.
+func validateAliases(c *collector, m Manifest) {
+	seen := map[string]bool{}
+	for i, raw := range m.Aliases {
+		path := fmt.Sprintf("aliases[%d]", i)
+		alias := strings.TrimSpace(raw)
+		if !absolutePath(alias) {
+			c.add("BDP2240", path, raw)
+			continue
+		}
+		normal := "/" + strings.Trim(alias, "/")
+		if reserved := reservedAlias(normal); reserved != "" {
+			c.add("BDP2241", path, raw, reserved)
+			continue
+		}
+		if seen[normal] {
+			c.add("BDP2232", path, "aliases", normal)
+		}
+		seen[normal] = true
+	}
+}
+
+// absolutePath reports whether s is a leading slash followed by at least one
+// non-empty segment, with no "." or ".." anywhere. A trailing slash is allowed
+// because an alias names a prefix.
+func absolutePath(s string) bool {
+	if !strings.HasPrefix(s, "/") || strings.Contains(s, `\`) {
+		return false
+	}
+	segments := strings.Split(strings.Trim(s, "/"), "/")
+	if len(segments) == 0 || segments[0] == "" {
+		return false
+	}
+	for _, seg := range segments {
+		if seg == "" || seg == "." || seg == ".." {
+			return false
+		}
+	}
+	return true
+}
+
+// reservedAlias returns the reserved prefix alias claims, or "".
+func reservedAlias(alias string) string {
+	for _, prefix := range ReservedAliasPrefixes() {
+		if alias == prefix || strings.HasPrefix(alias, prefix+"/") {
+			return prefix
+		}
+	}
+	return ""
 }
 
 // validateSubjectPatterns is the v2 rule v1 could not express. v1's Permissions

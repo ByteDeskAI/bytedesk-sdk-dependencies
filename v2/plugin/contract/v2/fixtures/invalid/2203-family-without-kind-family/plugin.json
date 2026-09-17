@@ -1,0 +1,23 @@
+{
+  "contract": 2,
+  "family": {
+    "members": [
+      {
+        "id": "fixture-linux",
+        "when": {
+          "os": [
+            "linux"
+          ]
+        }
+      }
+    ],
+    "selector": "runtime.os"
+  },
+  "id": "fixture",
+  "identity": {
+    "description": "A fixture for the plugin contract corpus.",
+    "displayName": "Fixture"
+  },
+  "kind": "builtin",
+  "version": "1.0.0"
+}

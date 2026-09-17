@@ -309,7 +309,10 @@ func TestValidateExtendsNames(t *testing.T) {
 	}{
 		{"publisher namespace", acme, "acme.widgets.panel", true},
 		{"host namespace is well formed", nil, "host.widgets.panel", true},
-		{"mixed-case publisher id", &Publisher{ID: "Acme"}, "acme.widgets.panel", true},
+		// ValidateExtendsName itself lowercases the publisher id, but since
+		// TM-395 the charset rule (BDP2221) refuses a mixed-case publisher id
+		// before that leniency can ever be reached through Validate.
+		{"mixed-case publisher id", &Publisher{ID: "Acme"}, "acme.widgets.panel", false},
 		{"hyphens and digits", acme, "acme.s3-v2.bucket", true},
 		{"bare legacy name", acme, "files.s3", false},
 		{"two-part publisher name", acme, "acme.widgets", true},
@@ -324,7 +327,8 @@ func TestValidateExtendsNames(t *testing.T) {
 	}
 	for _, c := range cases {
 		m := Manifest{ID: "example", Version: "1", Publisher: c.publisher,
-			Extends: []ExtensionPoint{{Name: c.point, Interface: "x.v1"}}}
+			Identity: &ManifestIdentity{DisplayName: "Example", Description: "An example."},
+			Extends:  []ExtensionPoint{{Name: c.point, Interface: "x.v1"}}}
 		if err := Validate(m); (err == nil) != c.ok {
 			t.Errorf("%s: %q ok=%v err=%v", c.name, c.point, c.ok, err)
 		}

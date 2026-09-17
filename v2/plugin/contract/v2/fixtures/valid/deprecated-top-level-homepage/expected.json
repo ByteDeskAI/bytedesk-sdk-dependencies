@@ -1,0 +1,14 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP1006",
+      "path": "homepage",
+      "severity": "warning"
+    },
+    {
+      "code": "BDP5004",
+      "path": "homepage",
+      "severity": "warning"
+    }
+  ]
+}

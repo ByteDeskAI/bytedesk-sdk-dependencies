@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2231",
+      "path": "static[0].mount",
+      "severity": "error"
+    }
+  ]
+}
