@@ -1,0 +1,5 @@
+{
+  "kind": "builtin",
+  "displayName": "Settings",
+  "description": "Serves the operator settings surface."
+}

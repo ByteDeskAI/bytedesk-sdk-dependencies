@@ -1,0 +1,4 @@
+{
+  "note": "A publisher is who signs the package. Absent, it comes from an explicit publisher id or from the first-party declaration, and never from a default.",
+  "error": "this manifest has no publisher"
+}

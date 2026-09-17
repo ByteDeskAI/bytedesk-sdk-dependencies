@@ -1,0 +1,10 @@
+{
+  "note": "BDP2004. The id implicitly Serves cmd.cutover.>, a permanently ineligible family. The fix is a different plugin id, which renames its routes, its storage and every subject it serves, so migrate reports it instead of choosing one.",
+  "notes": [
+    {
+      "code": "BDP2004",
+      "severity": "error",
+      "path": "id"
+    }
+  ]
+}

@@ -230,14 +230,6 @@ func TestValidateStillReturnsTheFirstError(t *testing.T) {
 	}
 }
 
-// TestMigrateV1IsReservedForTM396 pins the stub so a caller finds out at the
-// call, not by reading an empty result.
-func TestMigrateV1IsReservedForTM396(t *testing.T) {
-	if _, err := MigrateV1([]byte(`{}`)); !errors.Is(err, ErrNotImplemented) {
-		t.Fatalf("MigrateV1 = %v, want ErrNotImplemented", err)
-	}
-}
-
 // TestAssetsServeTheContract: the three data files a binding reads are there.
 func TestAssetsServeTheContract(t *testing.T) {
 	for _, name := range []string{"plugin.schema.json", "layout.json", "diagnostics.json", "fixtures/valid/reference/plugin.json"} {

@@ -109,13 +109,6 @@ func Assets() fs.FS {
 	return sub
 }
 
-// ErrNotImplemented is returned by MigrateV1 until TM-396 lands the migration.
-var ErrNotImplemented = errors.New("contract: not implemented")
-
-// MigrateV1 rewrites a v1 plugin.json into v2 deterministically. It is the
-// entry point `bytedesk plugin migrate` calls; the rewrite itself is TM-396.
-func MigrateV1(raw []byte) ([]byte, error) { return nil, ErrNotImplemented }
-
 // Verify judges plugin.json bytes on their own: the schema band, the semantic
 // band, deprecations, and the host gate when Options asks for one. It cannot
 // see a tree, so layout and reference findings need VerifyDir.

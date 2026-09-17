@@ -1,0 +1,4 @@
+{
+  "displayName": "S3 Backend",
+  "description": "Stores files in an S3-compatible bucket."
+}

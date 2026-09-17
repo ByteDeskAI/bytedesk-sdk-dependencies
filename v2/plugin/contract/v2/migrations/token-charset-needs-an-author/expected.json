@@ -1,0 +1,10 @@
+{
+  "note": "BDP2111 is NOT rewritten. Renaming the token would rename a subject something already publishes on, so migrate leaves it and reports the verifier's own finding as the author's decision.",
+  "notes": [
+    {
+      "code": "BDP2111",
+      "severity": "error",
+      "path": "permissions.publish[0]"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "terminal-runtime",
+  "version": "1",
+  "publisher": {
+    "id": "bytedesk",
+    "name": "ByteDesk"
+  },
+  "permissions": {
+    "publish": [
+      "event.terminal.openLink"
+    ]
+  }
+}

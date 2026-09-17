@@ -1,0 +1,19 @@
+{
+  "contract": 2,
+  "kind": "process",
+  "id": "tmux-manager",
+  "version": "1.0.0",
+  "identity": {
+    "displayName": "Tmux Manager",
+    "description": "Runs and lists tmux sessions for the operator.",
+    "homepage": "https://example.com/tmux-manager"
+  },
+  "binary": "tmux-manager",
+  "publisher": {
+    "id": "acme",
+    "name": "acme"
+  },
+  "targets": [
+    "gateway"
+  ]
+}
