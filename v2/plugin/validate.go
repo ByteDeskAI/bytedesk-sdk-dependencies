@@ -54,8 +54,12 @@ func Diagnostics(m Manifest, requireVersion bool) []Diagnostic {
 	id := strings.TrimSpace(m.ID)
 	if id == "" {
 		c.add("BDP2001", "id")
-	} else if msg, ok := idSegment("plugin id", id); !ok {
-		c.add("BDP2002", "id", msg)
+	} else if _, ok := idSegment("plugin id", id); !ok {
+		// idSegment's message duplicates BDP2002's own template, and passing
+		// it as an argument to a template with no verb rendered a Go
+		// formatting artifact into author-facing output — see
+		// TestNoDiagnosticRendersAFormattingArtifact.
+		c.add("BDP2002", "id")
 	}
 	if requireVersion && strings.TrimSpace(m.Version) == "" {
 		c.add("BDP2003", "version")
