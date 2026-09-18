@@ -106,6 +106,7 @@ func TestEveryDiagnosticCodeHasAFixture(t *testing.T) {
 	// Codes proven by a unit test instead of a fixture, with the test named.
 	exempt := map[string]string{
 		"BDP3004": "TestLimitsAreEnforced (a fixture over the limit would be too large to commit)",
+		"BDP6020": "the gateway's direct-upload route (TM-407): reaching this code needs an attestation the manifest alone never carries, so no VerifyDir fixture can produce it — plugin.NewDiagnostic(\"BDP6020\", ...) is exercised by the gateway's own tests instead",
 	}
 	seen := map[string]bool{}
 	err := filepath.WalkDir(fixturesRoot, func(path string, d fs.DirEntry, err error) error {
