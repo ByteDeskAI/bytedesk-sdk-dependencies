@@ -143,6 +143,22 @@ var assets embed.FS
 // Assets is the contract as data: plugin.schema.json, layout.json,
 // diagnostics.json and the fixture corpus, rooted at "." so a binding in
 // another language reads exactly what this one embeds.
+//
+// TWO THINGS EMBED CANNOT CARRY, and a consumer running the corpus from here
+// rather than from a checkout will diverge on exactly the fixtures that need
+// them:
+//
+//   - file modes. Go's embed reports every file as 0444, so a fixture whose
+//     verdict depends on the executable bit (a package declaring a binary)
+//     cannot be reproduced from Assets.
+//   - symlinks. A fixture that needs one ships links.json instead, as data the
+//     consumer recreates; the reference suite and any consumer reading Assets
+//     both have to act on it.
+//
+// Found when Vault ran the corpus through this package (TM-403) and two
+// binary fixtures disagreed. A consumer that vendors the tree from git — as
+// the Toolbox does, because Rust cannot import a Go package — gets both and
+// needs neither workaround.
 func Assets() fs.FS {
 	sub, err := fs.Sub(assets, "v2")
 	if err != nil {
