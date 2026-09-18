@@ -137,6 +137,7 @@
     "BDP6002": {"severity": "error", "message": "minCoreVersion %s exceeds the host core version %s"},
     "BDP6003": {"severity": "error", "message": "%s %q is not a semantic version"},
     "BDP6004": {"severity": "error", "message": "version %s is below the minimum the host accepts (%s)"},
-    "BDP6011": {"severity": "error", "message": "alias %q is reserved by the %s host (%s); a host's own routes are not a plugin's to claim"}
+    "BDP6011": {"severity": "error", "message": "alias %q is reserved by the %s host (%s); a host's own routes are not a plugin's to claim"},
+    "BDP6020": {"severity": "error", "message": "publisher %q is reserved; only ByteDesk may claim it, and only with a Store countersignature"}
   }
 }
