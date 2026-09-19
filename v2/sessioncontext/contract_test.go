@@ -22,6 +22,9 @@ func TestContractIdentity(t *testing.T) {
 	if got := []string{CommandOpen, CommandRefresh, CommandAction}; !reflect.DeepEqual(got, want) {
 		t.Fatalf("commands = %#v", got)
 	}
+	if got := Open.Descriptor(); got.Name() != CommandOpen || got.Rev() != ContractRevision || got.SchemaHash() == "" {
+		t.Fatalf("open descriptor = %#v", got)
+	}
 }
 
 func TestContextAcceptsDerivedStateOnly(t *testing.T) {

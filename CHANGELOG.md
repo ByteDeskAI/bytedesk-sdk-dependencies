@@ -18,6 +18,10 @@
   `cmd.host.session-context.v1.*`. `cmd.host.*` is reserved for host-internal
   operations and permanently unavailable to plugins.
 
+- **Generated command descriptors (`v2.0.0-rc.7`).** Public contract wrappers
+  now expose their generated descriptor identity for host responders to
+  register and echo the exact schema hash without copying it locally.
+
 - **`v2/`: the substrate-neutral SDK generation** (module
   `github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2`, released independently of
   v1, which keeps building beside it).

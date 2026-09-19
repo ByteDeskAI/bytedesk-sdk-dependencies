@@ -59,6 +59,11 @@ type Service struct{ s plugin.ServiceDescriptor }
 // Name reports the operation name, for registry keys and diagnostics.
 func (c Command[Req, Resp]) Name() string { return c.c.Descriptor().Name() }
 
+// Descriptor reports the generated operation identity. A host that serves this
+// public contract uses it to register and echo the exact schema revision;
+// callers still cannot construct a descriptor because Command retains c.
+func (c Command[Req, Resp]) Descriptor() plugin.Descriptor { return c.c.Descriptor() }
+
 // Name reports the event name, for registry keys and diagnostics.
 func (e Event[T]) Name() string { return e.e.Descriptor().Name() }
 
