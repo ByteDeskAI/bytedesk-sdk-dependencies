@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.18 / 2.0.0-rc.8] - 2026-09-19
+
 ### Added
 
 - **Reusable Projects contributions.** Plugin manifests can declare ordered
