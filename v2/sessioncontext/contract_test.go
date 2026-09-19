@@ -18,7 +18,7 @@ func TestContractIdentity(t *testing.T) {
 	if ContractRevision != 1 {
 		t.Fatalf("revision = %d", ContractRevision)
 	}
-	want := []string{"cmd.host.session-context.v1.open", "cmd.host.session-context.v1.refresh", "cmd.host.session-context.v1.action"}
+	want := []string{"cmd.session-context.v1.open", "cmd.session-context.v1.refresh", "cmd.session-context.v1.action"}
 	if got := []string{CommandOpen, CommandRefresh, CommandAction}; !reflect.DeepEqual(got, want) {
 		t.Fatalf("commands = %#v", got)
 	}

@@ -80,7 +80,9 @@ of it re-asks rather than inheriting the old approval.
 
 `sessioncontext` defines the generic interaction boundary for a plugin that
 needs derived state about an operator-scoped host resource. Its only commands
-are `cmd.host.session-context.v1.open`, `.refresh`, and `.action`. A plugin asks
+are `cmd.session-context.v1.open`, `.refresh`, and `.action`. They are served by
+the host, while `cmd.host.*` remains reserved for host-internal operations that
+plugins can never invoke. A plugin asks
 for an opaque target and purpose; the host derives the caller's principal from
 the substrate-stamped lease, then returns an opaque context, revision, expiry,
 bounded state, and closed action set. A context action is named and

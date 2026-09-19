@@ -5,13 +5,18 @@
 ### Added
 
 - **Lease-scoped host session contexts (`v2/sessioncontext`).** Three typed
-  commands — `cmd.host.session-context.v1.open`, `.refresh`, and `.action` —
+  commands — `cmd.session-context.v1.open`, `.refresh`, and `.action` —
   define an opaque, bounded interaction context for a plugin. The substrate
   stamps workload identity, generation, and subject lease; those are never
   request fields. Contexts expose only a purpose, opaque identifiers, derived
   state, expiry, revision, and a closed host-approved action set. They expose
   no project path, terminal CWD, port, process, proxy, private URL, credential,
   or arbitrary metadata. `task_dashboard` is the first purpose.
+
+- **Corrected public session-context namespace (`v2.0.0-rc.6`).** The
+  plugin-facing broker commands are `cmd.session-context.v1.*`, not
+  `cmd.host.session-context.v1.*`. `cmd.host.*` is reserved for host-internal
+  operations and permanently unavailable to plugins.
 
 - **`v2/`: the substrate-neutral SDK generation** (module
   `github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2`, released independently of

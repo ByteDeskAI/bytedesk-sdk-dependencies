@@ -109,11 +109,11 @@ func OpenBucket[T Payload](ctx context.Context, b bus.Bus, d Bucket[T]) (plugin.
 	return plugin.OpenBucket[T](ctx, b, d.b)
 }
 
-// Open is the generated descriptor for cmd.host.session-context.v1.open revision 1.
-var Open = Command[OpenRequest, OpenResult]{c: plugin.NewCommand[OpenRequest, OpenResult]("cmd.host.session-context.v1.open", 1, "0d3dabc89dda81af3c62779a93ed40462fe4f57eeed2d975f50dca9c5ebdc939", "cmd.host.session-context.v1.open")}
+// Open is the generated descriptor for cmd.session-context.v1.open revision 1.
+var Open = Command[OpenRequest, OpenResult]{c: plugin.NewCommand[OpenRequest, OpenResult]("cmd.session-context.v1.open", 1, "c234e4674c2f0ef6baf0569c91ee0a890ba39c8d813eb43577499b10548d7c38", "cmd.session-context.v1.open")}
 
-// Refresh is the generated descriptor for cmd.host.session-context.v1.refresh revision 1.
-var Refresh = Command[RefreshRequest, RefreshResult]{c: plugin.NewCommand[RefreshRequest, RefreshResult]("cmd.host.session-context.v1.refresh", 1, "506635a60279ef076178e713950cff5d32022b653bd6d5ebe8b3bfcb7dd20787", "cmd.host.session-context.v1.refresh")}
+// Refresh is the generated descriptor for cmd.session-context.v1.refresh revision 1.
+var Refresh = Command[RefreshRequest, RefreshResult]{c: plugin.NewCommand[RefreshRequest, RefreshResult]("cmd.session-context.v1.refresh", 1, "90df2715cb6657cec4d99d0f3bf297d9fb1b23767ec708bc8ddf8c13669322e5", "cmd.session-context.v1.refresh")}
 
-// Action is the generated descriptor for cmd.host.session-context.v1.action revision 1.
-var Action = Command[ActionRequest, ActionResult]{c: plugin.NewCommand[ActionRequest, ActionResult]("cmd.host.session-context.v1.action", 1, "b5fd07689f79c64df4f29291973ecf99a61e1057ac44c37421e23479d220fbea", "cmd.host.session-context.v1.action")}
+// Action is the generated descriptor for cmd.session-context.v1.action revision 1.
+var Action = Command[ActionRequest, ActionResult]{c: plugin.NewCommand[ActionRequest, ActionResult]("cmd.session-context.v1.action", 1, "c3276afd6e85e56af01a2cd02288bf32ff72a91dad925ced6d2287b0109ea62d", "cmd.session-context.v1.action")}

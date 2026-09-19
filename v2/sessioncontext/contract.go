@@ -15,9 +15,12 @@ import (
 const (
 	ContractRevision = 1
 
-	CommandOpen    = "cmd.host.session-context.v1.open"
-	CommandRefresh = "cmd.host.session-context.v1.refresh"
-	CommandAction  = "cmd.host.session-context.v1.action"
+	// These are public, host-served commands. They deliberately do not use
+	// cmd.host.*, which is reserved for host-internal operations that plugins
+	// can never invoke.
+	CommandOpen    = "cmd.session-context.v1.open"
+	CommandRefresh = "cmd.session-context.v1.refresh"
+	CommandAction  = "cmd.session-context.v1.action"
 
 	PurposeTaskDashboard = "task_dashboard"
 
