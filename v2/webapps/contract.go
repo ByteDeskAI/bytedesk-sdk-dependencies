@@ -17,19 +17,19 @@ import (
 const (
 	ContractRevision = 1
 
-	CommandList                = "cmd.web-apps.v1.list"
-	CommandCreate              = "cmd.web-apps.v1.create"
-	CommandCreationEligibility = "cmd.web-apps.v1.creation-eligibility"
-	CommandConversationSend    = "cmd.web-apps.v1.conversation.send"
-	CommandConversationApprove = "cmd.web-apps.v1.conversation.approve"
-	CommandConversationAnswer  = "cmd.web-apps.v1.conversation.answer"
-	CommandRunStop             = "cmd.web-apps.v1.run.stop"
-	CommandServicesStart       = "cmd.web-apps.v1.services.start"
-	CommandServicesStop        = "cmd.web-apps.v1.services.stop"
-	CommandServicesLogs        = "cmd.web-apps.v1.services.logs"
-	CommandPreviewResolve      = "cmd.web-apps.v1.preview.resolve"
-	CommandPreviewNavigate     = "cmd.web-apps.v1.preview.navigate"
-	CommandPreviewOpenExternal = "cmd.web-apps.v1.preview.open-external"
+	CommandList                = "cmd.gateway.web-apps.v1.list"
+	CommandCreate              = "cmd.gateway.web-apps.v1.create"
+	CommandCreationEligibility = "cmd.gateway.web-apps.v1.creation-eligibility"
+	CommandConversationSend    = "cmd.gateway.web-apps.v1.conversation.send"
+	CommandConversationApprove = "cmd.gateway.web-apps.v1.conversation.approve"
+	CommandConversationAnswer  = "cmd.gateway.web-apps.v1.conversation.answer"
+	CommandRunStop             = "cmd.gateway.web-apps.v1.run.stop"
+	CommandServicesStart       = "cmd.gateway.web-apps.v1.services.start"
+	CommandServicesStop        = "cmd.gateway.web-apps.v1.services.stop"
+	CommandServicesLogs        = "cmd.gateway.web-apps.v1.services.logs"
+	CommandPreviewResolve      = "cmd.gateway.web-apps.v1.preview.resolve"
+	CommandPreviewNavigate     = "cmd.gateway.web-apps.v1.preview.navigate"
+	CommandPreviewOpenExternal = "cmd.gateway.web-apps.v1.preview.open-external"
 
 	EventChanged = "event.web-apps.v1.changed"
 

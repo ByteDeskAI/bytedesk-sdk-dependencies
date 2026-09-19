@@ -146,44 +146,44 @@ func OpenBucket[T Payload](ctx context.Context, b bus.Bus, d Bucket[T]) (plugin.
 	return plugin.OpenBucket[T](ctx, b, d.b)
 }
 
-// List is the generated descriptor for cmd.web-apps.v1.list revision 1.
-var List = Command[ListRequest, ListResult]{c: plugin.NewCommand[ListRequest, ListResult]("cmd.web-apps.v1.list", 1, "4bb46fbc3c737fdd15e51957d4431f5f74fe6b4858926ac568b1e5a5183aed97", "cmd.web-apps.v1.list")}
+// List is the generated descriptor for cmd.gateway.web-apps.v1.list revision 1.
+var List = Command[ListRequest, ListResult]{c: plugin.NewCommand[ListRequest, ListResult]("cmd.gateway.web-apps.v1.list", 1, "cbf6469648ba690382b908ff60d8ff7b5fe4fdac18d7c65fc4309a42376c136c", "cmd.gateway.web-apps.v1.list")}
 
-// Create is the generated descriptor for cmd.web-apps.v1.create revision 1.
-var Create = Command[CreateRequest, CreateResult]{c: plugin.NewCommand[CreateRequest, CreateResult]("cmd.web-apps.v1.create", 1, "b90d842f26948f74ddc8b6470585cd0b4932282a00da68ce9531177cbdd7faa4", "cmd.web-apps.v1.create")}
+// Create is the generated descriptor for cmd.gateway.web-apps.v1.create revision 1.
+var Create = Command[CreateRequest, CreateResult]{c: plugin.NewCommand[CreateRequest, CreateResult]("cmd.gateway.web-apps.v1.create", 1, "b36c5035182f66128eecb04d19ff7bbfc457bdf4c4428ec072abad36114383d1", "cmd.gateway.web-apps.v1.create")}
 
-// CheckCreationEligibility is the generated descriptor for cmd.web-apps.v1.creation-eligibility revision 1.
-var CheckCreationEligibility = Command[CreationEligibilityRequest, CreationEligibilityResult]{c: plugin.NewCommand[CreationEligibilityRequest, CreationEligibilityResult]("cmd.web-apps.v1.creation-eligibility", 1, "0b476ef6a9b31e3dbcb434a7a7a9addf1afbdd12b17437e5c65a723f184a3a1c", "cmd.web-apps.v1.creation-eligibility")}
+// CheckCreationEligibility is the generated descriptor for cmd.gateway.web-apps.v1.creation-eligibility revision 1.
+var CheckCreationEligibility = Command[CreationEligibilityRequest, CreationEligibilityResult]{c: plugin.NewCommand[CreationEligibilityRequest, CreationEligibilityResult]("cmd.gateway.web-apps.v1.creation-eligibility", 1, "33df73e2b569ef57351a3b677cba87a054585fd43a1ff982c58b3a58f6111ddf", "cmd.gateway.web-apps.v1.creation-eligibility")}
 
-// SendConversationMessage is the generated descriptor for cmd.web-apps.v1.conversation.send revision 1.
-var SendConversationMessage = Command[ConversationSendRequest, ConversationSendResult]{c: plugin.NewCommand[ConversationSendRequest, ConversationSendResult]("cmd.web-apps.v1.conversation.send", 1, "458f2ecce83fc55f282d2602f3ab20ffe9f51438f8e8fbb2971da63945b9ceae", "cmd.web-apps.v1.conversation.send")}
+// SendConversationMessage is the generated descriptor for cmd.gateway.web-apps.v1.conversation.send revision 1.
+var SendConversationMessage = Command[ConversationSendRequest, ConversationSendResult]{c: plugin.NewCommand[ConversationSendRequest, ConversationSendResult]("cmd.gateway.web-apps.v1.conversation.send", 1, "8c198bf95569cb7d9d2d346da4ee685be14be8a000b70698dcc047ae4428c69f", "cmd.gateway.web-apps.v1.conversation.send")}
 
-// ApproveConversationRequest is the generated descriptor for cmd.web-apps.v1.conversation.approve revision 1.
-var ApproveConversationRequest = Command[ConversationApproveRequest, ConversationApproveResult]{c: plugin.NewCommand[ConversationApproveRequest, ConversationApproveResult]("cmd.web-apps.v1.conversation.approve", 1, "5706a5fe3250b9049d30da45816316f020d03f66d8b4452847b6d5c6678e3bec", "cmd.web-apps.v1.conversation.approve")}
+// ApproveConversationRequest is the generated descriptor for cmd.gateway.web-apps.v1.conversation.approve revision 1.
+var ApproveConversationRequest = Command[ConversationApproveRequest, ConversationApproveResult]{c: plugin.NewCommand[ConversationApproveRequest, ConversationApproveResult]("cmd.gateway.web-apps.v1.conversation.approve", 1, "e046d65de2b4224cf1a0b0e629146e21de9205fe48a861444cb9aa048d734621", "cmd.gateway.web-apps.v1.conversation.approve")}
 
-// AnswerConversationRequest is the generated descriptor for cmd.web-apps.v1.conversation.answer revision 1.
-var AnswerConversationRequest = Command[ConversationAnswerRequest, ConversationAnswerResult]{c: plugin.NewCommand[ConversationAnswerRequest, ConversationAnswerResult]("cmd.web-apps.v1.conversation.answer", 1, "abcfba5c232d979146ddd62c008421d7ff8e7d9810f68b85e4b1ac6f72312aea", "cmd.web-apps.v1.conversation.answer")}
+// AnswerConversationRequest is the generated descriptor for cmd.gateway.web-apps.v1.conversation.answer revision 1.
+var AnswerConversationRequest = Command[ConversationAnswerRequest, ConversationAnswerResult]{c: plugin.NewCommand[ConversationAnswerRequest, ConversationAnswerResult]("cmd.gateway.web-apps.v1.conversation.answer", 1, "796d473b699f1ae91c968cabccf3764051ad2c1ce6bf2977ee0b934555fae086", "cmd.gateway.web-apps.v1.conversation.answer")}
 
-// StopRun is the generated descriptor for cmd.web-apps.v1.run.stop revision 1.
-var StopRun = Command[RunStopRequest, RunStopResult]{c: plugin.NewCommand[RunStopRequest, RunStopResult]("cmd.web-apps.v1.run.stop", 1, "f3a4508b2dfd799270be3f622dddf626179875404437d2eda4dad08d4c196f54", "cmd.web-apps.v1.run.stop")}
+// StopRun is the generated descriptor for cmd.gateway.web-apps.v1.run.stop revision 1.
+var StopRun = Command[RunStopRequest, RunStopResult]{c: plugin.NewCommand[RunStopRequest, RunStopResult]("cmd.gateway.web-apps.v1.run.stop", 1, "7cdc315c8824ae8ba869bcd1d5dbefc95a0f91d528944b1c9bf8ac14adc12aa8", "cmd.gateway.web-apps.v1.run.stop")}
 
-// StartServices is the generated descriptor for cmd.web-apps.v1.services.start revision 1.
-var StartServices = Command[ServicesStartRequest, ServicesStartResult]{c: plugin.NewCommand[ServicesStartRequest, ServicesStartResult]("cmd.web-apps.v1.services.start", 1, "7cf00b95dfce6b556b4a3e0f57085dfaadd0f967966d88c8186d96e7944136bb", "cmd.web-apps.v1.services.start")}
+// StartServices is the generated descriptor for cmd.gateway.web-apps.v1.services.start revision 1.
+var StartServices = Command[ServicesStartRequest, ServicesStartResult]{c: plugin.NewCommand[ServicesStartRequest, ServicesStartResult]("cmd.gateway.web-apps.v1.services.start", 1, "53df9abba0d5dbbbc39aec295dffacfcb5cb6813c12a6e3c54238ef582494128", "cmd.gateway.web-apps.v1.services.start")}
 
-// StopServices is the generated descriptor for cmd.web-apps.v1.services.stop revision 1.
-var StopServices = Command[ServicesStopRequest, ServicesStopResult]{c: plugin.NewCommand[ServicesStopRequest, ServicesStopResult]("cmd.web-apps.v1.services.stop", 1, "68652738afc69adc8e4b579e8fdfa4ed9945d1b2a498c7d653bf492dc3d77ab1", "cmd.web-apps.v1.services.stop")}
+// StopServices is the generated descriptor for cmd.gateway.web-apps.v1.services.stop revision 1.
+var StopServices = Command[ServicesStopRequest, ServicesStopResult]{c: plugin.NewCommand[ServicesStopRequest, ServicesStopResult]("cmd.gateway.web-apps.v1.services.stop", 1, "c062f1af1418a834b5b2c72f54ade5a38fe67de97586971b42bd690f3f463742", "cmd.gateway.web-apps.v1.services.stop")}
 
-// ReadServiceLogs is the generated descriptor for cmd.web-apps.v1.services.logs revision 1.
-var ReadServiceLogs = Command[ServicesLogsRequest, ServicesLogsResult]{c: plugin.NewCommand[ServicesLogsRequest, ServicesLogsResult]("cmd.web-apps.v1.services.logs", 1, "d4a088b47debdf1486aa665df549245d830691098ddd0778b28c028ed7293e87", "cmd.web-apps.v1.services.logs")}
+// ReadServiceLogs is the generated descriptor for cmd.gateway.web-apps.v1.services.logs revision 1.
+var ReadServiceLogs = Command[ServicesLogsRequest, ServicesLogsResult]{c: plugin.NewCommand[ServicesLogsRequest, ServicesLogsResult]("cmd.gateway.web-apps.v1.services.logs", 1, "42d6ea8c2a5ecdf68c6e13fc7509a7ddda1d22caac49fa9333954033b7320bac", "cmd.gateway.web-apps.v1.services.logs")}
 
-// ResolvePreview is the generated descriptor for cmd.web-apps.v1.preview.resolve revision 1.
-var ResolvePreview = Command[PreviewResolveRequest, PreviewResolveResult]{c: plugin.NewCommand[PreviewResolveRequest, PreviewResolveResult]("cmd.web-apps.v1.preview.resolve", 1, "ba0bce9af43db6cb49dfdc01736d31608b49182576f038f03b161b86ef1e30f3", "cmd.web-apps.v1.preview.resolve")}
+// ResolvePreview is the generated descriptor for cmd.gateway.web-apps.v1.preview.resolve revision 1.
+var ResolvePreview = Command[PreviewResolveRequest, PreviewResolveResult]{c: plugin.NewCommand[PreviewResolveRequest, PreviewResolveResult]("cmd.gateway.web-apps.v1.preview.resolve", 1, "0ff37ad474ebfb345739a546d2aba9d5d46c39af7205cd0c1ce0a53f9e9311ec", "cmd.gateway.web-apps.v1.preview.resolve")}
 
-// NavigatePreview is the generated descriptor for cmd.web-apps.v1.preview.navigate revision 1.
-var NavigatePreview = Command[PreviewNavigateRequest, PreviewNavigateResult]{c: plugin.NewCommand[PreviewNavigateRequest, PreviewNavigateResult]("cmd.web-apps.v1.preview.navigate", 1, "33b5e477355b14c25a510b4045fe944a61b73d0a49fb726f18f8ab1d3e5e7d9a", "cmd.web-apps.v1.preview.navigate")}
+// NavigatePreview is the generated descriptor for cmd.gateway.web-apps.v1.preview.navigate revision 1.
+var NavigatePreview = Command[PreviewNavigateRequest, PreviewNavigateResult]{c: plugin.NewCommand[PreviewNavigateRequest, PreviewNavigateResult]("cmd.gateway.web-apps.v1.preview.navigate", 1, "586135f31c16c97466966f93d6459d2b33e37d23aa893e02951b3d0f2db3e7ec", "cmd.gateway.web-apps.v1.preview.navigate")}
 
-// OpenPreviewExternal is the generated descriptor for cmd.web-apps.v1.preview.open-external revision 1.
-var OpenPreviewExternal = Command[PreviewOpenExternalRequest, PreviewOpenExternalResult]{c: plugin.NewCommand[PreviewOpenExternalRequest, PreviewOpenExternalResult]("cmd.web-apps.v1.preview.open-external", 1, "f3048549233bc4e939e673235ea8223c40ed5670f64c5ee0142bbe141ba536de", "cmd.web-apps.v1.preview.open-external")}
+// OpenPreviewExternal is the generated descriptor for cmd.gateway.web-apps.v1.preview.open-external revision 1.
+var OpenPreviewExternal = Command[PreviewOpenExternalRequest, PreviewOpenExternalResult]{c: plugin.NewCommand[PreviewOpenExternalRequest, PreviewOpenExternalResult]("cmd.gateway.web-apps.v1.preview.open-external", 1, "7ac6cd7787d2e7c83a9c71a7736c18bc8952ca97dfea2f9280c20a1cabdb8b95", "cmd.gateway.web-apps.v1.preview.open-external")}
 
 // Changed is the generated descriptor for event.web-apps.v1.changed revision 1.
 var Changed = Event[RuntimeEvent]{e: plugin.NewEvent[RuntimeEvent]("event.web-apps.v1.changed", 1, "573d4b52aae84c92bc95aa7dc56a9ffbbb9cb8bbb85a6d73c523dd2ad2a0de47", "event.web-apps.v1.changed")}

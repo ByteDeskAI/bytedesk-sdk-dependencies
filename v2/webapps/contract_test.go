@@ -16,10 +16,10 @@ func validMessage() Message {
 
 func TestCommandIdentityMatchesWebAppsPanel(t *testing.T) {
 	want := []string{
-		"cmd.web-apps.v1.list", "cmd.web-apps.v1.create", "cmd.web-apps.v1.creation-eligibility",
-		"cmd.web-apps.v1.conversation.send", "cmd.web-apps.v1.conversation.approve", "cmd.web-apps.v1.conversation.answer",
-		"cmd.web-apps.v1.run.stop", "cmd.web-apps.v1.services.start", "cmd.web-apps.v1.services.stop", "cmd.web-apps.v1.services.logs",
-		"cmd.web-apps.v1.preview.resolve", "cmd.web-apps.v1.preview.navigate", "cmd.web-apps.v1.preview.open-external",
+		"cmd.gateway.web-apps.v1.list", "cmd.gateway.web-apps.v1.create", "cmd.gateway.web-apps.v1.creation-eligibility",
+		"cmd.gateway.web-apps.v1.conversation.send", "cmd.gateway.web-apps.v1.conversation.approve", "cmd.gateway.web-apps.v1.conversation.answer",
+		"cmd.gateway.web-apps.v1.run.stop", "cmd.gateway.web-apps.v1.services.start", "cmd.gateway.web-apps.v1.services.stop", "cmd.gateway.web-apps.v1.services.logs",
+		"cmd.gateway.web-apps.v1.preview.resolve", "cmd.gateway.web-apps.v1.preview.navigate", "cmd.gateway.web-apps.v1.preview.open-external",
 	}
 	got := []string{CommandList, CommandCreate, CommandCreationEligibility, CommandConversationSend, CommandConversationApprove, CommandConversationAnswer, CommandRunStop, CommandServicesStart, CommandServicesStop, CommandServicesLogs, CommandPreviewResolve, CommandPreviewNavigate, CommandPreviewOpenExternal}
 	if !reflect.DeepEqual(got, want) {

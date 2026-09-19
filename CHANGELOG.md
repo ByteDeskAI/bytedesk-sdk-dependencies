@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [2.0.0-rc.11] - 2026-09-19
+
+### Changed
+
+- Web Apps host operations now use the external
+  `cmd.gateway.web-apps.v1.*` namespace. This keeps host-owned commands out of
+  the `web-apps` plugin's implicit owner namespace so v2 grants can validate
+  and authorize them correctly.
+
 ## [2.0.0-rc.10] - 2026-09-19
 
 ### Fixed
