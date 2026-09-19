@@ -35,6 +35,7 @@ import (
 	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/cmd/contractgen/consumer"
 	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/messaging"
 	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/sessioncontext"
+	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/webapps"
 )
 
 // target is one package the generator emits for. A union is closed to the
@@ -55,8 +56,44 @@ func targets() map[string]target {
 	return map[string]target{
 		"messaging":      messagingTarget(),
 		"sessioncontext": sessionContextTarget(),
+		"webapps":        webAppsTarget(),
 		"consumer":       consumerTarget(),
 	}
+}
+
+func webAppsTarget() target {
+	type op struct {
+		name, goVar string
+		req, resp   any
+	}
+	commands := []op{
+		{webapps.CommandList, "List", webapps.ListRequest{}, webapps.ListResult{}},
+		{webapps.CommandCreate, "Create", webapps.CreateRequest{}, webapps.CreateResult{}},
+		{webapps.CommandCreationEligibility, "CheckCreationEligibility", webapps.CreationEligibilityRequest{}, webapps.CreationEligibilityResult{}},
+		{webapps.CommandConversationSend, "SendConversationMessage", webapps.ConversationSendRequest{}, webapps.ConversationSendResult{}},
+		{webapps.CommandConversationApprove, "ApproveConversationRequest", webapps.ConversationApproveRequest{}, webapps.ConversationApproveResult{}},
+		{webapps.CommandConversationAnswer, "AnswerConversationRequest", webapps.ConversationAnswerRequest{}, webapps.ConversationAnswerResult{}},
+		{webapps.CommandRunStop, "StopRun", webapps.RunStopRequest{}, webapps.RunStopResult{}},
+		{webapps.CommandServicesStart, "StartServices", webapps.ServicesStartRequest{}, webapps.ServicesStartResult{}},
+		{webapps.CommandServicesStop, "StopServices", webapps.ServicesStopRequest{}, webapps.ServicesStopResult{}},
+		{webapps.CommandServicesLogs, "ReadServiceLogs", webapps.ServicesLogsRequest{}, webapps.ServicesLogsResult{}},
+		{webapps.CommandPreviewResolve, "ResolvePreview", webapps.PreviewResolveRequest{}, webapps.PreviewResolveResult{}},
+		{webapps.CommandPreviewNavigate, "NavigatePreview", webapps.PreviewNavigateRequest{}, webapps.PreviewNavigateResult{}},
+		{webapps.CommandPreviewOpenExternal, "OpenPreviewExternal", webapps.PreviewOpenExternalRequest{}, webapps.PreviewOpenExternalResult{}},
+	}
+	t := target{pkg: "webapps", published: true}
+	for _, c := range commands {
+		req, resp := reflect.TypeOf(c.req), reflect.TypeOf(c.resp)
+		t.roots = append(t.roots, root{typ: req}, root{typ: resp})
+		t.ops = append(t.ops, operation{name: c.name, kind: kindCommand, rev: webapps.ContractRevision, goVar: c.goVar, req: req, resp: resp, subject: c.name})
+	}
+	event := reflect.TypeOf(webapps.RuntimeEvent{})
+	t.roots = append(t.roots, root{typ: event})
+	t.ops = append(t.ops,
+		operation{name: webapps.EventChanged, kind: kindEvent, rev: webapps.ContractRevision, goVar: "Changed", req: event, subject: webapps.EventChanged},
+		operation{name: "stream.web-apps.v1.events", kind: kindStream, rev: webapps.ContractRevision, goVar: "Events", req: event, stream: "WEB_APPS_EVENTS", subjects: []string{webapps.EventChanged}},
+	)
+	return t
 }
 
 // messagingTarget is the first real consumer: its DTOs live in messaging, its

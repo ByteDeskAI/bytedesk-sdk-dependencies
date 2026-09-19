@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [2.0.0-rc.9] - 2026-09-19
+
+### Added
+
+- **Typed Web Apps runtime contract (`v2/webapps`).** Thirteen host-served
+  `cmd.web-apps.v1.*` operations cover discovery and creation, coding
+  conversations, approvals and questions, run cancellation, service lifecycle
+  and logs, and preview control. Every operation pins project, checkout,
+  application, configuration revision, and run identity where relevant.
+- Structured runtime events and the `WEB_APPS_EVENTS` durable descriptor carry
+  opaque replay cursors. Generated Go descriptors, browser declarations,
+  validators, and schema sidecars share one canonical payload model. The
+  contract exposes safe presentation state and the existing host-resolved
+  directory context; process handles, commands, secrets, and host environment
+  values remain host-owned.
+
 ## [0.4.0-rc.18 / 2.0.0-rc.8] - 2026-09-19
 
 ### Added

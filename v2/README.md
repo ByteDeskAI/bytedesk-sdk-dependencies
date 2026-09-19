@@ -10,6 +10,7 @@ bus/memory/       In-memory substrate: the plugin author's test double.
 bus/conformance/  The 24 properties every substrate must satisfy. One list, several runners.
 plugin/           Base (embedded, accessor-only), Bind, Plugin, manifest v2, the typed layer.
 plugin/v1compat/  A v1 plugin.Host implemented over the v2 bus, so v1 plugins run unchanged.
+webapps/          Typed discovery, coding, service, log, preview, and replay contracts.
 ```
 
 ## The three rules this module exists to enforce
@@ -88,6 +89,17 @@ the substrate-stamped lease, then returns an opaque context, revision, expiry,
 bounded state, and closed action set. A context action is named and
 permission-gated. The contract never carries a working directory, project root,
 port, process, proxy handle, private URL, credential, principal, or lease.
+
+## Host-owned Web Apps runtime
+
+`webapps` defines the typed `cmd.web-apps.v1.*` boundary used by a project
+panel. Requests bind project, checkout, app, configuration revision, and run
+identity. Results expose structured conversation events, service state, logs,
+preview capability, and opaque replay cursors. The package contains no command
+arrays, process handles, passwords, environment values, or direct app-server
+credentials. Creation is the only operation that carries the existing
+host-resolved `ProjectDirectoryContext`; its paths select agent working context
+and do not grant filesystem authority.
 
 ## Migrating from v1
 

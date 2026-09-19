@@ -41,6 +41,10 @@ func TestGeneratedArtifactsMatchCheckedInCopies(t *testing.T) {
 		{"descriptors-js", "messaging", "../../typescript/descriptors.js", "typescript/descriptors.js"},
 		{"go", "consumer", "consumer/payload_gen.go", "cmd/contractgen/consumer/payload_gen.go"},
 		{"go", "messaging", "../../messaging/payload_gen.go", "messaging/payload_gen.go"},
+		{"go", "webapps", "../../webapps/payload_gen.go", "webapps/payload_gen.go"},
+		{"dts", "webapps", "../../webapps/typescript/contracts.d.ts", "webapps/typescript/contracts.d.ts"},
+		{"js", "webapps", "../../webapps/typescript/validators.js", "webapps/typescript/validators.js"},
+		{"descriptors-js", "webapps", "../../webapps/typescript/descriptors.js", "webapps/typescript/descriptors.js"},
 	} {
 		t.Run(tc.emit+"/"+tc.pkg, func(t *testing.T) {
 			want, err := os.ReadFile(tc.path)
