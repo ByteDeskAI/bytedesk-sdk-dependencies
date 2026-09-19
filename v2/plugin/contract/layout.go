@@ -104,7 +104,7 @@ func verifyTree(r *Report, root string, m plugin.Manifest, doc any, decoded bool
 	kind := inferKind(m, files)
 	spec := lay.Kinds[kind]
 	binary := ""
-	if m.Spawn {
+	if kind == plugin.KindProcess {
 		binary = path.Base(strings.TrimSpace(m.Binary))
 	}
 	var total int64
@@ -144,15 +144,15 @@ func verifyTree(r *Report, root string, m plugin.Manifest, doc any, decoded bool
 	if total > lay.Limits.MaxBytes {
 		r.add("BDP3004", "", "maxBytes", total, lay.Limits.MaxBytes)
 	}
-	verifyRefs(r, root, m, doc)
+	verifyRefs(r, root, m, doc, kind)
 	return nil
 }
 
 // verifyRefs follows the schema's x-bd-ref annotations. Only "binary" is
 // checked against the tree today: it must exist at the root and be executable,
-// and only when spawn is true, because a non-spawn manifest's binary is
+// and only for a process package, because another package kind's binary is
 // nothing the host will run. "route" is recorded for tooling.
-func verifyRefs(r *Report, root string, m plugin.Manifest, doc any) {
+func verifyRefs(r *Report, root string, m plugin.Manifest, doc any, kind string) {
 	refs := schemaRefs()
 	paths := make([]string, 0, len(refs))
 	for p := range refs {
@@ -160,7 +160,7 @@ func verifyRefs(r *Report, root string, m plugin.Manifest, doc any) {
 	}
 	sort.Strings(paths)
 	for _, p := range paths {
-		if refs[p] != "binary" || !m.Spawn {
+		if refs[p] != "binary" || kind != plugin.KindProcess {
 			continue
 		}
 		for at, value := range lookupPath(doc, p) {

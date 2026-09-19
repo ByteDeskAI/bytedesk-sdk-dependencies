@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2.0.0-rc.10] - 2026-09-19
+
+### Fixed
+
+- Process package verification now uses the v2 `kind: "process"` declaration
+  to admit and validate the root executable. Migrated manifests no longer need
+  the deprecated `spawn` flag to produce a valid `.bdx` package.
+
 ## [2.0.0-rc.9] - 2026-09-19
 
 ### Added

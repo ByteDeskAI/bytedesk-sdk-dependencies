@@ -98,6 +98,51 @@ func TestConformanceCorpus(t *testing.T) {
 	}
 }
 
+// A v2 process declares its deployment mode with kind. The legacy spawn flag
+// is removed by migration, so package verification must still admit and check
+// the process executable named by binary.
+func TestV2ProcessPackageUsesKindForBinary(t *testing.T) {
+	dir := materialise(t, filepath.Join(fixturesRoot, "valid", "identity-static-and-aliases"))
+	manifestPath := filepath.Join(dir, "plugin.json")
+	raw, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]any
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		t.Fatal(err)
+	}
+	delete(doc, "spawn")
+	raw, err = json.Marshal(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(manifestPath, raw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	report, err := VerifyDir(dir, Options{Mode: ModePackage})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !report.OK {
+		t.Fatalf("v2 process package rejected its root binary: %s", describe(report))
+	}
+
+	if err := os.Chmod(filepath.Join(dir, "fixture-plugin"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	report, err = VerifyDir(dir, Options{Mode: ModePackage})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.ContainsFunc(report.Diagnostics, func(d plugin.Diagnostic) bool {
+		return d.Code == "BDP4002" && d.Path == "binary"
+	}) {
+		t.Fatalf("non-executable v2 process binary was not rejected: %s", describe(report))
+	}
+}
+
 // TestEveryDiagnosticCodeHasAFixture makes the table and the corpus agree in
 // both directions: a code nothing produces is dead, and a code a fixture
 // expects that the table does not define is a typo the walk above would
