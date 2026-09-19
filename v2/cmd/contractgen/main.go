@@ -34,6 +34,7 @@ import (
 
 	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/cmd/contractgen/consumer"
 	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/messaging"
+	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/sessioncontext"
 )
 
 // target is one package the generator emits for. A union is closed to the
@@ -52,8 +53,9 @@ type target struct {
 
 func targets() map[string]target {
 	return map[string]target{
-		"messaging": messagingTarget(),
-		"consumer":  consumerTarget(),
+		"messaging":      messagingTarget(),
+		"sessioncontext": sessionContextTarget(),
+		"consumer":       consumerTarget(),
 	}
 }
 
@@ -97,6 +99,31 @@ func messagingTarget() target {
 		name: messaging.EventChanged, kind: kindEvent, rev: messaging.ContractRevision,
 		goVar: "Changed", req: changed, subject: messaging.EventChanged,
 	})
+	return t
+}
+
+// sessionContextTarget publishes the generic host-owned interaction boundary.
+// The payloads contain only opaque context references and bounded derived state;
+// resolving a terminal, process, route, or proxy is the serving host's job.
+func sessionContextTarget() target {
+	type op struct {
+		name, goVar string
+		req, resp   any
+	}
+	commands := []op{
+		{sessioncontext.CommandOpen, "Open", sessioncontext.OpenRequest{}, sessioncontext.OpenResult{}},
+		{sessioncontext.CommandRefresh, "Refresh", sessioncontext.RefreshRequest{}, sessioncontext.RefreshResult{}},
+		{sessioncontext.CommandAction, "Action", sessioncontext.ActionRequest{}, sessioncontext.ActionResult{}},
+	}
+	t := target{pkg: "sessioncontext", published: true}
+	for _, c := range commands {
+		req, resp := reflect.TypeOf(c.req), reflect.TypeOf(c.resp)
+		t.roots = append(t.roots, root{typ: req}, root{typ: resp})
+		t.ops = append(t.ops, operation{
+			name: c.name, kind: kindCommand, rev: sessioncontext.ContractRevision,
+			goVar: c.goVar, req: req, resp: resp, subject: c.name,
+		})
+	}
 	return t
 }
 

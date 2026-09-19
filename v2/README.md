@@ -76,6 +76,17 @@ pattern-based. Removed: `provides`, `requiresProvides`. `protocol.major` is `2`.
 `GrantsDigest` fingerprints everything an operator consents to, so widening any
 of it re-asks rather than inheriting the old approval.
 
+## Host-owned session contexts
+
+`sessioncontext` defines the generic interaction boundary for a plugin that
+needs derived state about an operator-scoped host resource. Its only commands
+are `cmd.host.session-context.v1.open`, `.refresh`, and `.action`. A plugin asks
+for an opaque target and purpose; the host derives the caller's principal from
+the substrate-stamped lease, then returns an opaque context, revision, expiry,
+bounded state, and closed action set. A context action is named and
+permission-gated. The contract never carries a working directory, project root,
+port, process, proxy handle, private URL, credential, principal, or lease.
+
 ## Migrating from v1
 
 `v1compat.Host(base)` returns a v1 `plugin.Host` over the v2 bus. A v1 plugin
