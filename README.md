@@ -148,3 +148,23 @@ existing Host/Plugin interfaces change.
 ### Component model
 
 `plugin/components.go` owns component identities, host-issued assignments, readonly family snapshots and additive extension descriptors. Component IDs address mounted views separately from session IDs. A target identity is not permission: hosts issue opaque assignments only after authorization and reject stale generations. Extensions add badges, metadata, actions, menu entries or panels; they cannot replace a component or obtain terminal input/output. The Gateway UI SDK supplies typed handles and controllers over these generated browser contracts.
+
+### Projects contributions
+
+`Manifest.ProjectViews` contributes ordered tabs to Projects. Each entry has a
+stable owner-local ID, required label and icon, and a `PanelID` declared by the
+same manifest. `Manifest.DirectoryContextActions` contributes file-tree
+directory actions, including the tree root/background menu, with an owner-local
+wizard panel.
+
+The host resolves `ProjectDirectoryContext` for the current principal and asks
+the action owner through `projects.directory-context-action.eligibility.v1`
+before displaying or invoking an action. It supplies the same immutable context
+to the wizard and asks again on submission, because files may change while the
+wizard is open. Paths are agent working context; these types do not create a
+filesystem sandbox or grant access.
+
+Contribution IDs are scoped to the owning plugin generation. Hosts publish a
+generation's Projects contributions atomically and remove them when that
+generation is disabled, replaced, or lost. A stale deep-link selection must
+fall back to an available host view rather than retaining a withdrawn panel.

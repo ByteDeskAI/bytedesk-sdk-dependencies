@@ -46,6 +46,8 @@
     "protocol": {"$ref": "#/$defs/ProtocolRequirements"},
     "permissions": {"$ref": "#/$defs/Permissions"},
     "ui": {"type": "array", "items": {"$ref": "#/$defs/UIContribution"}},
+    "projectViews": {"type": "array", "items": {"$ref": "#/$defs/ProjectViewContribution"}},
+    "directoryContextActions": {"type": "array", "items": {"$ref": "#/$defs/DirectoryContextActionContribution"}},
     "serves": {"type": "array", "items": {"$ref": "#/$defs/ServiceDecl"}},
     "streams": {"type": "array", "items": {"$ref": "#/$defs/StreamDecl"}},
     "kv": {"type": "array", "items": {"$ref": "#/$defs/KVDecl"}},
@@ -234,6 +236,28 @@
         "kind": {"type": "string"},
         "event": {"type": "string"},
         "field": {"type": "string"}
+      }
+    },
+    "ProjectViewContribution": {
+      "type": "object", "additionalProperties": true,
+      "required": ["id", "label", "icon", "panelId"],
+      "properties": {
+        "id": {"type": "string"},
+        "label": {"type": "string"},
+        "icon": {"type": "string"},
+        "order": {"type": "integer"},
+        "panelId": {"type": "string"}
+      }
+    },
+    "DirectoryContextActionContribution": {
+      "type": "object", "additionalProperties": true,
+      "required": ["id", "label", "wizardPanelId"],
+      "properties": {
+        "id": {"type": "string"},
+        "label": {"type": "string"},
+        "icon": {"type": "string"},
+        "order": {"type": "integer"},
+        "wizardPanelId": {"type": "string"}
       }
     },
     "ServiceDecl": {

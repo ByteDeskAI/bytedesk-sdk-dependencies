@@ -305,6 +305,49 @@ func (m Manifest) validateRuntimeContract() error {
 			return err
 		}
 	}
+	if err := validateProjectContributions(m); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateProjectContributions(m Manifest) error {
+	panels := make(map[string]struct{}, len(m.Panels))
+	for _, panel := range m.Panels {
+		panels[panel.ID] = struct{}{}
+	}
+	views := make(map[string]struct{}, len(m.ProjectViews))
+	for _, view := range m.ProjectViews {
+		if err := validateIDSegment("projectViews.id", view.ID); err != nil {
+			return err
+		}
+		if _, exists := views[view.ID]; exists {
+			return fmt.Errorf("duplicate projectViews.id %q", view.ID)
+		}
+		views[view.ID] = struct{}{}
+		if strings.TrimSpace(view.Label) == "" || strings.TrimSpace(view.Icon) == "" {
+			return fmt.Errorf("project view %q requires label and icon", view.ID)
+		}
+		if _, owned := panels[view.PanelID]; !owned || view.PanelID == "" {
+			return fmt.Errorf("project view panelId %q is not owned by this manifest", view.PanelID)
+		}
+	}
+	actions := make(map[string]struct{}, len(m.DirectoryContextActions))
+	for _, action := range m.DirectoryContextActions {
+		if err := validateIDSegment("directoryContextActions.id", action.ID); err != nil {
+			return err
+		}
+		if _, exists := actions[action.ID]; exists {
+			return fmt.Errorf("duplicate directoryContextActions.id %q", action.ID)
+		}
+		actions[action.ID] = struct{}{}
+		if strings.TrimSpace(action.Label) == "" {
+			return fmt.Errorf("directory context action %q requires label", action.ID)
+		}
+		if _, owned := panels[action.WizardPanelID]; !owned || action.WizardPanelID == "" {
+			return fmt.Errorf("directory context action wizardPanelId %q is not owned by this manifest", action.WizardPanelID)
+		}
+	}
 	return nil
 }
 

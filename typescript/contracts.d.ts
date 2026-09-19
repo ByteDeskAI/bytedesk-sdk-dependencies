@@ -259,6 +259,29 @@ export interface DesktopSessionStatus {
   message: string
 }
 
+export interface DirectoryContextActionContribution {
+  id: string
+  label: string
+  icon?: string
+  order?: number
+  wizardPanelId: string
+}
+
+export interface DirectoryContextActionEligibilityRequest {
+  readonly actionId: string
+  readonly context: ProjectDirectoryContext
+}
+
+export interface DirectoryContextActionEligibilityResult {
+  readonly eligible: boolean
+  readonly reason?: string
+}
+
+export interface DirectoryContextActionWizardContext {
+  readonly actionId: string
+  readonly context: ProjectDirectoryContext
+}
+
 export interface ExtensionPoint {
   name: string
   interface?: string
@@ -328,6 +351,8 @@ export interface Manifest {
   protocol?: ProtocolRequirements
   permissions?: Permissions
   ui?: UIContribution[]
+  projectViews?: ProjectViewContribution[]
+  directoryContextActions?: DirectoryContextActionContribution[]
   config?: Config
 }
 
@@ -403,6 +428,23 @@ export interface Pricing {
   model: string
   sku?: string
   trialDays?: number
+}
+
+export interface ProjectDirectoryContext {
+  readonly projectId: string
+  readonly checkoutId: string
+  readonly worktreeId: string
+  readonly projectRoot: string
+  readonly worktreeRoot: string
+  readonly directoryPath: string
+}
+
+export interface ProjectViewContribution {
+  id: string
+  label: string
+  icon: string
+  order?: number
+  panelId: string
 }
 
 export interface ProtocolRequirements {
@@ -551,6 +593,10 @@ export declare function isDesktopApplicationsStatusResult(value: unknown): value
 export declare function isDesktopApplicationsViewerTicketRequest(value: unknown): value is DesktopApplicationsViewerTicketRequest
 export declare function isDesktopApplicationsViewerTicketResult(value: unknown): value is DesktopApplicationsViewerTicketResult
 export declare function isDesktopSessionStatus(value: unknown): value is DesktopSessionStatus
+export declare function isDirectoryContextActionContribution(value: unknown): value is DirectoryContextActionContribution
+export declare function isDirectoryContextActionEligibilityRequest(value: unknown): value is DirectoryContextActionEligibilityRequest
+export declare function isDirectoryContextActionEligibilityResult(value: unknown): value is DirectoryContextActionEligibilityResult
+export declare function isDirectoryContextActionWizardContext(value: unknown): value is DirectoryContextActionWizardContext
 export declare function isExtensionPoint(value: unknown): value is ExtensionPoint
 export declare function isFamily(value: unknown): value is Family
 export declare function isFamilyMember(value: unknown): value is FamilyMember
@@ -569,6 +615,8 @@ export declare function isPresentationRequest(value: unknown): value is Presenta
 export declare function isPresentationResult(value: unknown): value is PresentationResult
 export declare function isPresentationTerminal(value: unknown): value is PresentationTerminal
 export declare function isPricing(value: unknown): value is Pricing
+export declare function isProjectDirectoryContext(value: unknown): value is ProjectDirectoryContext
+export declare function isProjectViewContribution(value: unknown): value is ProjectViewContribution
 export declare function isProtocolRequirements(value: unknown): value is ProtocolRequirements
 export declare function isProvider(value: unknown): value is Provider
 export declare function isPublisher(value: unknown): value is Publisher

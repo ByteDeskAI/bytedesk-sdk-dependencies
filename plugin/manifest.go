@@ -74,6 +74,12 @@ type Manifest struct {
 	Permissions *Permissions          `json:"permissions,omitempty" bd:"public"`
 	UI          []UIContribution      `json:"ui,omitempty" bd:"public"`
 
+	// ProjectViews and DirectoryContextActions are owner-local contributions
+	// to the Projects plugin. The host admits them with the owning generation
+	// and removes them atomically when that generation is unavailable.
+	ProjectViews            []ProjectViewContribution            `json:"projectViews,omitempty" bd:"public"`
+	DirectoryContextActions []DirectoryContextActionContribution `json:"directoryContextActions,omitempty" bd:"public"`
+
 	// Config declares the settings sections this plugin contributes. It is
 	// SCHEMA, never values: the host owns values and reads its own record, so a
 	// plugin describes what it configures and the operator's choices never live

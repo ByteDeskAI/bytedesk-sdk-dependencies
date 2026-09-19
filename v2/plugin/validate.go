@@ -131,6 +131,7 @@ func Diagnostics(m Manifest, requireVersion bool) []Diagnostic {
 	validateAssets(&c, m)
 	validateNeeds(&c, m)
 	validateUI(&c, m)
+	validateProjectContributions(&c, m)
 	return c.list
 }
 
@@ -693,6 +694,52 @@ func validateUI(c *collector, m Manifest) {
 			}
 		}
 		validateBindings(c, path, item.ID, item.Bindings)
+	}
+}
+
+func validateProjectContributions(c *collector, m Manifest) {
+	panels := make(map[string]struct{}, len(m.Panels))
+	for _, panel := range m.Panels {
+		panels[panel.ID] = struct{}{}
+	}
+	views := make(map[string]struct{}, len(m.ProjectViews))
+	for i, view := range m.ProjectViews {
+		path := fmt.Sprintf("projectViews[%d]", i)
+		if msg, ok := idSegment("projectViews.id", view.ID); !ok {
+			c.add("BDP2190", path+".id", msg)
+			continue
+		}
+		if _, exists := views[view.ID]; exists {
+			c.add("BDP2191", path+".id", view.ID)
+		}
+		views[view.ID] = struct{}{}
+		if strings.TrimSpace(view.Label) == "" {
+			c.add("BDP2192", path+".label")
+		}
+		if strings.TrimSpace(view.Icon) == "" {
+			c.add("BDP2193", path+".icon")
+		}
+		if _, owned := panels[view.PanelID]; !owned || view.PanelID == "" {
+			c.add("BDP2194", path+".panelId", view.PanelID)
+		}
+	}
+	actions := make(map[string]struct{}, len(m.DirectoryContextActions))
+	for i, action := range m.DirectoryContextActions {
+		path := fmt.Sprintf("directoryContextActions[%d]", i)
+		if msg, ok := idSegment("directoryContextActions.id", action.ID); !ok {
+			c.add("BDP2195", path+".id", msg)
+			continue
+		}
+		if _, exists := actions[action.ID]; exists {
+			c.add("BDP2196", path+".id", action.ID)
+		}
+		actions[action.ID] = struct{}{}
+		if strings.TrimSpace(action.Label) == "" {
+			c.add("BDP2197", path+".label")
+		}
+		if _, owned := panels[action.WizardPanelID]; !owned || action.WizardPanelID == "" {
+			c.add("BDP2198", path+".wizardPanelId", action.WizardPanelID)
+		}
 	}
 }
 

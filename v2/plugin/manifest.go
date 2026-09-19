@@ -127,6 +127,11 @@ type Manifest struct {
 	Permissions Permissions           `json:"permissions,omitzero" bd:"public"`
 	UI          []UIContribution      `json:"ui,omitempty" bd:"public"`
 
+	// Contributions to the Projects surface are generation-scoped. The host
+	// removes both kinds atomically when their owning generation is withdrawn.
+	ProjectViews            []ProjectViewContribution            `json:"projectViews,omitempty" bd:"public"`
+	DirectoryContextActions []DirectoryContextActionContribution `json:"directoryContextActions,omitempty" bd:"public"`
+
 	// Serves are the services this plugin EXPORTS. Permissions say what a
 	// plugin may reach; this says what it answers, which until now only the
 	// running process knew. A host that can read the export surface from the

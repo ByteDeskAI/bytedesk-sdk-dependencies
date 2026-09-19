@@ -39,6 +39,12 @@ func fullManifest() Manifest {
 			ID: "sessions", Slot: SlotDefaultView, PanelID: "sessions",
 			Bindings: []UIBinding{{Kind: BindCount, Event: "event.tmux-manager.sessions", Field: "count"}},
 		}},
+		ProjectViews: []ProjectViewContribution{{
+			ID: "terminals", Label: "Terminals", Icon: "terminal", Order: 20, PanelID: "sessions",
+		}},
+		DirectoryContextActions: []DirectoryContextActionContribution{{
+			ID: "open-terminal", Label: "Open Terminal", WizardPanelID: "sessions",
+		}},
 		Protocol:   &ProtocolRequirements{Major: ProtocolMajor, Required: []string{FeatureDocumentPaths}, Hooks: []string{"ready", "health"}},
 		Implements: []Provider{{Point: string(PointSettingsSection), ID: "tmux-manager", Priority: 10}},
 		Permissions: Permissions{

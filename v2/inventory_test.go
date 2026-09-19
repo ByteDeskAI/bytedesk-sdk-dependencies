@@ -145,6 +145,12 @@ func publicTypes() []reflect.Type {
 		reflect.TypeOf(plugin.UIBinding{}),
 		reflect.TypeOf(plugin.ContributionEligibility("")),
 		reflect.TypeOf(plugin.ContributionRole{}),
+		reflect.TypeOf(plugin.ProjectViewContribution{}),
+		reflect.TypeOf(plugin.DirectoryContextActionContribution{}),
+		reflect.TypeOf(plugin.ProjectDirectoryContext{}),
+		reflect.TypeOf(plugin.DirectoryContextActionEligibilityRequest{}),
+		reflect.TypeOf(plugin.DirectoryContextActionEligibilityResult{}),
+		reflect.TypeOf(plugin.DirectoryContextActionWizardContext{}),
 		// plugin — diagnostics (the contract package's wire shape)
 		reflect.TypeOf(plugin.Diagnostic{}),
 		reflect.TypeOf(plugin.Severity("")),

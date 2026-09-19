@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Reusable Projects contributions.** Plugin manifests can declare ordered
+  project views and directory context actions backed by owner-local panels.
+  Typed eligibility and wizard contexts carry host-resolved project, checkout,
+  worktree, and directory identity. Contributions are generation-scoped so a
+  host can remove them cleanly when their owner is withdrawn. The contracts are
+  available in both the root and v2 modules and in generated browser artifacts.
+
 - **Lease-scoped host session contexts (`v2/sessioncontext`).** Three typed
   commands — `cmd.session-context.v1.open`, `.refresh`, and `.action` —
   define an opaque, bounded interaction context for a plugin. The substrate

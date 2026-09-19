@@ -351,6 +351,37 @@ export function isDesktopSessionStatus(value) {
   return true
 }
 
+export function isDirectoryContextActionContribution(value) {
+  if (!record(value)) return false
+  if (!(str(value.id))) return false
+  if (!(str(value.label))) return false
+  if (!(value.icon === undefined || str(value.icon))) return false
+  if (!(value.order === undefined || num(value.order))) return false
+  if (!(str(value.wizardPanelId))) return false
+  return true
+}
+
+export function isDirectoryContextActionEligibilityRequest(value) {
+  if (!record(value)) return false
+  if (!(str(value.actionId))) return false
+  if (!(isProjectDirectoryContext(value.context))) return false
+  return true
+}
+
+export function isDirectoryContextActionEligibilityResult(value) {
+  if (!record(value)) return false
+  if (!(bool(value.eligible))) return false
+  if (!(value.reason === undefined || str(value.reason))) return false
+  return true
+}
+
+export function isDirectoryContextActionWizardContext(value) {
+  if (!record(value)) return false
+  if (!(str(value.actionId))) return false
+  if (!(isProjectDirectoryContext(value.context))) return false
+  return true
+}
+
 export function isExtensionPoint(value) {
   if (!record(value)) return false
   if (!(str(value.name))) return false
@@ -433,6 +464,8 @@ export function isManifest(value) {
   if (!(value.protocol === undefined || isProtocolRequirements(value.protocol))) return false
   if (!(value.permissions === undefined || isPermissions(value.permissions))) return false
   if (!(value.ui === undefined || list(value.ui, isUIContribution))) return false
+  if (!(value.projectViews === undefined || list(value.projectViews, isProjectViewContribution))) return false
+  if (!(value.directoryContextActions === undefined || list(value.directoryContextActions, isDirectoryContextActionContribution))) return false
   if (!(value.config === undefined || isConfig(value.config))) return false
   return true
 }
@@ -530,6 +563,27 @@ export function isPricing(value) {
   if (!(str(value.model))) return false
   if (!(value.sku === undefined || str(value.sku))) return false
   if (!(value.trialDays === undefined || num(value.trialDays))) return false
+  return true
+}
+
+export function isProjectDirectoryContext(value) {
+  if (!record(value)) return false
+  if (!(str(value.projectId))) return false
+  if (!(str(value.checkoutId))) return false
+  if (!(str(value.worktreeId))) return false
+  if (!(str(value.projectRoot))) return false
+  if (!(str(value.worktreeRoot))) return false
+  if (!(str(value.directoryPath))) return false
+  return true
+}
+
+export function isProjectViewContribution(value) {
+  if (!record(value)) return false
+  if (!(str(value.id))) return false
+  if (!(str(value.label))) return false
+  if (!(str(value.icon))) return false
+  if (!(value.order === undefined || num(value.order))) return false
+  if (!(str(value.panelId))) return false
   return true
 }
 

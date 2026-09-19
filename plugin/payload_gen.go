@@ -53,6 +53,10 @@ type Payload interface {
 		DesktopApplicationsViewerTicketRequest |
 		DesktopApplicationsViewerTicketResult |
 		DesktopSessionStatus |
+		DirectoryContextActionContribution |
+		DirectoryContextActionEligibilityRequest |
+		DirectoryContextActionEligibilityResult |
+		DirectoryContextActionWizardContext |
 		ExtensionPoint |
 		Family |
 		FamilyMember |
@@ -71,6 +75,8 @@ type Payload interface {
 		PresentationResult |
 		PresentationTerminal |
 		Pricing |
+		ProjectDirectoryContext |
+		ProjectViewContribution |
 		ProtocolRequirements |
 		Provider |
 		Publisher |
