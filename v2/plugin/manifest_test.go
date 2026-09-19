@@ -204,3 +204,9 @@ func TestProtocolMajorIsTwo(t *testing.T) {
 		t.Fatalf("the reference manifest must validate: %v", err)
 	}
 }
+
+func TestUIModuleMountFeatureName(t *testing.T) {
+	if FeatureUIModuleMount != "ui.mount.v1" {
+		t.Fatalf("FeatureUIModuleMount = %q", FeatureUIModuleMount)
+	}
+}

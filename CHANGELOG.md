@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.0.0-rc.12] - 2026-09-19
+
+### Added
+
+- Export the v2 `FeatureUIModuleMount` protocol constant for module-backed
+  plugin panels.
+
 ## [2.0.0-rc.11] - 2026-09-19
 
 ### Changed

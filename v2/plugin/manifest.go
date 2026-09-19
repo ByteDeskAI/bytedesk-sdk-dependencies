@@ -275,6 +275,10 @@ const ProtocolMajor = 2
 // a panel may claim shell document paths.
 const FeatureDocumentPaths = "ui.document-paths.v1"
 
+// FeatureUIModuleMount is the negotiated feature required by panels whose UI
+// is mounted from an SDK module rather than served as a plain document.
+const FeatureUIModuleMount = "ui.mount.v1"
+
 // MeshPrefix is the first token reserved to inter-gateway mesh routing. Like the
 // substrate's own "$"-prefixed and _INBOX tokens it parses, because the host has
 // to be able to name it; a manifest may not.
