@@ -286,6 +286,9 @@ export interface ExtensionPoint {
   name: string
   interface?: string
   description?: string
+  zone?: string
+  sealed?: boolean
+  requiredBase?: string
 }
 
 export interface Family {
@@ -457,12 +460,14 @@ export interface Provider {
   point: string
   id: string
   priority?: number
+  base?: string
 }
 
 export interface Publisher {
   id: string
   name: string
   url?: string
+  color?: string
 }
 
 export interface Requirement {

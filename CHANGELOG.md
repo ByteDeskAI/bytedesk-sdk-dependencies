@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.4.0-rc.19] - 2026-09-23
+
+### Added
+
+- Extension points can name a UI zone, a sealed flag, and a required base.
+  `AdmitImplementer` refuses every implementer of a sealed point and admits an
+  open zone only when the provider names that base. An open zone may have zero
+  implementers.
+- Publishers can hint a color. `AssignPublisherColors` keeps the hint and
+  assigns the next free palette color when two publishers collide.
+
 ## [2.0.0-rc.12] - 2026-09-19
 
 ### Added

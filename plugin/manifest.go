@@ -167,10 +167,22 @@ type Family struct {
 }
 
 // ExtensionPoint is a named seam a plugin owns and others register into.
+//
+// Zone, Sealed and RequiredBase are the drawn-zone contract. Interface remains
+// the historical contract name. A point with an empty Zone is not a UI zone
+// and keeps the previous admission rule.
 type ExtensionPoint struct {
 	Name        string `json:"name" bd:"public"`
 	Interface   string `json:"interface,omitempty" bd:"public"`
 	Description string `json:"description,omitempty" bd:"public"`
+	// Zone is the UI region this point occupies inside the owner's surface.
+	// Empty means the point is not drawn as a zone.
+	Zone string `json:"zone,omitempty" bd:"public"`
+	// Sealed is set by the publisher. The host refuses every implementer.
+	Sealed bool `json:"sealed,omitempty" bd:"public"`
+	// RequiredBase is the publisher's base id. When empty, a UI zone uses
+	// Interface as that base.
+	RequiredBase string `json:"requiredBase,omitempty" bd:"public"`
 }
 
 // Provider registers a plugin into someone else's extension point. Higher
@@ -179,6 +191,9 @@ type Provider struct {
 	Point    string `json:"point" bd:"public"`
 	ID       string `json:"id" bd:"public"`
 	Priority int    `json:"priority,omitempty" bd:"public"`
+	// Base is the required base this implementer satisfies. A UI zone admits
+	// the provider only when Base equals the point's required base.
+	Base string `json:"base,omitempty" bd:"public"`
 }
 
 // Host identifiers used in Manifest.Targets.
@@ -243,6 +258,9 @@ type Publisher struct {
 	ID   string `json:"id" bd:"public"`
 	Name string `json:"name" bd:"public"`
 	URL  string `json:"url,omitempty" bd:"public"`
+	// Color is a hint. The host assigns one color per publisher at init and
+	// replaces a collision with the next free palette color.
+	Color string `json:"color,omitempty" bd:"public"`
 }
 
 // UnmarshalJSON accepts either a publisher object or a legacy string id

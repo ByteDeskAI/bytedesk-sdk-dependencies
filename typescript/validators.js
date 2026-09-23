@@ -387,6 +387,9 @@ export function isExtensionPoint(value) {
   if (!(str(value.name))) return false
   if (!(value.interface === undefined || str(value.interface))) return false
   if (!(value.description === undefined || str(value.description))) return false
+  if (!(value.zone === undefined || str(value.zone))) return false
+  if (!(value.sealed === undefined || bool(value.sealed))) return false
+  if (!(value.requiredBase === undefined || str(value.requiredBase))) return false
   return true
 }
 
@@ -600,6 +603,7 @@ export function isProvider(value) {
   if (!(str(value.point))) return false
   if (!(str(value.id))) return false
   if (!(value.priority === undefined || num(value.priority))) return false
+  if (!(value.base === undefined || str(value.base))) return false
   return true
 }
 
@@ -608,6 +612,7 @@ export function isPublisher(value) {
   if (!(str(value.id))) return false
   if (!(str(value.name))) return false
   if (!(value.url === undefined || str(value.url))) return false
+  if (!(value.color === undefined || str(value.color))) return false
   return true
 }
 
