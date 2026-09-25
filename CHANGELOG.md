@@ -11,6 +11,18 @@
   the same catalog. `GrantsDigest` is now `bytedesk.plugin.grants.v3` and
   covers capabilities, so an existing approval does not silently gain one.
 
+## [2.0.0-rc.14] - 2026-09-25
+
+### Added
+
+- Typed AI decision, scoped payload, provider-access, durable coding-session and
+  redacted host-settings contracts, including explicit asynchronous jobs and
+  host-issued invocation scope. Decision providers use the public `ai.decision`
+  point and address-bound generated descriptors. Validated commands reject
+  malformed JSON and semantic violations before dispatch and response delivery.
+- Host-only Gateway command and decision-provider ingress reservations, portable
+  descriptor discovery metadata, and exact explicit decision-consumer admission.
+
 ## [0.4.0-rc.19] - 2026-09-23
 
 ### Added

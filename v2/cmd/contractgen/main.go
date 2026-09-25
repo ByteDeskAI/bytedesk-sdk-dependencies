@@ -58,6 +58,11 @@ func targets() map[string]target {
 		"sessioncontext": sessionContextTarget(),
 		"webapps":        webAppsTarget(),
 		"consumer":       consumerTarget(),
+		"aidecision":     aiDecisionTarget(),
+		"payloads":       payloadsTarget(),
+		"provideraccess": providerAccessTarget(),
+		"codingsessions": codingSessionsTarget(),
+		"hostsettings":   hostSettingsTarget(),
 	}
 }
 
@@ -292,12 +297,20 @@ func main() {
 	out := flag.String("out", "-", "output file, or - for stdout")
 	emit := flag.String("emit", "dts", "what to emit: dts | js | go | json | descriptors-go | descriptors-js")
 	pkg := flag.String("package", defaultTarget, "which package to emit for")
+	providerID := flag.String("provider-id", "", "generate concrete provider service descriptors (aidecision or hostsettings)")
+	goPackage := flag.String("go-package", "contracts", "Go package name for provider descriptor output")
 	flag.Parse()
 	fail := func(err error) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	data, err := generate(*emit, *pkg)
+	var data []byte
+	var err error
+	if *providerID != "" {
+		data, err = generateProvider(*emit, *pkg, *providerID, *goPackage)
+	} else {
+		data, err = generate(*emit, *pkg)
+	}
 	if err != nil {
 		fail(err)
 	}

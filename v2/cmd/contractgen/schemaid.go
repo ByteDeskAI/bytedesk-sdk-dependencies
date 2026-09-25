@@ -57,12 +57,13 @@ type endpoint struct {
 // operation is one host-exposed contract. The generator owns this table; a call
 // site never names an operation, it uses the generated descriptor.
 type operation struct {
-	name  string
-	kind  string
-	rev   uint32
-	goVar string       // generated descriptor identifier
-	req   reflect.Type // for an event, stream or bucket, the payload type
-	resp  reflect.Type // nil except for a command
+	validated bool // opt-in semantic validation on both command directions
+	name      string
+	kind      string
+	rev       uint32
+	goVar     string       // generated descriptor identifier
+	req       reflect.Type // for an event, stream or bucket, the payload type
+	resp      reflect.Type // nil except for a command
 
 	// The ADDRESS, new in v2 and inside the hash.
 	//

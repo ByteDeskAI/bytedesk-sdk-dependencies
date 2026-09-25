@@ -11,7 +11,15 @@ bus/conformance/  The 24 properties every substrate must satisfy. One list, seve
 plugin/           Base (embedded, accessor-only), Bind, Plugin, manifest v2, the typed layer.
 plugin/v1compat/  A v1 plugin.Host implemented over the v2 bus, so v1 plugins run unchanged.
 webapps/          Typed discovery, coding, service, log, preview, and replay contracts.
+aidecision/       Host-resolved decision jobs; generated cross-publisher providers.
+payloads/         Scoped bounded payload uploads and reads.
+provideraccess/   Opaque credentials and named asynchronous provider egress.
+codingsessions/   Durable task sessions, route preview, approvals and dock attachment.
+hostsettings/     External redacted validation with host-owned persistence.
 ```
+
+See [AI_CONTRACTS.md](AI_CONTRACTS.md) for decision/coding ownership rules,
+provider generation commands, limits and host implementation obligations.
 
 ## The three rules this module exists to enforce
 
