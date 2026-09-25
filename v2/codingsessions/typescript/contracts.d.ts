@@ -19,6 +19,11 @@ export interface ApproveRequest {
   optionId: string
 }
 
+export interface BoundWorkUnit {
+  taskId: string
+  bindingId: string
+}
+
 export interface Capabilities {
   loadSession: boolean
   resumeSession: boolean
@@ -73,6 +78,7 @@ export interface CreateRequest {
   checkoutRef: string
   preferences: Preferences
   idempotencyKey: string
+  workUnit?: WorkUnitReference
 }
 
 export interface EventsRequest {
@@ -117,6 +123,7 @@ export interface NewTaskRequest {
   sessionId: string
   preferences: Preferences
   idempotencyKey: string
+  workUnit?: WorkUnitReference
 }
 
 export interface OpenSurfaceRequest {
@@ -229,6 +236,7 @@ export interface Session {
   updatedAt: string
   checkoutRef: string
   worktreeRef?: string
+  workUnit?: BoundWorkUnit
 }
 
 export interface SessionEvent {
@@ -276,11 +284,16 @@ export interface ToolUpdate {
   content?: TextInput
 }
 
+export interface WorkUnitReference {
+  taskId: string
+}
+
 // Runtime shape guards. The paired JS module exports one per declaration
 // above; they check structure only, not the host's security invariants.
 export declare function isApproval(value: unknown): value is Approval
 export declare function isApprovalOption(value: unknown): value is ApprovalOption
 export declare function isApproveRequest(value: unknown): value is ApproveRequest
+export declare function isBoundWorkUnit(value: unknown): value is BoundWorkUnit
 export declare function isCapabilities(value: unknown): value is Capabilities
 export declare function isCatalogRequest(value: unknown): value is CatalogRequest
 export declare function isCatalogResult(value: unknown): value is CatalogResult
@@ -320,3 +333,4 @@ export declare function isStateUpdate(value: unknown): value is StateUpdate
 export declare function isStopRequest(value: unknown): value is StopRequest
 export declare function isTextInput(value: unknown): value is TextInput
 export declare function isToolUpdate(value: unknown): value is ToolUpdate
+export declare function isWorkUnitReference(value: unknown): value is WorkUnitReference

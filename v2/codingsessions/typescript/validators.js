@@ -33,6 +33,13 @@ export function isApproveRequest(value) {
   return true
 }
 
+export function isBoundWorkUnit(value) {
+  if (!record(value)) return false
+  if (!(str(value.taskId))) return false
+  if (!(str(value.bindingId))) return false
+  return true
+}
+
 export function isCapabilities(value) {
   if (!record(value)) return false
   if (!(bool(value.loadSession))) return false
@@ -104,6 +111,7 @@ export function isCreateRequest(value) {
   if (!(str(value.checkoutRef))) return false
   if (!(isPreferences(value.preferences))) return false
   if (!(str(value.idempotencyKey))) return false
+  if (!(value.workUnit === undefined || isWorkUnitReference(value.workUnit))) return false
   return true
 }
 
@@ -164,6 +172,7 @@ export function isNewTaskRequest(value) {
   if (!(str(value.sessionId))) return false
   if (!(isPreferences(value.preferences))) return false
   if (!(str(value.idempotencyKey))) return false
+  if (!(value.workUnit === undefined || isWorkUnitReference(value.workUnit))) return false
   return true
 }
 
@@ -306,6 +315,7 @@ export function isSession(value) {
   if (!(str(value.updatedAt))) return false
   if (!(str(value.checkoutRef))) return false
   if (!(value.worktreeRef === undefined || str(value.worktreeRef))) return false
+  if (!(value.workUnit === undefined || isBoundWorkUnit(value.workUnit))) return false
   return true
 }
 
@@ -365,5 +375,11 @@ export function isToolUpdate(value) {
   if (!(str(value.title))) return false
   if (!(str(value.status))) return false
   if (!(value.content === undefined || isTextInput(value.content))) return false
+  return true
+}
+
+export function isWorkUnitReference(value) {
+  if (!record(value)) return false
+  if (!(str(value.taskId))) return false
   return true
 }

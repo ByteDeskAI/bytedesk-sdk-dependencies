@@ -148,6 +148,26 @@ session, worktree or native process and does not consume next-task overrides.
 
 Create/NewTask use the selected checkout's committed state in a fresh host-owned
 worktree and report exclusion of dirty changes. Non-Git projects fail clearly.
+Create and NewTask may explicitly name `workUnit: {taskId: "TM-475"}`. The selected
+project and checkout identify the host-authorized Task Management store; no
+caller-supplied path, URL, port, board or binding ID is accepted. The host validates
+the exact authoritative task, persists its immutable private store/task identity,
+and returns `Session.workUnit: {taskId, bindingId}`. That opaque output binding is
+not input authority. The coding `Session.taskId` remains distinct from the
+originating `Session.workUnit.taskId`. When the bound work unit completes, the host
+ends its shared coding session without impersonating a plugin or user. Missing,
+replaced or unavailable task state must not be treated as completion.
+
+Omitting workUnit keeps an unlinked task; explicit `null` is invalid in both Go
+and browser decoders. NewTask omission creates an unlinked new
+task; it never inherits the prior link. A prompt, active epic, task title or ACP
+end_turn cannot create or complete this binding. Input IDs use `TM-` followed by a
+positive ASCII integer, at most 64 bytes. Preserve zero padding exactly: `TM-001`
+must not be rewritten to `TM-1`; an all-zero number is invalid. DTO validation
+checks syntax, not task existence or permission. Hosts must enforce those checks.
+This additive DTO extension changes generated schema hashes: regenerate and pin
+the matching released host/client contracts; do not patch hashes by hand.
+
 Complete/NewTask must honor authoritative linked-task completion gates; an ACP
 end_turn is only the end of a prompt. Stop cancels that prompt and retains a
 healthy connection. End/Complete retire the task session without deleting the

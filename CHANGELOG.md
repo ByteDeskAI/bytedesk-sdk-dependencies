@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.0-rc.16] - 2026-09-25
+
+### Added
+
+- Explicit optional Task Management work-unit references for coding-session
+  creation and new-task requests, with opaque host-bound identity in session
+  results. Strict validation and regenerated browser contracts keep private
+  task-store locations and completion authority in the host.
+
 ## 0.4.0-rc.20 - 2026-09-25
 
 - Add typed plugin-declared navigation sections, parent references, extension seams and resolved snapshots; preserve legacy links and generate browser contracts.

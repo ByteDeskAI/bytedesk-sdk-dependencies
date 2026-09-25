@@ -21,6 +21,7 @@ type Payload interface {
 	Approval |
 		ApprovalOption |
 		ApproveRequest |
+		BoundWorkUnit |
 		Capabilities |
 		CatalogRequest |
 		CatalogResult |
@@ -59,7 +60,8 @@ type Payload interface {
 		StateUpdate |
 		StopRequest |
 		TextInput |
-		ToolUpdate
+		ToolUpdate |
+		WorkUnitReference
 }
 
 // The typed API a non-plugin package gets.
@@ -160,37 +162,37 @@ var PreviewRead = Command[PreviewJobRequest, PreviewJobResult]{c: plugin.NewVali
 var PreviewCancel = Command[PreviewJobRequest, PreviewJobResult]{c: plugin.NewValidatedCommand[PreviewJobRequest, PreviewJobResult]("cmd.gateway.coding-sessions.v1.preview-cancel", 1, "ee510f00f8073f13d27e9d3745d4bd6ea62d742e61ba0408c1994e1878b8a90f", "cmd.gateway.coding-sessions.v1.preview-cancel")}
 
 // Create is the generated descriptor for cmd.gateway.coding-sessions.v1.create revision 1.
-var Create = Command[CreateRequest, SessionResult]{c: plugin.NewValidatedCommand[CreateRequest, SessionResult]("cmd.gateway.coding-sessions.v1.create", 1, "b39e5192107263ca56e6c064b687075c93af4f40c857910149729e6c7899d8f0", "cmd.gateway.coding-sessions.v1.create")}
+var Create = Command[CreateRequest, SessionResult]{c: plugin.NewValidatedCommand[CreateRequest, SessionResult]("cmd.gateway.coding-sessions.v1.create", 1, "420ae406d3faba10ed9e624755ba3933681c8609acbe7506dccaa2886822e1f1", "cmd.gateway.coding-sessions.v1.create")}
 
 // Read is the generated descriptor for cmd.gateway.coding-sessions.v1.read revision 1.
-var Read = Command[SessionRequest, SessionResult]{c: plugin.NewValidatedCommand[SessionRequest, SessionResult]("cmd.gateway.coding-sessions.v1.read", 1, "7e30a4e1961318e85b4f4ac388d2dab22a18684f6982023bedeaede52580f122", "cmd.gateway.coding-sessions.v1.read")}
+var Read = Command[SessionRequest, SessionResult]{c: plugin.NewValidatedCommand[SessionRequest, SessionResult]("cmd.gateway.coding-sessions.v1.read", 1, "8832001706d99c4f6443e991dfcd75be37fbe6f65716f22ae2d40192f0cf307d", "cmd.gateway.coding-sessions.v1.read")}
 
 // Recover is the generated descriptor for cmd.gateway.coding-sessions.v1.recover revision 1.
-var Recover = Command[SessionRequest, SessionResult]{c: plugin.NewValidatedCommand[SessionRequest, SessionResult]("cmd.gateway.coding-sessions.v1.recover", 1, "56d90eb37cf9b8a15da710f4454c98020b7a2741cd05a6a17cd1250b53f80397", "cmd.gateway.coding-sessions.v1.recover")}
+var Recover = Command[SessionRequest, SessionResult]{c: plugin.NewValidatedCommand[SessionRequest, SessionResult]("cmd.gateway.coding-sessions.v1.recover", 1, "c1fa7990685425fcb66fd94a350322304d11705158f03b4bd634c608741df2b6", "cmd.gateway.coding-sessions.v1.recover")}
 
 // List is the generated descriptor for cmd.gateway.coding-sessions.v1.list revision 1.
-var List = Command[ListRequest, ListResult]{c: plugin.NewValidatedCommand[ListRequest, ListResult]("cmd.gateway.coding-sessions.v1.list", 1, "9afbc2b4bfd71620b3b9c5b03d41ce8c1cd45292a84b8f556d7fd6118ef3174f", "cmd.gateway.coding-sessions.v1.list")}
+var List = Command[ListRequest, ListResult]{c: plugin.NewValidatedCommand[ListRequest, ListResult]("cmd.gateway.coding-sessions.v1.list", 1, "9165cb8062ae5a6fb6e1d670b2a3143fa2cf7a50f69a8ded3266ab8bfcdb5eb6", "cmd.gateway.coding-sessions.v1.list")}
 
 // Prompt is the generated descriptor for cmd.gateway.coding-sessions.v1.prompt revision 1.
-var Prompt = Command[PromptRequest, PromptResult]{c: plugin.NewValidatedCommand[PromptRequest, PromptResult]("cmd.gateway.coding-sessions.v1.prompt", 1, "80adf133d4b595be5e24c31148842d274f92a23b6973d5d5db8f90f01a2af7d8", "cmd.gateway.coding-sessions.v1.prompt")}
+var Prompt = Command[PromptRequest, PromptResult]{c: plugin.NewValidatedCommand[PromptRequest, PromptResult]("cmd.gateway.coding-sessions.v1.prompt", 1, "f5c2150744580a05f197a123940f371583bbe6a9404dabe5546ecf68c62a68c4", "cmd.gateway.coding-sessions.v1.prompt")}
 
 // Stop is the generated descriptor for cmd.gateway.coding-sessions.v1.stop revision 1.
-var Stop = Command[StopRequest, SessionResult]{c: plugin.NewValidatedCommand[StopRequest, SessionResult]("cmd.gateway.coding-sessions.v1.stop", 1, "51127a02664cce918b48aeba4985b18658ca73ab07e8b52223b96f559c0f4542", "cmd.gateway.coding-sessions.v1.stop")}
+var Stop = Command[StopRequest, SessionResult]{c: plugin.NewValidatedCommand[StopRequest, SessionResult]("cmd.gateway.coding-sessions.v1.stop", 1, "80ac3931ba9da5bffbe72911e5cd33fdfd06bb385ad55f7f6e98936bd9facf4d", "cmd.gateway.coding-sessions.v1.stop")}
 
 // End is the generated descriptor for cmd.gateway.coding-sessions.v1.end revision 1.
-var End = Command[SessionRequest, SessionResult]{c: plugin.NewValidatedCommand[SessionRequest, SessionResult]("cmd.gateway.coding-sessions.v1.end", 1, "07c34e9d68a9034682fc6e885f1b53604bbd4ff9b5a331fdb7ca4a36dd26d089", "cmd.gateway.coding-sessions.v1.end")}
+var End = Command[SessionRequest, SessionResult]{c: plugin.NewValidatedCommand[SessionRequest, SessionResult]("cmd.gateway.coding-sessions.v1.end", 1, "1c4f5db1962e7fc92d01d9e7cbecb34611658d1f011ca6f139deac221d1dc168", "cmd.gateway.coding-sessions.v1.end")}
 
 // Complete is the generated descriptor for cmd.gateway.coding-sessions.v1.complete revision 1.
-var Complete = Command[SessionRequest, SessionResult]{c: plugin.NewValidatedCommand[SessionRequest, SessionResult]("cmd.gateway.coding-sessions.v1.complete", 1, "f14c2e9f6038b85cc109947f63760405c698ebcc9839cc3e663c152d75d0eb66", "cmd.gateway.coding-sessions.v1.complete")}
+var Complete = Command[SessionRequest, SessionResult]{c: plugin.NewValidatedCommand[SessionRequest, SessionResult]("cmd.gateway.coding-sessions.v1.complete", 1, "c0f3eb4178636fdc5d650d06e6881f8c0dba20d0ab9324e871ff555c70875cbd", "cmd.gateway.coding-sessions.v1.complete")}
 
 // NewTask is the generated descriptor for cmd.gateway.coding-sessions.v1.new-task revision 1.
-var NewTask = Command[NewTaskRequest, SessionResult]{c: plugin.NewValidatedCommand[NewTaskRequest, SessionResult]("cmd.gateway.coding-sessions.v1.new-task", 1, "a08ed42c12a856f1f9da4b4c7c3ed4474b4d5ce40d6200437001bb2f09e5ae95", "cmd.gateway.coding-sessions.v1.new-task")}
+var NewTask = Command[NewTaskRequest, SessionResult]{c: plugin.NewValidatedCommand[NewTaskRequest, SessionResult]("cmd.gateway.coding-sessions.v1.new-task", 1, "1a1d6c732d1a9a1e7c1eca54d817c4685276d925b88c92b99f9c35a66332b5f3", "cmd.gateway.coding-sessions.v1.new-task")}
 
 // UpdatePreferences is the generated descriptor for cmd.gateway.coding-sessions.v1.preferences revision 1.
-var UpdatePreferences = Command[PreferencesRequest, SessionResult]{c: plugin.NewValidatedCommand[PreferencesRequest, SessionResult]("cmd.gateway.coding-sessions.v1.preferences", 1, "fe0b2ff008700b28e2ec0dbb381e8dc9eddfe5ce6656465eb1a350ca6f81814f", "cmd.gateway.coding-sessions.v1.preferences")}
+var UpdatePreferences = Command[PreferencesRequest, SessionResult]{c: plugin.NewValidatedCommand[PreferencesRequest, SessionResult]("cmd.gateway.coding-sessions.v1.preferences", 1, "a19936e0aac5d9fac802e0ef7cf19f76572a81b99b500396fde7a0eb8e56d98e", "cmd.gateway.coding-sessions.v1.preferences")}
 
 // Approve is the generated descriptor for cmd.gateway.coding-sessions.v1.approve revision 1.
-var Approve = Command[ApproveRequest, SessionResult]{c: plugin.NewValidatedCommand[ApproveRequest, SessionResult]("cmd.gateway.coding-sessions.v1.approve", 1, "68a79cb6d28900e344d11d90f9a623c86bcecb05258f5c3a6cb5f9ffdc785798", "cmd.gateway.coding-sessions.v1.approve")}
+var Approve = Command[ApproveRequest, SessionResult]{c: plugin.NewValidatedCommand[ApproveRequest, SessionResult]("cmd.gateway.coding-sessions.v1.approve", 1, "19ef74374fb2281d43d3fd3905adfb785428f7cccb5ee58a77941c6a1e42725e", "cmd.gateway.coding-sessions.v1.approve")}
 
 // Events is the generated descriptor for cmd.gateway.coding-sessions.v1.events revision 1.
 var Events = Command[EventsRequest, EventsResult]{c: plugin.NewValidatedCommand[EventsRequest, EventsResult]("cmd.gateway.coding-sessions.v1.events", 1, "140dc34f5f348d6ef84b17d97124797fb8a6f11f5a6a6b016ab83fb22e16fd0e", "cmd.gateway.coding-sessions.v1.events")}
