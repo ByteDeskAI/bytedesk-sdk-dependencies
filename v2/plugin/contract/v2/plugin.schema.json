@@ -121,7 +121,8 @@
       "required": ["owner", "id"],
       "properties": {
         "owner": {"type": "string"},
-        "id": {"type": "string"}
+        "id": {"type": "string"},
+        "point": {"type": "string"}
       }
     },
     "PanelSpec": {

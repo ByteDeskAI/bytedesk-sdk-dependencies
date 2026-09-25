@@ -15,11 +15,13 @@ func TestNavigationShapeCompatibility(t *testing.T) {
 		{"group", NavItem{ID: "remote", Label: "Remote access", Kind: NavKindGroup}, true},
 		{"section", NavItem{ID: "work", Label: "Work", Kind: NavKindSection}, true},
 		{"link-parent", NavItem{ID: "logs", Label: "Logs", Href: "/logs", Parent: &NavReference{Owner: "system", ID: "system"}}, true},
+		{"cross-owner-parent-point", NavItem{ID: "logs", Label: "Logs", Href: "/logs", Parent: &NavReference{Owner: "system", ID: "system", Point: "bytedesk.navigation.system"}}, true},
 		{"empty-link", NavItem{ID: "files", Label: "Files"}, false},
 		{"unknown-kind", NavItem{ID: "files", Label: "Files", Kind: "tree"}, false},
 		{"folder-url", NavItem{ID: "remote", Label: "Remote", Kind: NavKindGroup, Href: "/remote"}, false},
 		{"section-parent", NavItem{ID: "work", Label: "Work", Kind: NavKindSection, Parent: &NavReference{Owner: "core", ID: "other"}}, false},
 		{"unqualified-parent", NavItem{ID: "logs", Label: "Logs", Href: "/logs", Parent: &NavReference{ID: "system"}}, false},
+		{"invalid-parent-point", NavItem{ID: "logs", Label: "Logs", Href: "/logs", Parent: &NavReference{Owner: "system", ID: "system", Point: "bytedesk.navigation..system"}}, false},
 		{"invalid-placement", NavItem{ID: "files", Label: "Files", Href: "/files", Placement: "overlay"}, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -31,7 +33,7 @@ func TestNavigationShapeCompatibility(t *testing.T) {
 }
 
 func TestNavigationSnapshotKeepsDeclaredAndResolvedReferencesSeparate(t *testing.T) {
-	declared := &NavReference{Owner: "offline", ID: "parent"}
+	declared := &NavReference{Owner: "offline", ID: "parent", Point: "bytedesk.navigation.work"}
 	resolved := &NavReference{Owner: "core", ID: "root"}
 	in := NavigationSnapshot{Items: []NavigationNode{{Owner: "child", Item: NavItem{ID: "page", Label: "Page", Href: "/page", Parent: declared}, Parent: resolved}}, Diagnostics: []NavigationDiagnostic{}}
 	raw, err := json.Marshal(in)
