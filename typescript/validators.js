@@ -493,6 +493,7 @@ export function isNavReference(value) {
   if (!record(value)) return false
   if (!(str(value.owner))) return false
   if (!(str(value.id))) return false
+  if (!(value.point === undefined || str(value.point))) return false
   return true
 }
 

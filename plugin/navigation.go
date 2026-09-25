@@ -1,6 +1,9 @@
 package plugin
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	NavKindLink                 = "link"
@@ -14,9 +17,13 @@ const (
 
 // NavReference names a declaration, never grants permission to see or attach to it.
 // IDs remain local to their manifest owner; labels and URLs are not identities.
+// Point optionally names the extension point used for a cross-owner navigation
+// attachment. It belongs on a NavItem's declared Parent or Section reference;
+// resolved NavigationNode references omit it.
 type NavReference struct {
 	Owner string `json:"owner" bd:"public"`
 	ID    string `json:"id" bd:"public"`
+	Point string `json:"point,omitempty" bd:"public"`
 }
 
 // NavigationNode is a host-resolved, authorized projection of a declaration.
@@ -77,10 +84,28 @@ func ValidateNavigation(items []NavItem) error {
 			if ref != nil && (ref.Owner == "" || ref.ID == "") {
 				return fmt.Errorf("navigation %q: references require owner and id", n.ID)
 			}
+			if ref != nil && !validNavigationPointName(ref.Point) {
+				return fmt.Errorf("navigation %q: reference point %q is invalid", n.ID, ref.Point)
+			}
 		}
 		if n.EffectiveKind() == NavKindSection && (n.Parent != nil || n.Section != nil || n.Placement != "" && n.Placement != NavPlacementMain) {
 			return fmt.Errorf("navigation %q: section must be a main root", n.ID)
 		}
 	}
 	return nil
+}
+
+func validNavigationPointName(name string) bool {
+	if name == "" {
+		return true
+	}
+	if strings.TrimSpace(name) != name {
+		return false
+	}
+	for _, segment := range strings.Split(name, ".") {
+		if segment == "" || strings.Trim(segment, "abcdefghijklmnopqrstuvwxyz0123456789-") != "" {
+			return false
+		}
+	}
+	return true
 }

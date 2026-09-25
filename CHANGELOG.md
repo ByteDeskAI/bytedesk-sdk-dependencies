@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0-rc.16] - 2026-09-25
+## [2.0.0-rc.17] - 2026-09-25
 
 ### Added
 
@@ -8,6 +8,13 @@
   creation and new-task requests, with opaque host-bound identity in session
   results. Strict validation and regenerated browser contracts keep private
   task-store locations and completion authority in the host.
+
+## 0.4.0-rc.21 / 2.0.0-rc.16 - 2026-09-25
+
+- Add an optional `point` to declared navigation parent and section references.
+  Plugins can attach menu items through the parent's declared navigation seam
+  without registering a runtime `Implements` dependency. Older same-owner and
+  cross-owner references without a point remain valid.
 
 ## 0.4.0-rc.20 - 2026-09-25
 
