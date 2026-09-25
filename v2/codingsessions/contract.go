@@ -129,6 +129,24 @@ type Route struct {
 	Source             string        `json:"source" bd:"public"`
 	Reason             string        `json:"reason" bd:"subject"`
 }
+
+// WorkUnitReference explicitly selects an originating Task Management task in
+// the host-authorized store of the selected project and checkout. It contains
+// no store path, URL, port or caller-chosen binding. Validation checks syntax;
+// the host must authorize and resolve the exact live task before accepting it.
+type WorkUnitReference struct {
+	TaskID string `json:"taskId" bd:"subject"`
+}
+
+// BoundWorkUnit is an output-only immutable host binding to the exact originating
+// store and task identity. BindingID is opaque and is not input authority. The
+// host retains private store/board/task identity, watches authoritative task
+// completion, and ends the shared coding session when that work unit completes.
+type BoundWorkUnit struct {
+	TaskID    string `json:"taskId" bd:"subject"`
+	BindingID string `json:"bindingId" bd:"subject"`
+}
+
 type Session struct {
 	ID             string         `json:"id" bd:"subject"`
 	TaskID         string         `json:"taskId" bd:"subject"`
@@ -146,12 +164,17 @@ type Session struct {
 	// Dirty source files are excluded, reported by the host, and never deleted.
 	CheckoutRef string `json:"checkoutRef" bd:"subject"`
 	WorktreeRef string `json:"worktreeRef,omitempty" bd:"subject"`
+	// Absent for an unlinked task. TaskID above remains the coding task's ID;
+	// WorkUnit.TaskID identifies the distinct originating Task Management task.
+	WorkUnit *BoundWorkUnit `json:"workUnit,omitempty" bd:"subject"`
 }
 type CreateRequest struct {
 	ProjectID      string      `json:"projectId" bd:"subject"`
 	CheckoutRef    string      `json:"checkoutRef" bd:"subject"`
 	Preferences    Preferences `json:"preferences" bd:"subject"`
 	IdempotencyKey string      `json:"idempotencyKey" bd:"subject"`
+	// Omission creates an unlinked task; never infer a link from prompt text.
+	WorkUnit *WorkUnitReference `json:"workUnit,omitempty" bd:"subject"`
 }
 type SessionResult struct {
 	Session Session `json:"session" bd:"subject"`
@@ -189,6 +212,8 @@ type NewTaskRequest struct {
 	SessionID      string      `json:"sessionId" bd:"subject"`
 	Preferences    Preferences `json:"preferences" bd:"subject"`
 	IdempotencyKey string      `json:"idempotencyKey" bd:"subject"`
+	// Omission creates an unlinked new task, never inheriting the previous link.
+	WorkUnit *WorkUnitReference `json:"workUnit,omitempty" bd:"subject"`
 }
 type PreferencesRequest struct {
 	SessionID   string      `json:"sessionId" bd:"subject"`
@@ -396,12 +421,42 @@ func (v Preferences) Validate() error {
 func (v Route) Validate() error {
 	return check.All(check.ID("route.providerId", v.ProviderID), check.ID("route.providerGeneration", v.ProviderGeneration), check.Text("route.modelId", v.ModelID, 255, true), values(v.ConfigValues), policy(v.Policy), check.Enum("route source", v.Source, "decision", "override", "fallback"), check.Text("route.reason", v.Reason, 4096, true))
 }
+func (v WorkUnitReference) Validate() error {
+	if len(v.TaskID) < 4 || len(v.TaskID) > 64 || v.TaskID[:3] != "TM-" {
+		return fmt.Errorf("workUnit.taskId must be TM- followed by a positive integer (at most 64 bytes)")
+	}
+	nonzero := false
+	for i := 3; i < len(v.TaskID); i++ {
+		if v.TaskID[i] < '0' || v.TaskID[i] > '9' {
+			return fmt.Errorf("workUnit.taskId must contain ASCII digits only after TM-")
+		}
+		nonzero = nonzero || v.TaskID[i] != '0'
+	}
+	if !nonzero {
+		return fmt.Errorf("workUnit.taskId must identify a positive task number")
+	}
+	return nil
+}
+func (v BoundWorkUnit) Validate() error {
+	return check.All((WorkUnitReference{TaskID: v.TaskID}).Validate(), check.ID("workUnit.bindingId", v.BindingID))
+}
+func optionalWorkUnit(v *WorkUnitReference) error {
+	if v == nil {
+		return nil
+	}
+	return v.Validate()
+}
 func (v Session) Validate() error {
 	if err := check.All(check.ID("session.id", v.ID), check.ID("taskId", v.TaskID), check.ID("projectId", v.ProjectID), state(v.State), v.Preferences.Validate(), configs(v.ConfigOptions), check.OptionalID("activePromptId", v.ActivePromptID), recovery(v.Recovery), check.Timestamp("createdAt", v.CreatedAt), check.Timestamp("updatedAt", v.UpdatedAt), check.Text("checkoutRef", v.CheckoutRef, 512, true), check.OptionalID("worktreeRef", v.WorktreeRef)); err != nil {
 		return err
 	}
 	if v.Route != nil {
 		if err := v.Route.Validate(); err != nil {
+			return err
+		}
+	}
+	if v.WorkUnit != nil {
+		if err := v.WorkUnit.Validate(); err != nil {
 			return err
 		}
 	}
@@ -414,7 +469,7 @@ func (v Session) Validate() error {
 	return nil
 }
 func (v CreateRequest) Validate() error {
-	return check.All(check.ID("projectId", v.ProjectID), check.Text("checkoutRef", v.CheckoutRef, 512, true), v.Preferences.Validate(), check.ID("idempotencyKey", v.IdempotencyKey), check.Size(v))
+	return check.All(check.ID("projectId", v.ProjectID), check.Text("checkoutRef", v.CheckoutRef, 512, true), v.Preferences.Validate(), check.ID("idempotencyKey", v.IdempotencyKey), optionalWorkUnit(v.WorkUnit), check.Size(v))
 }
 func (v SessionRequest) Validate() error { return check.ID("sessionId", v.SessionID) }
 func (v SessionResult) Validate() error  { return check.All(v.Session.Validate(), check.Size(v)) }
@@ -442,7 +497,7 @@ func (v StopRequest) Validate() error {
 	return check.All(check.ID("sessionId", v.SessionID), check.ID("promptId", v.PromptID))
 }
 func (v NewTaskRequest) Validate() error {
-	return check.All(check.ID("sessionId", v.SessionID), v.Preferences.Validate(), check.ID("idempotencyKey", v.IdempotencyKey), check.Size(v))
+	return check.All(check.ID("sessionId", v.SessionID), v.Preferences.Validate(), check.ID("idempotencyKey", v.IdempotencyKey), optionalWorkUnit(v.WorkUnit), check.Size(v))
 }
 func (v PreferencesRequest) Validate() error {
 	return check.All(check.ID("sessionId", v.SessionID), v.Preferences.Validate(), check.Size(v))
