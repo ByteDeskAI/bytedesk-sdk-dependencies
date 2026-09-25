@@ -107,7 +107,21 @@
         "label": {"type": "string"},
         "icon": {"type": "string"},
         "href": {"type": "string", "x-bd-ref": "route"},
-        "order": {"type": "integer"}
+        "order": {"type": "integer"},
+        "kind": {"type": "string"},
+        "section": {"$ref": "#/$defs/NavReference"},
+        "parent": {"$ref": "#/$defs/NavReference"},
+        "childrenPoint": {"type": "string"},
+        "placement": {"type": "string"},
+        "newTab": {"type": "boolean"}
+      }
+    },
+    "NavReference": {
+      "type": "object", "additionalProperties": true,
+      "required": ["owner", "id"],
+      "properties": {
+        "owner": {"type": "string"},
+        "id": {"type": "string"}
       }
     },
     "PanelSpec": {

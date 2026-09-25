@@ -36,6 +36,8 @@ func TestGeneratedArtifactsMatchCheckedInCopies(t *testing.T) {
 	// path reads from the test's cwd; out is the same file from the repo root,
 	// so the printed command is copy-pasteable where the generator is run.
 	for _, tc := range []struct{ emit, pkg, path, out string }{
+		{"dts", "plugin", "../../plugin/typescript/contracts.d.ts", "plugin/typescript/contracts.d.ts"},
+		{"js", "plugin", "../../plugin/typescript/validators.js", "plugin/typescript/validators.js"},
 		{"js", "messaging", "../../typescript/validators.js", "typescript/validators.js"},
 		{"dts", "messaging", "../../typescript/contracts.d.ts", "typescript/contracts.d.ts"},
 		{"descriptors-js", "messaging", "../../typescript/descriptors.js", "typescript/descriptors.js"},

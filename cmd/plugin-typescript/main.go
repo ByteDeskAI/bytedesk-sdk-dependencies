@@ -81,6 +81,7 @@ func targets() map[string]target {
 				{typ: reflect.TypeOf(plugin.DirectoryContextActionWizardContext{}), readonly: true},
 				{typ: reflect.TypeOf(plugin.Manifest{})},
 				{typ: reflect.TypeOf(plugin.RuntimeSnapshot{})},
+				{typ: reflect.TypeOf(plugin.NavigationSnapshot{})},
 				{typ: reflect.TypeOf(plugin.HostCapabilities{})},
 				{typ: reflect.TypeOf(plugin.ProtocolRequirements{})},
 				{typ: reflect.TypeOf(plugin.LifecycleOperation{})},

@@ -480,6 +480,43 @@ export function isNavItem(value) {
   if (!(value.icon === undefined || str(value.icon))) return false
   if (!(str(value.href))) return false
   if (!(value.order === undefined || num(value.order))) return false
+  if (!(value.kind === undefined || str(value.kind))) return false
+  if (!(value.section === undefined || isNavReference(value.section))) return false
+  if (!(value.parent === undefined || isNavReference(value.parent))) return false
+  if (!(value.childrenPoint === undefined || str(value.childrenPoint))) return false
+  if (!(value.placement === undefined || str(value.placement))) return false
+  if (!(value.newTab === undefined || bool(value.newTab))) return false
+  return true
+}
+
+export function isNavReference(value) {
+  if (!record(value)) return false
+  if (!(str(value.owner))) return false
+  if (!(str(value.id))) return false
+  return true
+}
+
+export function isNavigationDiagnostic(value) {
+  if (!record(value)) return false
+  if (!(str(value.owner))) return false
+  if (!(str(value.id))) return false
+  if (!(str(value.code))) return false
+  return true
+}
+
+export function isNavigationNode(value) {
+  if (!record(value)) return false
+  if (!(str(value.owner))) return false
+  if (!(isNavItem(value.item))) return false
+  if (!(value.parent === undefined || isNavReference(value.parent))) return false
+  if (!(value.section === undefined || isNavReference(value.section))) return false
+  return true
+}
+
+export function isNavigationSnapshot(value) {
+  if (!record(value)) return false
+  if (!(value.items === null || list(value.items, isNavigationNode))) return false
+  if (!(value.diagnostics === null || list(value.diagnostics, isNavigationDiagnostic))) return false
   return true
 }
 

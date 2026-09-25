@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0-rc.20 - 2026-09-25
+
+- Add typed plugin-declared navigation sections, parent references, extension seams and resolved snapshots; preserve legacy links and generate browser contracts.
+
 ## [Unreleased]
 
 ### Added
