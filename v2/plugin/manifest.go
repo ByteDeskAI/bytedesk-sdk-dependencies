@@ -154,6 +154,12 @@ type Manifest struct {
 	// the substrate lacks durable storage is a data-loss report later.
 	Needs []string `json:"needs,omitempty" bd:"public"`
 
+	// Capabilities are side effects the host enacts for this plugin. The
+	// vocabulary is CapabilityIDs. The consent screen renders
+	// ConsentCapabilities, and CapabilityEnabled is what turns each feature
+	// on. Requires does not copy a peer's capabilities.
+	Capabilities []string `json:"capabilities,omitempty" bd:"public"`
+
 	// Config declares the settings sections this plugin contributes. It is
 	// SCHEMA, never values: the host owns values and reads its own record, so a
 	// plugin describes what it configures and the operator's choices never live

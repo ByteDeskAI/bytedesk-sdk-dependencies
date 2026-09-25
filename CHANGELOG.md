@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- v2 manifests can declare side-effect capabilities (`credential.secret`,
+  `egress.provider`, `process.supervised`, `ingress.publish`). The set is
+  closed. `ConsentCapabilities` is the install-sheet list, and
+  `CapabilityEnabled` is the grant check that turns each one on. Both read
+  the same catalog. `GrantsDigest` is now `bytedesk.plugin.grants.v3` and
+  covers capabilities, so an existing approval does not silently gain one.
+
 ## [0.4.0-rc.19] - 2026-09-23
 
 ### Added

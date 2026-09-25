@@ -14,13 +14,13 @@ import (
 // GrantsDigestAlgorithm names the canonicalisation below. It is hashed first,
 // so a future change to the encoding produces a different digest for the same
 // manifest rather than a silent collision with records written by the old one.
-const GrantsDigestAlgorithm = "bytedesk.plugin.grants.v2"
+const GrantsDigestAlgorithm = "bytedesk.plugin.grants.v3"
 
 // GrantsDigest is the stable fingerprint of everything an operator consents to
-// when they approve this plugin: permissions, serves, streams, kv, objects and
-// needs. `plugin-sdk pack` prints it; a dev-grants entry is keyed by it, so a
-// change to any of those fields re-asks the operator rather than silently
-// widening what they already approved.
+// when they approve this plugin: permissions, serves, streams, kv, objects,
+// needs, and side-effect capabilities. `plugin-sdk pack` prints it; a
+// dev-grants entry is keyed by it, so a change to any of those fields re-asks
+// the operator rather than silently widening what they already approved.
 //
 // It succeeds the gateway's manifestPermissionsDigest
 // (src/kernel_host_grants.go:221), which covered only the three permission
@@ -78,6 +78,7 @@ func GrantsDigest(m Manifest) string {
 	section(h, "objects", objects)
 
 	section(h, "needs", slices.Clone(m.Needs))
+	section(h, "capabilities", slices.Clone(m.Capabilities))
 
 	return hex.EncodeToString(h.Sum(nil))
 }

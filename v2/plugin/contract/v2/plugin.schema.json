@@ -53,6 +53,7 @@
     "kv": {"type": "array", "items": {"$ref": "#/$defs/KVDecl"}},
     "objects": {"type": "array", "items": {"$ref": "#/$defs/ObjectDecl"}},
     "needs": {"type": "array", "items": {"type": "string"}},
+    "capabilities": {"type": "array", "items": {"type": "string"}, "description": "Closed side-effect capability ids. The host enacts them. Requires does not copy them."},
     "config": {"$ref": "#/$defs/Config"}
   },
   "$defs": {

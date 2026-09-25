@@ -13,7 +13,19 @@ import (
 // every operator. Failing here means someone has to decide that deliberately
 // and say so in the changelog.
 func TestGrantsDigestGolden(t *testing.T) {
-	const want = "191228d5659340a3d5ff4c7ae7435c622a8e0cf9b04e31ca89249792d653c234"
+	const want = "a3739acc3083df288103ba7b474fa3cee11c7148097cd3c694177dc39587c4b7"
+	// previous is the v2 golden for the same reference manifest. A grant stored
+	// under it must not match once capabilities are part of the digest, even
+	// when the manifest declares none, and must not match when it declares one.
+	const previous = "191228d5659340a3d5ff4c7ae7435c622a8e0cf9b04e31ca89249792d653c234"
+	if got := GrantsDigest(fullManifest()); got == previous {
+		t.Fatal("v3 digest still equals the v2 grant for the reference manifest")
+	}
+	withCap := fullManifest()
+	withCap.Capabilities = []string{CapabilityCredentialSecret}
+	if GrantsDigest(withCap) == previous || GrantsDigest(withCap) == GrantsDigest(fullManifest()) {
+		t.Fatal("declaring a capability did not leave the previous grant")
+	}
 	if got := GrantsDigest(fullManifest()); got != want {
 		t.Fatalf("GrantsDigest(reference manifest) = %q, want %q\n\n"+
 			"A dev-grants entry is keyed by this digest. If the canonicalisation "+
@@ -60,6 +72,7 @@ func TestGrantsDigestCoversEveryConsentedField(t *testing.T) {
 		{"objects[].ttlSeconds", func(m *Manifest) { m.Objects[0].TTLSeconds *= 2 }},
 		{"objects[] added", func(m *Manifest) { m.Objects = append(m.Objects, ObjectDecl{Name: "extra"}) }},
 		{"needs", func(m *Manifest) { m.Needs = append(m.Needs, "objects") }},
+		{"capabilities", func(m *Manifest) { m.Capabilities = append(m.Capabilities, CapabilityCredentialSecret) }},
 	}
 	seen := map[string]string{base: "the reference manifest"}
 	for _, c := range cases {
@@ -103,6 +116,7 @@ func reverseCoveredLists(m Manifest) Manifest {
 	m.Permissions.Subscribe = reversed(m.Permissions.Subscribe)
 	m.Permissions.Request = reversed(m.Permissions.Request)
 	m.Needs = reversed(m.Needs)
+	m.Capabilities = reversed(m.Capabilities)
 	m.Serves = reversed(m.Serves)
 	for i := range m.Serves {
 		m.Serves[i].Endpoints = reversed(m.Serves[i].Endpoints)
@@ -149,6 +163,7 @@ func TestGrantsDigestTreatsNilAndEmptyAlike(t *testing.T) {
 	explicit := Manifest{ID: "x", Version: "1",
 		Permissions: Permissions{Publish: []bus.Pattern{}, Subscribe: []bus.Pattern{}, Request: []bus.Pattern{}},
 		Serves:      []ServiceDecl{}, Streams: []StreamDecl{}, KV: []KVDecl{}, Objects: []ObjectDecl{}, Needs: []string{},
+		Capabilities: []string{},
 	}
 	if GrantsDigest(empty) != GrantsDigest(explicit) {
 		t.Fatal("an omitted list and an empty one produced different digests")

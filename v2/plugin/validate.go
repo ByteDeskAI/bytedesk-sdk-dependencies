@@ -130,6 +130,7 @@ func Diagnostics(m Manifest, requireVersion bool) []Diagnostic {
 	validateServes(&c, m)
 	validateAssets(&c, m)
 	validateNeeds(&c, m)
+	validateCapabilities(&c, m)
 	validateUI(&c, m)
 	validateProjectContributions(&c, m)
 	return c.list
@@ -596,6 +597,25 @@ func validateAssets(c *collector, m Manifest) {
 		objects[name] = true
 		if b.MaxBytes < 0 {
 			c.add("BDP2140", path+".maxBytes", name)
+		}
+	}
+}
+
+func validateCapabilities(c *collector, m Manifest) {
+	seen := map[string]bool{}
+	for i, id := range m.Capabilities {
+		path := fmt.Sprintf("capabilities[%d]", i)
+		id = strings.TrimSpace(id)
+		if id == "" {
+			c.add("BDP2172", path)
+			continue
+		}
+		if seen[id] {
+			c.add("BDP2173", path, id)
+		}
+		seen[id] = true
+		if !knownCapability(id) {
+			c.add("BDP2174", path, id, strings.Join(CapabilityIDs(), " "))
 		}
 	}
 }

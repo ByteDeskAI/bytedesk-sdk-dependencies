@@ -116,6 +116,7 @@ func publicTypes() []reflect.Type {
 		reflect.TypeOf(plugin.Point("")),
 		// plugin — manifest v2
 		reflect.TypeOf(plugin.Manifest{}),
+		reflect.TypeOf(plugin.ConsentCapability{}),
 		reflect.TypeOf(plugin.ManifestIdentity{}),
 		reflect.TypeOf(plugin.Images{}),
 		reflect.TypeOf(plugin.Support{}),
