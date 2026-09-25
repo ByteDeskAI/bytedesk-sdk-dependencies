@@ -30,11 +30,16 @@ const (
 	PointFilesS3 Point = "files.s3"
 	// PointACPProvider supplies an Agent Client Protocol provider.
 	PointACPProvider Point = "acp.provider"
+	// PointAIDecision provides typed Choice, Score and Noul decision jobs.
+	// Only the host resolves and dispatches providers. Consumers call the stable
+	// aidecision host facade, never a provider's endpoint directly.
+	PointAIDecision Point = "ai.decision"
 	// PointTerminalPresentation projects a terminal list into the shell.
 	PointTerminalPresentation Point = "terminal.presentation"
 	// PointSettingsSection contributes one section to the settings surface.
 	// Its operations are svc.<provider>.host.settings.section.v1.snapshot and
-	// .patch.
+	// .patch. A typed .validate endpoint opts into host-owned persistence and
+	// receives redacted merged values only (package hostsettings).
 	PointSettingsSection Point = "host.settings.section"
 	// PointSessionBackend supplies terminal sessions. The host owns it, so only
 	// the host and plugins compiled into it may declare it. The name keeps its
@@ -50,6 +55,7 @@ var knownPoints = []Point{
 	PointMCPTool,
 	PointFilesS3,
 	PointACPProvider,
+	PointAIDecision,
 	PointTerminalPresentation,
 	PointSettingsSection,
 	PointSessionBackend,

@@ -108,7 +108,21 @@ func (d Descriptor) Kind() Kind { return d.kind }
 func (d Descriptor) Subject() bus.Subject { return d.subject }
 
 // Command names one request/response operation. Built by generated code.
-type Command[Req, Resp any] struct{ d Descriptor }
+type Command[Req, Resp any] struct {
+	d                Descriptor
+	validateRequest  func(Req) error
+	validateResponse func(Resp) error
+}
+
+// NewValidatedCommand is the generated opt-in boundary for contracts with
+// semantic validators. Validation occurs before sending, before handling and
+// on each response. Legacy NewCommand behavior remains unchanged.
+func NewValidatedCommand[Req interface{ Validate() error }, Resp interface{ Validate() error }](name string, rev uint32, schemaHash string, subject bus.Subject) Command[Req, Resp] {
+	c := NewCommand[Req, Resp](name, rev, schemaHash, subject)
+	c.validateRequest = func(v Req) error { return v.Validate() }
+	c.validateResponse = func(v Resp) error { return v.Validate() }
+	return c
+}
 
 // NewCommand builds a command descriptor. Generated code calls this.
 func NewCommand[Req, Resp any](name string, rev uint32, schemaHash string, subject bus.Subject) Command[Req, Resp] {
@@ -283,6 +297,11 @@ func Call[Req, Resp any](ctx context.Context, b bus.Bus, c Command[Req, Resp], r
 	if b == nil {
 		return zero, bus.Fault{Code: bus.FaultUnavailable, Op: c.d.name, Message: "no bus"}
 	}
+	if c.validateRequest != nil {
+		if err := c.validateRequest(req); err != nil {
+			return zero, bus.Fault{Code: bus.FaultSchema, Op: c.d.name, Message: "invalid request", Err: err}
+		}
+	}
 	body, err := json.Marshal(req)
 	if err != nil {
 		return zero, bus.Fault{Code: bus.FaultSchema, Op: c.d.name, Message: "request does not marshal", Err: err}
@@ -298,8 +317,13 @@ func Call[Req, Resp any](ctx context.Context, b bus.Bus, c Command[Req, Resp], r
 		return zero, err
 	}
 	var resp Resp
-	if err := json.Unmarshal(reply.Data, &resp); err != nil {
+	if err := decodeCommand(reply.Data, &resp, c.validateResponse != nil); err != nil {
 		return zero, bus.Fault{Code: bus.FaultSchema, Op: c.d.name, Message: "reply does not decode", Err: err}
+	}
+	if c.validateResponse != nil {
+		if err := c.validateResponse(resp); err != nil {
+			return zero, bus.Fault{Code: bus.FaultSchema, Op: c.d.name, Message: "invalid response", Err: err}
+		}
 	}
 	return resp, nil
 }
@@ -354,6 +378,20 @@ func On[T any](ctx context.Context, b bus.Bus, e Event[T], h func(context.Contex
 // manifest's serves list, naming the subject. Registrar below is the local
 // preflight for a plugin assembling a multi-endpoint ServiceSpec by hand.
 func Serve[Req, Resp any](ctx context.Context, b bus.Bus, c Command[Req, Resp], h func(context.Context, Req, bus.Caller) (Resp, error)) (bus.Service, error) {
+	return servePoint(ctx, b, c, "", h)
+}
+
+// ServeAtPoint mounts a generated provider command with discoverable extension
+// point metadata. It does not grant that point or retarget the descriptor: the
+// host still validates ownership and the manifest's exact declared endpoint.
+func ServeAtPoint[Req, Resp any](ctx context.Context, b bus.Bus, c Command[Req, Resp], point Point, h func(context.Context, Req, bus.Caller) (Resp, error)) (bus.Service, error) {
+	if !IsKnownPoint(string(point)) {
+		return nil, bus.Fault{Code: bus.FaultUnavailable, Op: c.d.name, Message: "unknown extension point"}
+	}
+	return servePoint(ctx, b, c, string(point), h)
+}
+
+func servePoint[Req, Resp any](ctx context.Context, b bus.Bus, c Command[Req, Resp], point string, h func(context.Context, Req, bus.Caller) (Resp, error)) (bus.Service, error) {
 	if b == nil {
 		return nil, bus.Fault{Code: bus.FaultUnavailable, Op: c.d.name, Message: "no bus"}
 	}
@@ -370,9 +408,15 @@ func Serve[Req, Resp any](ctx context.Context, b bus.Bus, c Command[Req, Resp], 
 			return
 		}
 		var req Req
-		if err := json.Unmarshal(m.Data, &req); err != nil {
+		if err := decodeCommand(m.Data, &req, c.validateRequest != nil); err != nil {
 			_ = m.RespondFault(bus.Fault{Code: bus.FaultSchema, Op: c.d.name, Message: "request does not decode"})
 			return
+		}
+		if c.validateRequest != nil {
+			if err := c.validateRequest(req); err != nil {
+				_ = m.RespondFault(bus.Fault{Code: bus.FaultSchema, Op: c.d.name, Message: "invalid request"})
+				return
+			}
 		}
 		resp, err := h(ctx, req, bus.CallerOf(m))
 		if err != nil {
@@ -385,6 +429,12 @@ func Serve[Req, Resp any](ctx context.Context, b bus.Bus, c Command[Req, Resp], 
 			_ = m.RespondFault(fault)
 			return
 		}
+		if c.validateResponse != nil {
+			if err := c.validateResponse(resp); err != nil {
+				_ = m.RespondFault(bus.Fault{Code: bus.FaultSchema, Op: c.d.name, Message: "invalid response"})
+				return
+			}
+		}
 		body, err := json.Marshal(resp)
 		if err != nil {
 			_ = m.RespondFault(bus.Fault{Code: bus.FaultSchema, Op: c.d.name, Message: "response does not marshal"})
@@ -393,12 +443,14 @@ func Serve[Req, Resp any](ctx context.Context, b bus.Bus, c Command[Req, Resp], 
 		_ = m.Respond(stamp(c.d), body)
 	}
 	return b.Services().Serve(ctx, bus.ServiceSpec{
-		Name:    c.d.name,
-		Version: serviceVersion(c.d.rev),
+		Name:     c.d.name,
+		Version:  serviceVersion(c.d.rev),
+		Metadata: descriptorMetadata(c.d, point),
 		Endpoints: []bus.EndpointSpec{{
 			Name:    c.d.name,
 			Subject: c.d.subject,
 			Handler: handler,
+			Point:   point,
 		}},
 	})
 }

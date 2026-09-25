@@ -159,8 +159,12 @@ func descriptorVar(op operation, hash string) string {
 		return fmt.Sprintf("var %s = Service{s: plugin.NewServiceDescriptor(%q, %d, %q, %q)}\n",
 			op.goVar, op.name, op.rev, hash, op.endpoints[0].subject)
 	default:
-		return fmt.Sprintf("var %s = Command[%s, %s]{c: plugin.NewCommand[%s, %s](%q, %d, %q, %q)}\n",
-			op.goVar, op.req.Name(), op.resp.Name(), op.req.Name(), op.resp.Name(), op.name, op.rev, hash, op.subject)
+		constructor := "NewCommand"
+		if op.validated {
+			constructor = "NewValidatedCommand"
+		}
+		return fmt.Sprintf("var %s = Command[%s, %s]{c: plugin.%s[%s, %s](%q, %d, %q, %q)}\n",
+			op.goVar, op.req.Name(), op.resp.Name(), constructor, op.req.Name(), op.resp.Name(), op.name, op.rev, hash, op.subject)
 	}
 }
 

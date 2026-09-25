@@ -337,6 +337,12 @@ func reservedAlias(alias string) string {
 func validateSubjectPatterns(c *collector, m Manifest) {
 	own := ownNamespacePatterns(strings.TrimSpace(m.ID))
 	denied := PermanentlyIneligible()
+	// Stable Gateway facades are callable by plugins, never implementable by
+	// them. This is deliberately NOT an all-verb permanently-ineligible rule.
+	hostCommands := bus.Pattern("cmd.gateway.>")
+	if strings.TrimSpace(m.ID) == "gateway" {
+		c.add("BDP2004", "id", m.ID, "cmd.gateway.>", "cmd.gateway.>")
+	}
 	// own is implicit and never appears in a declared Permissions list, so the
 	// loop below -- which walks Publish/Subscribe/Request -- cannot see it and
 	// cannot catch an id whose OWN NAMESPACE reaches an ineligible family. A
@@ -374,6 +380,18 @@ func validateSubjectPatterns(c *collector, m Manifest) {
 			}
 			if refuseReservedTokens(c, path, list.label, p) {
 				continue
+			}
+			if list.label != "permissions.request" && patternsOverlap(hostCommands, p) {
+				c.add("BDP2115", path, list.label, string(p), string(hostCommands))
+			}
+			// The host alone invokes decision providers. Foreign subscriptions
+			// must not intercept host-minted invocation/payload authorities.
+			providerAI := bus.Pattern("svc.*.ai.decision.>")
+			if patternsOverlap(providerAI, p) {
+				ownService := bus.Pattern("svc." + strings.TrimSpace(m.ID) + ".>")
+				if list.label != "permissions.subscribe" || !ownService.Covers(p) {
+					c.add("BDP2115", path, list.label, string(p), string(providerAI))
+				}
 			}
 			for _, g := range own {
 				if g.Covers(p) {
