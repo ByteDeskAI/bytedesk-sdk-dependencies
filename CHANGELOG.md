@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0-rc.21 / 2.0.0-rc.16 - 2026-09-25
+
+- Add an optional `point` to declared navigation parent and section references.
+  Plugins can attach menu items through the parent's declared navigation seam
+  without registering a runtime `Implements` dependency. Older same-owner and
+  cross-owner references without a point remain valid.
+
 ## 0.4.0-rc.20 - 2026-09-25
 
 - Add typed plugin-declared navigation sections, parent references, extension seams and resolved snapshots; preserve legacy links and generate browser contracts.

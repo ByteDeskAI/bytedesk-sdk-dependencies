@@ -376,6 +376,7 @@ export interface NavItem {
 export interface NavReference {
   owner: string
   id: string
+  point?: string
 }
 
 export interface NavigationDiagnostic {

@@ -590,8 +590,9 @@ type NavItem struct {
 	Kind    string        `json:"kind,omitempty" bd:"public"`
 	Section *NavReference `json:"section,omitempty" bd:"public"`
 	Parent  *NavReference `json:"parent,omitempty" bd:"public"`
-	// ChildrenPoint names this owner's Extends seam. Cross-owner children must
-	// register their nav ID through Implements at this point.
+	// ChildrenPoint names this owner's Extends seam. A cross-owner child's
+	// Parent or Section reference names this point; this is menu placement, not
+	// a runtime Implements registration.
 	ChildrenPoint string `json:"childrenPoint,omitempty" bd:"public"`
 	Placement     string `json:"placement,omitempty" bd:"public"`
 	NewTab        bool   `json:"newTab,omitempty" bd:"public"`
