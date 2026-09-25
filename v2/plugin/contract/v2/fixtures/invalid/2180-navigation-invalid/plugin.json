@@ -1,0 +1,18 @@
+{
+  "contract": 2,
+  "id": "nav-fixture",
+  "version": "1.0.0",
+  "kind": "builtin",
+  "identity": {
+    "displayName": "Navigation fixture",
+    "description": "Checks invalid navigation shape."
+  },
+  "nav": [
+    {
+      "id": "folder",
+      "label": "Folder",
+      "kind": "group",
+      "href": "/bad"
+    }
+  ]
+}

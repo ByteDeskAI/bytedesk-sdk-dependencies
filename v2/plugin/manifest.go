@@ -582,11 +582,19 @@ type Requirement struct {
 
 // NavItem is one entry in the shell's navigation.
 type NavItem struct {
-	ID    string `json:"id" bd:"public"`
-	Label string `json:"label" bd:"public"`
-	Icon  string `json:"icon,omitempty" bd:"public"`
-	Href  string `json:"href" bd:"public"`
-	Order int    `json:"order,omitempty" bd:"public"`
+	ID      string        `json:"id" bd:"public"`
+	Label   string        `json:"label" bd:"public"`
+	Icon    string        `json:"icon,omitempty" bd:"public"`
+	Href    string        `json:"href" bd:"public"`
+	Order   int           `json:"order,omitempty" bd:"public"`
+	Kind    string        `json:"kind,omitempty" bd:"public"`
+	Section *NavReference `json:"section,omitempty" bd:"public"`
+	Parent  *NavReference `json:"parent,omitempty" bd:"public"`
+	// ChildrenPoint names this owner's Extends seam. Cross-owner children must
+	// register their nav ID through Implements at this point.
+	ChildrenPoint string `json:"childrenPoint,omitempty" bd:"public"`
+	Placement     string `json:"placement,omitempty" bd:"public"`
+	NewTab        bool   `json:"newTab,omitempty" bd:"public"`
 }
 
 // PanelSpec is one mountable surface this plugin owns.

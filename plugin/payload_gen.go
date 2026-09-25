@@ -65,6 +65,10 @@ type Payload interface {
 		LifecycleOperation |
 		Manifest |
 		NavItem |
+		NavReference |
+		NavigationDiagnostic |
+		NavigationNode |
+		NavigationSnapshot |
 		PanelSpec |
 		Permissions |
 		PresentationBadge |

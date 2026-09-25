@@ -128,3 +128,25 @@ converts one plugin at a time. Behaviour that deliberately changed:
 `VERSION` is the module's own version and moves independently of v1's. The module
 requires v1 at a tag; a pseudo-version or a `replace` directive fails
 `version_policy_test.go` on purpose.
+
+## Hierarchical navigation
+
+`Manifest.Nav` supports links (the default), non-navigating `group` entries, and
+root `section` entries. Existing flat links keep their meaning. `NavReference`
+addresses an owner and its local navigation ID; URL and label are not identity.
+`section`, `parent`, `placement` (main, pinned, footer), and `newTab` are optional.
+Groups and sections keep an empty `href`.
+
+A parent opens a cross-plugin seam by setting `childrenPoint` to its own
+`Extends` declaration with interface `navigation.children.v1`. The child owner
+registers its navigation ID in `Implements` at that point. The host validates
+this relationship, resolves availability and authorization, and publishes a
+`NavigationSnapshot` with flat nodes and effective parent/section references.
+Declared references remain on `node.item`; effective references live on the
+node. This supports arbitrary tree depth without recursive wire payloads.
+
+Host projections must retain ownership checks, reject ambiguous or cyclic
+attachments, and never restore unavailable or unauthorized links while
+promoting a child past an unavailable parent. The resolved snapshot accompanies
+the contribution/runtime consistency boundary; endpoint authorization remains
+independent. Legacy consumers may continue receiving the flat link projection.

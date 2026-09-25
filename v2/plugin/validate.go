@@ -117,6 +117,11 @@ func Diagnostics(m Manifest, requireVersion bool) []Diagnostic {
 	for i, impl := range m.Implements {
 		validatePointName(&c, fmt.Sprintf("implements[%d].point", i), "implements", m.Publisher, impl.Point)
 	}
+	for i, n := range m.Nav {
+		if err := ValidateNavigation([]NavItem{n}); err != nil {
+			c.add("BDP2180", fmt.Sprintf("nav[%d]", i), err.Error())
+		}
+	}
 	validateKind(&c, m)
 	validateIdentity(&c, m)
 	validatePublisher(&c, m)

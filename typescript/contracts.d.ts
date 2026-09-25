@@ -365,6 +365,35 @@ export interface NavItem {
   icon?: string
   href: string
   order?: number
+  kind?: string
+  section?: NavReference
+  parent?: NavReference
+  childrenPoint?: string
+  placement?: string
+  newTab?: boolean
+}
+
+export interface NavReference {
+  owner: string
+  id: string
+}
+
+export interface NavigationDiagnostic {
+  owner: string
+  id: string
+  code: string
+}
+
+export interface NavigationNode {
+  owner: string
+  item: NavItem
+  parent?: NavReference
+  section?: NavReference
+}
+
+export interface NavigationSnapshot {
+  items: NavigationNode[] | null
+  diagnostics: NavigationDiagnostic[] | null
 }
 
 export interface PanelSpec {
@@ -610,6 +639,10 @@ export declare function isLauncherSpec(value: unknown): value is LauncherSpec
 export declare function isLifecycleOperation(value: unknown): value is LifecycleOperation
 export declare function isManifest(value: unknown): value is Manifest
 export declare function isNavItem(value: unknown): value is NavItem
+export declare function isNavReference(value: unknown): value is NavReference
+export declare function isNavigationDiagnostic(value: unknown): value is NavigationDiagnostic
+export declare function isNavigationNode(value: unknown): value is NavigationNode
+export declare function isNavigationSnapshot(value: unknown): value is NavigationSnapshot
 export declare function isPanelSpec(value: unknown): value is PanelSpec
 export declare function isPermissions(value: unknown): value is Permissions
 export declare function isPresentationBadge(value: unknown): value is PresentationBadge

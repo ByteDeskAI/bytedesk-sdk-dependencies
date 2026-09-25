@@ -1,0 +1,9 @@
+{
+  "diagnostics": [
+    {
+      "code": "BDP2180",
+      "severity": "error",
+      "path": "nav[0]"
+    }
+  ]
+}

@@ -27,6 +27,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/ByteDeskAI/bytedesk-sdk-dependencies/v2/plugin"
 	"os"
 	"reflect"
 	"sort"
@@ -54,6 +55,7 @@ type target struct {
 
 func targets() map[string]target {
 	return map[string]target{
+		"plugin":         {pkg: "plugin", roots: []root{{typ: reflect.TypeOf(plugin.NavigationSnapshot{})}}},
 		"messaging":      messagingTarget(),
 		"sessioncontext": sessionContextTarget(),
 		"webapps":        webAppsTarget(),
