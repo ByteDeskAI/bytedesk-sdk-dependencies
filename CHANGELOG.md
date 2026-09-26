@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.0] - 2026-09-26
+
+### Changed
+
+- Release the v2 module as 2.0.0. The contract is the one tagged v2.0.0-rc.17.
+
 ## [2.0.0-rc.17] - 2026-09-25
 
 ### Added
