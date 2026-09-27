@@ -30,6 +30,8 @@
 
 ### Added
 
+- Record the SDK v2 bus contract used by the gateway (ADR 0029). `plugin.Base` is accessor-only. `Profiling()` on that base is the same handle as `Host.Profiling()`. Protocol major 2 uses `GATEWAY_BUS_SOCKET` and `GATEWAY_BUS_CREDS`. Protocol major 1 keeps `GATEWAY_HOST_SOCKET`.
+
 - v2 manifests can declare side-effect capabilities (`credential.secret`,
   `egress.provider`, `process.supervised`, `ingress.publish`). The set is
   closed. `ConsentCapabilities` is the install-sheet list, and
