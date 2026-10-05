@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.1.0] - 2026-10-05
+
+### Added
+
+- Add v2 `project.tasks` and `project.knowledge` provider slots and typed host
+  facades, with generated Go/browser contracts and concrete provider descriptors.
+  Shared project identity, per-user invocation scope, capability and binding
+  fences, durable operation receipts, conflict recovery, lossless migration,
+  and authorized byte transfer cover task and knowledge connectors without
+  vendor payloads or host-local contract copies. Task contracts include server
+  claims, governed completion and native terminal mappings. Knowledge contracts
+  preserve rich source formats, draft/published versions, ordered hierarchy,
+  explicit access and independent rendered/lossless exports. Host-only ingress
+  reservations prevent consumers from calling selected provider plugins directly.
+
+- Keep server-issued task claims out of writable agent metadata. Queued writes
+  require explicit queue support. Migration verification retains logical tenant,
+  project and environment identity, original record identity and verified bytes.
+
 ## [2.0.0] - 2026-09-26
 
 ### Changed

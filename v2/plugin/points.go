@@ -34,6 +34,10 @@ const (
 	// Only the host resolves and dispatches providers. Consumers call the stable
 	// aidecision host facade, never a provider's endpoint directly.
 	PointAIDecision Point = "ai.decision"
+	// PointProjectTasks and PointProjectKnowledge are independently selected
+	// Project Management slots. Only the host resolves and invokes providers.
+	PointProjectTasks     Point = "project.tasks"
+	PointProjectKnowledge Point = "project.knowledge"
 	// PointTerminalPresentation projects a terminal list into the shell.
 	PointTerminalPresentation Point = "terminal.presentation"
 	// PointSettingsSection contributes one section to the settings surface.
@@ -56,6 +60,8 @@ var knownPoints = []Point{
 	PointFilesS3,
 	PointACPProvider,
 	PointAIDecision,
+	PointProjectTasks,
+	PointProjectKnowledge,
 	PointTerminalPresentation,
 	PointSettingsSection,
 	PointSessionBackend,
