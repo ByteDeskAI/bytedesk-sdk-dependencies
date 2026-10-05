@@ -12,11 +12,17 @@ plugin/           Base (embedded, accessor-only), Bind, Plugin, manifest v2, the
 plugin/v1compat/  A v1 plugin.Host implemented over the v2 bus, so v1 plugins run unchanged.
 webapps/          Typed discovery, coding, service, log, preview, and replay contracts.
 aidecision/       Host-resolved decision jobs; generated cross-publisher providers.
+projectmanagement/ Shared project identity, capability fences, offline receipts and migration.
+projecttasks/     Host-resolved task provider contracts and generated descriptors.
+projectknowledge/ Host-resolved knowledge provider contracts and generated descriptors.
 payloads/         Scoped bounded payload uploads and reads.
 provideraccess/   Opaque credentials and named asynchronous provider egress.
 codingsessions/   Durable task sessions, route preview, approvals and dock attachment.
 hostsettings/     External redacted validation with host-owned persistence.
 ```
+
+The [Project Management contract guide](projectmanagement/README.md) explains
+provider discovery, authority checks, offline recovery, and lossless migration.
 
 See [AI_CONTRACTS.md](AI_CONTRACTS.md) for decision/coding ownership rules,
 provider generation commands, limits and host implementation obligations.

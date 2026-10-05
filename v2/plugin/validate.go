@@ -389,13 +389,15 @@ func validateSubjectPatterns(c *collector, m Manifest) {
 			if list.label != "permissions.request" && patternsOverlap(hostCommands, p) {
 				c.add("BDP2115", path, list.label, string(p), string(hostCommands))
 			}
-			// The host alone invokes decision providers. Foreign subscriptions
-			// must not intercept host-minted invocation/payload authorities.
-			providerAI := bus.Pattern("svc.*.ai.decision.>")
-			if patternsOverlap(providerAI, p) {
-				ownService := bus.Pattern("svc." + strings.TrimSpace(m.ID) + ".>")
-				if list.label != "permissions.subscribe" || !ownService.Covers(p) {
-					c.add("BDP2115", path, list.label, string(p), string(providerAI))
+			// Only the host invokes selected providers. Foreign subscriptions
+			// must not intercept host-minted invocation/actor authorities.
+			for _, provider := range []bus.Pattern{"svc.*.ai.decision.>", "svc.*.project.tasks.>", "svc.*.project.knowledge.>"} {
+				if patternsOverlap(provider, p) {
+					ownService := bus.Pattern("svc." + strings.TrimSpace(m.ID) + ".>")
+					if list.label != "permissions.subscribe" || !ownService.Covers(p) {
+						c.add("BDP2115", path, list.label, string(p), string(provider))
+						break
+					}
 				}
 			}
 			for _, g := range own {

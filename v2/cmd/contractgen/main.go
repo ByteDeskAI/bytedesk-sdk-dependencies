@@ -55,16 +55,18 @@ type target struct {
 
 func targets() map[string]target {
 	return map[string]target{
-		"plugin":         {pkg: "plugin", roots: []root{{typ: reflect.TypeOf(plugin.NavigationSnapshot{})}}},
-		"messaging":      messagingTarget(),
-		"sessioncontext": sessionContextTarget(),
-		"webapps":        webAppsTarget(),
-		"consumer":       consumerTarget(),
-		"aidecision":     aiDecisionTarget(),
-		"payloads":       payloadsTarget(),
-		"provideraccess": providerAccessTarget(),
-		"codingsessions": codingSessionsTarget(),
-		"hostsettings":   hostSettingsTarget(),
+		"plugin":           {pkg: "plugin", roots: []root{{typ: reflect.TypeOf(plugin.NavigationSnapshot{})}}},
+		"messaging":        messagingTarget(),
+		"sessioncontext":   sessionContextTarget(),
+		"webapps":          webAppsTarget(),
+		"consumer":         consumerTarget(),
+		"aidecision":       aiDecisionTarget(),
+		"payloads":         payloadsTarget(),
+		"provideraccess":   providerAccessTarget(),
+		"codingsessions":   codingSessionsTarget(),
+		"hostsettings":     hostSettingsTarget(),
+		"projecttasks":     projectTasksTarget(false),
+		"projectknowledge": projectKnowledgeTarget(false),
 	}
 }
 
@@ -299,7 +301,7 @@ func main() {
 	out := flag.String("out", "-", "output file, or - for stdout")
 	emit := flag.String("emit", "dts", "what to emit: dts | js | go | json | descriptors-go | descriptors-js")
 	pkg := flag.String("package", defaultTarget, "which package to emit for")
-	providerID := flag.String("provider-id", "", "generate concrete provider service descriptors (aidecision or hostsettings)")
+	providerID := flag.String("provider-id", "", "generate concrete provider service descriptors (aidecision, hostsettings, projecttasks or projectknowledge)")
 	goPackage := flag.String("go-package", "contracts", "Go package name for provider descriptor output")
 	flag.Parse()
 	fail := func(err error) {

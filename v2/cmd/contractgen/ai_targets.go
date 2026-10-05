@@ -110,24 +110,18 @@ func providerTarget(pkg, id string) (target, error) {
 	case "hostsettings":
 		t = commandTarget(pkg, []contractCommand{{"validate", "Validate", hostsettings.ValidateRequest{}, hostsettings.ValidateResult{}}})
 		point = "host.settings.section"
+	case "projecttasks":
+		t = projectTasksTarget(true)
+		point = "project.tasks"
+	case "projectknowledge":
+		t = projectKnowledgeTarget(true)
+		point = "project.knowledge"
 	default:
-		return target{}, fmt.Errorf("provider generation supports aidecision or hostsettings")
+		return target{}, fmt.Errorf("provider generation supports aidecision, hostsettings, projecttasks or projectknowledge")
 	}
 	for i := range t.ops {
 		op := &t.ops[i]
-		suffix := op.goVar
-		switch suffix {
-		case "Start":
-			suffix = "start"
-		case "Read":
-			suffix = "read"
-		case "Cancel":
-			suffix = "cancel"
-		case "Models":
-			suffix = "models"
-		case "Validate":
-			suffix = "validate"
-		}
+		suffix := op.name
 		op.name = "svc." + id + "." + point + ".v1." + suffix
 		op.subject = op.name
 	}
