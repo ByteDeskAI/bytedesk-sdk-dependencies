@@ -58,3 +58,44 @@ func TestDecisionProvidersHaveHostOnlyIngress(t *testing.T) {
 		t.Fatalf("provider own namespace refused: %+v", c.list)
 	}
 }
+
+func TestProjectProvidersHaveHostOnlyIngress(t *testing.T) {
+	for _, point := range []Point{PointProjectTasks, PointProjectKnowledge} {
+		if !IsKnownPoint(string(point)) {
+			t.Fatalf("missing typed point %s", point)
+		}
+		for _, verb := range []string{"request", "publish", "subscribe"} {
+			for _, pattern := range []bus.Pattern{bus.Pattern("svc.*." + string(point) + ".>"), bus.Pattern("svc.example." + string(point) + ".v1.write")} {
+				m := Manifest{ID: "consumer"}
+				switch verb {
+				case "request":
+					m.Permissions.Request = []bus.Pattern{pattern}
+				case "publish":
+					m.Permissions.Publish = []bus.Pattern{pattern}
+				case "subscribe":
+					m.Permissions.Subscribe = []bus.Pattern{pattern}
+				}
+				var c collector
+				validateSubjectPatterns(&c, m)
+				if len(c.list) == 0 {
+					t.Fatalf("admitted peer %s %s", verb, pattern)
+				}
+			}
+		}
+		// Own service subscriptions are implicit and must not be repeated in
+		// permissions. Merely implementing this point adds no peer authority.
+		m := Manifest{ID: "example"}
+		var c collector
+		validateSubjectPatterns(&c, m)
+		if len(c.list) != 0 {
+			t.Fatalf("rejected own provider subscription: %+v", c.list)
+		}
+	}
+	for _, command := range []bus.Pattern{"cmd.gateway.project-tasks.v1.>", "cmd.gateway.project-knowledge.v1.>"} {
+		var c collector
+		validateSubjectPatterns(&c, Manifest{ID: "container", Permissions: Permissions{Request: []bus.Pattern{command}}})
+		if len(c.list) != 0 {
+			t.Fatalf("rejected host facade %s: %+v", command, c.list)
+		}
+	}
+}

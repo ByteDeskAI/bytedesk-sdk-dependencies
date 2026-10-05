@@ -27,3 +27,21 @@ func TestDiscoveredCommandRequiresExactDescriptorMetadata(t *testing.T) {
 		})
 	}
 }
+
+func TestProjectPointsBindThroughSharedDiscoveryHelper(t *testing.T) {
+	for _, point := range []Point{PointProjectTasks, PointProjectKnowledge} {
+		v := discoveredFixture()
+		name := "svc.demo." + string(point) + ".v1.write"
+		v.Name = name
+		v.Endpoints[0].Name = name
+		v.Endpoints[0].Subject = bus.Subject(name)
+		v.Endpoints[0].Point = string(point)
+		v.Metadata[MetadataContractName] = name
+		if _, err := BindDiscoveredCommand[checkedValue, checkedValue](v, "demo", point, "write", 1); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := BindDiscoveredCommand[checkedValue, checkedValue](v, "other", point, "write", 1); err == nil {
+			t.Fatal("discovery retargeted provider")
+		}
+	}
+}
